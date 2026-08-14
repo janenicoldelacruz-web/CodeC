@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\TeacherDashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -28,20 +29,20 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 */
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    // Smart fallback route for components/layouts pointing to route('dashboard')
+    // Smart fallback route for /dashboard
     Route::get('/dashboard', function () {
         $user = auth()->user();
         $roleName = is_object($user->role) ? $user->role->name : $user->role;
 
         return match ($roleName) {
-            'admin' => redirect()->route('admin.dashboard'),
+            'admin'   => redirect()->route('admin.dashboard'),
             'teacher' => redirect()->route('teacher.dashboard'),
             'student' => redirect()->route('student.dashboard'),
-            default => redirect('/'),
+            default   => redirect('/'),
         };
     })->name('dashboard');
 
-    // User Profile Management (Breeze)
+    // Profile Management
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -67,11 +68,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         })->name('reports');
     });
 
-    // 2. Teacher Portal Routes
+    // 2. Teacher / Faculty Portal Routes
     Route::middleware(['role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('teacher.dashboard');
-        })->name('dashboard');
+        Route::get('/dashboard', [TeacherDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/absence-reporting', [TeacherDashboardController::class, 'absenceReporting'])->name('absence.reporting');
+        Route::get('/evaluation-report', [TeacherDashboardController::class, 'evaluationReport'])->name('evaluation.report');
     });
 
     // 3. Student Portal Routes

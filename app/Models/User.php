@@ -10,19 +10,19 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-protected $fillable = [
-    'id_number',
-    'first_name',
-    'last_name',
-    'email',
-    'role_id',
-    'nfc_tag_id',
-    'phone_number',
-    'parent_phone_number',
-    'grade_level',
-    'strand',
-    'password',
-];
+    protected $fillable = [
+        'id_number',
+        'role_id',
+        'first_name',
+        'last_name',
+        'email',
+        'password',
+        'phone_number',
+        'parent_phone_number',
+        'grade_level',
+        'strand',
+        'is_active',
+    ];
 
     protected $hidden = [
         'password',
@@ -36,10 +36,9 @@ protected $fillable = [
 
     /*
     |--------------------------------------------------------------------------
-    | Role
+    | Role Relationship
     |--------------------------------------------------------------------------
     */
-
     public function role()
     {
         return $this->belongsTo(Role::class, 'role_id');
@@ -47,10 +46,9 @@ protected $fillable = [
 
     /*
     |--------------------------------------------------------------------------
-    | NFC Card
+    | NFC Card Relationship
     |--------------------------------------------------------------------------
     */
-
     public function nfcCard()
     {
         return $this->hasOne(NfcCard::class, 'user_id');
@@ -58,10 +56,9 @@ protected $fillable = [
 
     /*
     |--------------------------------------------------------------------------
-    | Academic Sections
+    | Academic Sections Relationship
     |--------------------------------------------------------------------------
     */
-
     public function sections()
     {
         return $this->belongsToMany(
@@ -74,10 +71,9 @@ protected $fillable = [
 
     /*
     |--------------------------------------------------------------------------
-    | Attendance
+    | Attendance Relationship
     |--------------------------------------------------------------------------
     */
-
     public function attendanceLogs()
     {
         return $this->hasMany(
