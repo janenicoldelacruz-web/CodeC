@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
 class TeacherDashboardController extends Controller
@@ -38,7 +39,6 @@ class TeacherDashboardController extends Controller
         $attendanceLogs = $students->map(function ($student, $index) {
             $log = null;
 
-            // Ligtas na pag-query gamit ang try-catch
             try {
                 if (Schema::hasTable('attendance_logs')) {
                     $attendanceQuery = DB::table('attendance_logs');
@@ -64,7 +64,6 @@ class TeacherDashboardController extends Controller
                 $timeIn = Carbon::parse($timeField)->format('h:i A');
                 $status = strtoupper($log->status ?? 'ON-TIME');
             } else {
-                // Dynamic preview base sa sample data
                 $statuses = ['ON-TIME', 'LATE', 'ABSENT', 'ON-TIME'];
                 $times    = ['8:05 AM', '8:30 AM', '9:00 AM', '8:10 AM'];
                 $status   = $statuses[$index % count($statuses)];
@@ -81,14 +80,16 @@ class TeacherDashboardController extends Controller
             ];
         });
 
-        $activeClasses = [
-            (object) [
+        $defaultClasses = [
+            1 => [
+                'id'      => 1,
                 'title'   => 'Programming 1 - Grade 11 - B',
                 'subject' => 'Information & Communications Technology',
                 'time'    => '8:00 AM - 9:30 AM',
                 'room'    => 'Computer Lab 1',
             ],
-            (object) [
+            2 => [
+                'id'      => 2,
                 'title'   => 'Empowerment Technologies - Grade 12 - A',
                 'subject' => 'Applied Subject Area',
                 'time'    => '10:00 AM - 11:30 AM',
@@ -96,7 +97,102 @@ class TeacherDashboardController extends Controller
             ],
         ];
 
+        $storedClasses = session('custom_active_classes', $defaultClasses);
+        $activeClasses = collect($storedClasses)->map(fn($item) => (object)$item);
+
         return view('teacher.dashboard', compact('attendanceLogs', 'activeClasses', 'selectedStrand', 'search'));
+    }
+
+    /**
+     * Update Class Schedule Details
+     */
+    public function updateSchedule(Request $request)
+    {
+        $request->validate([
+            'class_id' => 'required',
+            'title'    => 'required|string|max:255',
+            'subject'  => 'required|string|max:255',
+            'time'     => 'required|string|max:100',
+            'room'     => 'required|string|max:100',
+        ]);
+
+        $defaultClasses = [
+            1 => [
+                'id'      => 1,
+                'title'   => 'Programming 1 - Grade 11 - B',
+                'subject' => 'Information & Communications Technology',
+                'time'    => '8:00 AM - 9:30 AM',
+                'room'    => 'Computer Lab 1',
+            ],
+            2 => [
+                'id'      => 2,
+                'title'   => 'Empowerment Technologies - Grade 12 - A',
+                'subject' => 'Applied Subject Area',
+                'time'    => '10:00 AM - 11:30 AM',
+                'room'    => 'Room 204',
+            ],
+        ];
+
+        $activeClasses = session('custom_active_classes', $defaultClasses);
+        $classId = (int) $request->class_id;
+
+        $activeClasses[$classId] = [
+            'id'      => $classId,
+            'title'   => $request->title,
+            'subject' => $request->subject,
+            'time'    => $request->time,
+            'room'    => $request->room,
+        ];
+
+        session(['custom_active_classes' => $activeClasses]);
+
+        return redirect()->route('teacher.dashboard')->with('success', 'Class details updated successfully!');
+    }
+
+   /**
+     * Update Faculty Profile & Profile Picture
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = auth()->user();
+
+        $request->validate([
+            'first_name'      => ['required', 'string', 'max:255'],
+            'last_name'       => ['required', 'string', 'max:255'],
+            'email'           => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'phone_number'    => ['nullable', 'string', 'max:20'],
+            'profile_picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'password'        => ['nullable', 'string', 'min:6', 'confirmed'],
+        ]);
+
+        $user->first_name   = $request->first_name;
+        $user->last_name    = $request->last_name;
+        $user->email        = $request->email;
+        $user->phone_number = $request->phone_number;
+
+        // Upload Profile Picture kung may pinili
+        if ($request->hasFile('profile_picture')) {
+            $file = $request->file('profile_picture');
+            $filename = 'faculty_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            
+            // I-save sa public/uploads/profiles directory
+            $file->move(public_path('uploads/profiles'), $filename);
+            $photoPath = 'uploads/profiles/' . $filename;
+
+            // I-save sa database column kung meron, at sa session para sigurado
+            if (Schema::hasColumn('users', 'profile_picture')) {
+                $user->profile_picture = $photoPath;
+            }
+            session(['faculty_avatar_' . $user->id => $photoPath]);
+        }
+
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+
+        return back()->with('success', 'Faculty profile and photo updated successfully!');
     }
 
     /**

@@ -1,137 +1,420 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SIATRACK - Admin Dashboard</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - SIATRACK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .slanted-pill { transform: skewX(-20deg); }
+    </style>
 </head>
-<body class="bg-slate-50 min-h-screen font-sans antialiased flex m-0 p-0 overflow-x-hidden text-gray-800">
 
-    <!-- Reusable Sidebar Component -->
-    @include('layouts.sidebar')
+<body class="bg-[#fcfbfb] text-gray-800 antialiased min-h-screen flex">
 
-    <!-- Main Content Area -->
-    <div class="ml-64 flex-1 flex flex-col min-h-screen">
-        
-        <!-- Top Header Bar -->
-        <header class="bg-white border-b border-red-100 px-8 py-4 flex items-center justify-between sticky top-0 z-20 shadow-2xs">
-            <h1 class="text-xl font-extrabold text-gray-900 tracking-tight">Admin Dashboard</h1>
-            <div class="flex items-center gap-4">
-                <button class="relative text-gray-500 hover:text-red-600 transition p-2 rounded-lg hover:bg-red-50">
-                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                </button>
-                <div class="h-6 w-px bg-gray-200"></div>
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-red-100 text-red-700 font-bold flex items-center justify-center text-sm shadow-2xs">A</div>
-                    <span class="text-sm font-semibold text-gray-700">Admin Profile</span>
+    @php
+        $user = auth()->user();
+        $avatarPath = $user->profile_picture ?? session('admin_avatar_' . $user->id);
+    @endphp
+
+    <!-- ==================== SIDEBAR ==================== -->
+    <aside class="w-64 bg-white border-r border-red-100 flex flex-col justify-between shrink-0 h-screen sticky top-0">
+        <div>
+            <!-- Branding Header -->
+            <div class="p-6 pb-5 border-b border-gray-100">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl font-black tracking-tight text-[#b91c1c]">SIATRACK</span>
+                    <i class="fa-solid fa-wifi rotate-45 text-[#b91c1c] text-lg"></i>
                 </div>
+                <p class="text-[11px] font-semibold text-gray-400 mt-0.5">
+                    Southern Isabela Academy
+                </p>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="p-4 space-y-2 text-sm font-semibold">
+                <a href="{{ route('admin.dashboard') }}" 
+                   class="flex items-center gap-3 px-4 py-3 bg-[#cf2e2e] text-white rounded-2xl shadow-sm transition">
+                    <i class="fa-solid fa-gauge text-sm"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="{{ route('admin.users.index') }}" 
+                   class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-2xl transition">
+                    <i class="fa-solid fa-users text-sm"></i>
+                    <span>User Management</span>
+                </a>
+
+                <a href="{{ route('admin.attendance') }}" 
+                   class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-2xl transition">
+                    <i class="fa-solid fa-clipboard-user text-sm"></i>
+                    <span>Attendance Records</span>
+                </a>
+
+                <a href="{{ route('admin.evaluations') }}" 
+                   class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-2xl transition">
+                    <i class="fa-solid fa-chart-pie text-sm"></i>
+                    <span>Faculty Evaluation Mgmt</span>
+                </a>
+
+                <a href="{{ route('admin.reports') }}" 
+                   class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-2xl transition">
+                    <i class="fa-solid fa-file-waveform text-sm"></i>
+                    <span>Report Generation</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Admin Profile Footer Button -->
+        <div class="p-4 border-t border-gray-100 bg-gray-50/60">
+            <div class="flex items-center justify-between">
+                <button type="button" onclick="openAdminProfileModal()" class="flex items-center gap-3 text-left group">
+                    <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-red-200 group-hover:border-red-500 transition shrink-0 bg-red-100 flex items-center justify-center">
+                        @if($avatarPath && file_exists(public_path($avatarPath)))
+                            <img src="{{ asset($avatarPath) }}" alt="Avatar" class="w-full h-full object-cover">
+                        @else
+                            <span class="font-black text-sm text-red-600">
+                                {{ strtoupper(substr($user->first_name ?? 'A', 0, 1)) }}
+                            </span>
+                        @endif
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-xs font-bold text-gray-800 truncate group-hover:text-red-600 transition">
+                            {{ $user->first_name ?? 'Administrator' }} {{ $user->last_name ?? '' }}
+                        </p>
+                        <p class="text-[10px] text-red-600 font-bold uppercase tracking-wider">System Admin</p>
+                    </div>
+                </button>
+
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" title="Logout" class="text-gray-400 hover:text-red-600 p-1.5 transition">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <main class="flex-1 flex flex-col min-w-0">
+        
+        <!-- Header -->
+        <header class="bg-white border-b border-red-100 px-8 py-4 flex items-center justify-between sticky top-0 z-20 shadow-xs">
+            <h1 class="text-2xl font-black text-gray-900 tracking-tight">Admin Dashboard</h1>
+
+            <!-- Functional Admin Profile Trigger & Bell -->
+            <div class="flex items-center gap-4">
+                <button type="button" 
+                        onclick="openAdminProfileModal()" 
+                        class="flex items-center gap-2.5 text-sm font-bold text-gray-900 hover:text-red-600 cursor-pointer transition bg-gray-50 px-3.5 py-1.5 rounded-full border border-gray-200 hover:border-red-300">
+                    <div class="w-6 h-6 rounded-full overflow-hidden bg-red-100 flex items-center justify-center text-[11px] font-bold text-red-600 shrink-0">
+                        @if($avatarPath && file_exists(public_path($avatarPath)))
+                            <img src="{{ asset($avatarPath) }}" alt="Avatar" class="w-full h-full object-cover">
+                        @else
+                            {{ strtoupper(substr($user->first_name ?? 'A', 0, 1)) }}
+                        @endif
+                    </div>
+                    <span>Admin Profile</span>
+                </button>
+
+                <button type="button" 
+                        onclick="alert('No new administrative alerts.')"
+                        class="relative text-gray-800 hover:text-red-600 transition text-lg p-1.5 rounded-full hover:bg-gray-100">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="absolute top-1 right-1 w-2 h-2 bg-red-600 rounded-full"></span>
+                </button>
             </div>
         </header>
 
-        <!-- Dashboard Content -->
-        <main class="p-8 max-w-7xl mx-auto w-full">
+        <div class="p-8 space-y-8 max-w-7xl w-full">
+
+            @if(session('success'))
+                <div class="p-4 bg-green-50 border border-green-200 text-green-700 font-bold rounded-2xl flex items-center gap-3">
+                    <i class="fa-solid fa-circle-check text-green-600 text-lg"></i>
+                    <span>{{ session('success') }}</span>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="p-4 bg-red-50 border border-red-200 text-red-700 font-bold rounded-2xl">
+                    <ul class="list-disc list-inside text-xs">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <!-- KPI SUMMARY CARDS (Figure 13) -->
+            <section class="space-y-3">
+                <h2 class="text-base font-extrabold text-gray-900">KPI Summary Cards</h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <!-- Total Students -->
+                    <div class="bg-white border-2 border-red-300 rounded-3xl p-5 relative shadow-xs flex flex-col justify-between">
+                        <div class="absolute -top-3 left-6 bg-white px-3 border-t-2 border-x-2 border-red-300 rounded-t-lg h-3"></div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-full border-2 border-gray-900 flex items-center justify-center text-gray-800 text-lg">
+                                <i class="fa-regular fa-user"></i>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-black text-gray-900">{{ $totalStudents ?? '550' }}</p>
+                                <p class="text-xs text-gray-500 font-bold">Total Students Enrolled</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Daily Attendance Rate -->
+                    <div class="bg-white border-2 border-red-300 rounded-3xl p-5 relative shadow-xs flex flex-col justify-between">
+                        <div class="absolute -top-3 left-6 bg-white px-3 border-t-2 border-x-2 border-red-300 rounded-t-lg h-3"></div>
+                        <div class="flex items-center gap-3">
+                            <div class="border border-red-300 rounded-lg p-1.5 text-center w-12 h-12 flex flex-col items-center justify-center bg-gray-50">
+                                <span class="text-xs font-black text-red-600">{{ date('d') }}</span>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-black text-gray-900">94.7%</p>
+                                <p class="text-xs text-gray-500 font-bold">Daily Attendance Rate</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Faculty Evaluation Progress -->
+                    <div class="bg-white border-2 border-red-300 rounded-3xl p-5 relative shadow-xs flex flex-col justify-between">
+                        <div class="absolute -top-3 left-6 bg-white px-3 border-t-2 border-x-2 border-red-300 rounded-t-lg h-3"></div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-full bg-red-50 text-red-600 border border-red-200 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-clipboard-check"></i>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-black text-gray-900">78%</p>
+                                <p class="text-xs text-gray-500 font-bold">Evaluation Progress</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active SMS Today -->
+                    <div class="bg-white border-2 border-red-300 rounded-3xl p-5 relative shadow-xs flex flex-col justify-between">
+                        <div class="absolute -top-3 left-6 bg-white px-3 border-t-2 border-x-2 border-red-300 rounded-t-lg h-3"></div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-comment-sms"></i>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-black text-gray-900">{{ $activeSMS ?? '112' }}</p>
+                                <p class="text-xs text-gray-500 font-bold">Active SMS Today</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- REAL-TIME ACTIVITY FEED (Figure 13) -->
+            <section class="space-y-3">
+                <div class="bg-white border-2 border-red-300 rounded-3xl p-6 shadow-xs relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-base font-extrabold text-gray-900">
+                            Real-Time Activity Feed: Live Attendance Stream
+                        </h2>
+                        <span class="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-bold">
+                            Live Sync Active
+                        </span>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-xl">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-gray-800 text-white font-bold uppercase tracking-wider">
+                                    <th class="py-3 px-4">Student Name</th>
+                                    <th class="py-3 px-4 text-center">Grade / Section</th>
+                                    <th class="py-3 px-4 text-center">Time In</th>
+                                    <th class="py-3 px-4 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 font-medium text-gray-900 bg-[#f3f4f6]">
+                                <tr class="hover:bg-gray-200 transition">
+                                    <td class="py-2.5 px-4 font-bold">Jane Nicol Dela Cruz</td>
+                                    <td class="py-2.5 px-4 text-center">12 - STEM A</td>
+                                    <td class="py-2.5 px-4 text-center font-bold">7:15 AM</td>
+                                    <td class="py-2.5 px-4 text-center"><span class="bg-green-500 text-white px-3 py-0.5 rounded-full text-[10px] font-black">On-Time</span></td>
+                                </tr>
+                                <tr class="hover:bg-gray-200 transition">
+                                    <td class="py-2.5 px-4 font-bold">Ceazar Muaa Rodolfo</td>
+                                    <td class="py-2.5 px-4 text-center">11 - HUMSS B</td>
+                                    <td class="py-2.5 px-4 text-center font-bold">7:18 AM</td>
+                                    <td class="py-2.5 px-4 text-center"><span class="bg-green-500 text-white px-3 py-0.5 rounded-full text-[10px] font-black">On-Time</span></td>
+                                </tr>
+                                <tr class="hover:bg-gray-200 transition">
+                                    <td class="py-2.5 px-4 font-bold">Marco Manlapaz</td>
+                                    <td class="py-2.5 px-4 text-center">12 - ABM A</td>
+                                    <td class="py-2.5 px-4 text-center font-bold">7:25 AM</td>
+                                    <td class="py-2.5 px-4 text-center"><span class="bg-green-500 text-white px-3 py-0.5 rounded-full text-[10px] font-black">On-Time</span></td>
+                                </tr>
+                                <tr class="hover:bg-gray-200 transition">
+                                    <td class="py-2.5 px-4 font-bold">Eliza Peralta</td>
+                                    <td class="py-2.5 px-4 text-center">11 - GAS A</td>
+                                    <td class="py-2.5 px-4 text-center font-bold">7:30 AM</td>
+                                    <td class="py-2.5 px-4 text-center"><span class="bg-green-500 text-white px-3 py-0.5 rounded-full text-[10px] font-black">On-Time</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex justify-end gap-2 mt-5">
+                        <span class="w-7 h-3.5 bg-[#881337] rounded-sm slanted-pill"></span>
+                        <span class="w-7 h-3.5 bg-[#881337] rounded-sm slanted-pill"></span>
+                        <span class="w-7 h-3.5 bg-[#881337] rounded-sm slanted-pill"></span>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- ==================== ADMIN PROFILE MODAL ==================== -->
+    <div id="adminProfileModal" class="fixed inset-0 z-50 bg-black/60 hidden items-center justify-center p-4 backdrop-blur-xs">
+        <div class="bg-white rounded-3xl max-w-xl w-full p-6 border-2 border-red-300 shadow-2xl relative animate-in fade-in zoom-in duration-150">
             
-            <div class="mb-6">
-                <h2 class="text-base font-bold text-gray-900">KPI Summary Cards</h2>
+            <div class="flex justify-between items-center pb-4 border-b border-gray-100">
+                <div class="flex items-center gap-4">
+                    <!-- Interactive Photo Click -->
+                    <div class="relative group cursor-pointer" onclick="document.getElementById('admin_picture_input').click()" title="Click to upload profile photo">
+                        <div class="w-14 h-14 rounded-full overflow-hidden bg-red-600 text-white flex items-center justify-center font-black text-xl border-2 border-red-400 shadow-md">
+                            <img id="admin_preview_img" 
+                                 src="{{ ($avatarPath && file_exists(public_path($avatarPath))) ? asset($avatarPath) : '' }}" 
+                                 alt="Avatar" 
+                                 class="{{ ($avatarPath && file_exists(public_path($avatarPath))) ? 'block' : 'hidden' }} w-full h-full object-cover">
+                            
+                            <span id="admin_initial_span" class="{{ ($avatarPath && file_exists(public_path($avatarPath))) ? 'hidden' : 'block' }}">
+                                {{ strtoupper(substr($user->first_name ?? 'A', 0, 1)) }}
+                            </span>
+                        </div>
+                        
+                        <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-150">
+                            <i class="fa-solid fa-camera text-white text-sm"></i>
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 bg-white text-red-600 w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center text-[10px] shadow-xs">
+                            <i class="fa-solid fa-pen"></i>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-base font-black text-gray-900">Administrator Profile & Settings</h3>
+                        <p class="text-xs text-gray-500 font-medium">Southern Isabela Academy &bull; System Administration</p>
+                        <button type="button" 
+                                onclick="document.getElementById('admin_picture_input').click()" 
+                                class="text-[11px] font-bold text-red-600 hover:underline mt-0.5 flex items-center gap-1">
+                            <i class="fa-solid fa-upload text-[10px]"></i> Change Profile Picture
+                        </button>
+                    </div>
+                </div>
+
+                <button type="button" onclick="closeAdminProfileModal()" class="text-gray-400 hover:text-gray-700 text-xl p-1">
+                    &times;
+                </button>
             </div>
 
-            <!-- KPI Summary Cards Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <form method="POST" action="{{ route('admin.profile.update') }}" enctype="multipart/form-data" class="space-y-4 mt-4">
+                @csrf
                 
-                <div class="bg-white p-6 rounded-2xl border border-red-100 shadow-2xs hover:shadow-md hover:border-red-300 transition-all duration-300 flex flex-col justify-between group">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-orange-50 text-orange-500 group-hover:scale-105 transition-transform flex items-center justify-center">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                        </div>
+                <!-- Hidden file input for Photo -->
+                <input type="file" 
+                       id="admin_picture_input" 
+                       name="profile_picture" 
+                       accept="image/*" 
+                       class="hidden" 
+                       onchange="previewAdminImage(event)">
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">First Name</label>
+                        <input type="text" name="first_name" value="{{ $user->first_name }}" required
+                               class="w-full text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
                     </div>
                     <div>
-                        <h3 class="text-3xl font-black text-gray-900 tracking-tight">{{ number_format($totalStudents ?? 0) }}</h3>
-                        <p class="text-xs font-bold text-gray-400 mt-1 uppercase tracking-wider">Total Students Enrolled</p>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Last Name</label>
+                        <input type="text" name="last_name" value="{{ $user->last_name }}" required
+                               class="w-full text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl border border-red-100 shadow-2xs hover:shadow-md hover:border-red-300 transition-all duration-300 flex flex-col justify-between group">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 group-hover:scale-105 transition-transform flex items-center justify-center font-bold">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Email Address</label>
+                        <input type="email" name="email" value="{{ $user->email }}" required
+                               class="w-full text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
                     </div>
                     <div>
-                        <h3 class="text-3xl font-black text-gray-900 tracking-tight">{{ $attendanceRate ?? '0.0' }}%</h3>
-                        <p class="text-xs font-bold text-gray-400 mt-1 uppercase tracking-wider">Daily Attendance Rate</p>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Contact Phone</label>
+                        <input type="text" name="phone_number" value="{{ $user->phone_number }}"
+                               placeholder="e.g. 09123456789"
+                               class="w-full text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl border border-red-100 shadow-2xs hover:shadow-md hover:border-red-300 transition-all duration-300 flex flex-col justify-between group">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 group-hover:scale-105 transition-transform flex items-center justify-center">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-3">
+                    <p class="text-xs font-bold text-gray-800">Change Password (leave blank if unchanged)</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <input type="password" name="password" placeholder="New Password"
+                                   class="w-full text-xs font-semibold px-4 py-2 rounded-lg border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none bg-white">
+                        </div>
+                        <div>
+                            <input type="password" name="password_confirmation" placeholder="Confirm Password"
+                                   class="w-full text-xs font-semibold px-4 py-2 rounded-lg border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none bg-white">
                         </div>
                     </div>
-                    <div>
-                        <h3 class="text-2xl font-black text-gray-900 tracking-tight">{{ $evaluationProgress ?? '0' }}% <span class="text-xs font-semibold text-gray-400">Completed</span></h3>
-                        <p class="text-xs font-bold text-gray-400 mt-1 uppercase tracking-wider">Faculty Evaluation Progress</p>
-                    </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl border border-red-100 shadow-2xs hover:shadow-md hover:border-red-300 transition-all duration-300 flex flex-col justify-between group">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 group-hover:scale-105 transition-transform flex items-center justify-center">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-3xl font-black text-gray-900 tracking-tight">{{ $activeSmsCount ?? 0 }}</h3>
-                        <p class="text-xs font-bold text-gray-400 mt-1 uppercase tracking-wider">Active SMS Today</p>
-                    </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                    <button type="button" onclick="closeAdminProfileModal()" 
+                            class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-bold transition">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black shadow-md transition">
+                        Save Profile
+                    </button>
                 </div>
-
-            </div>
-
-            <!-- Real-Time Activity Feed Table Card -->
-            <div class="bg-white rounded-2xl border border-red-200 shadow-2xs p-6">
-                <div class="mb-4">
-                    <h2 class="text-base font-bold text-gray-900">Real-Time Activity Feed: Live Attendance Stream</h2>
-                </div>
-
-                <div class="overflow-x-auto rounded-xl border border-gray-100">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-red-50/60 text-red-900 text-xs font-bold uppercase tracking-wider border-b border-red-100">
-                                <th class="py-3.5 px-4">Student Name</th>
-                                <th class="py-3.5 px-4">Grade/Section</th>
-                                <th class="py-3.5 px-4">Time In</th>
-                                <th class="py-3.5 px-4">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100 text-xs text-gray-700 font-medium">
-                            @forelse($liveAttendances ?? [] as $index => $attendance)
-                                <tr class="{{ $index % 2 == 0 ? 'bg-white' : 'bg-slate-50/50' }} hover:bg-red-50/30 transition">
-                                    <td class="py-3.5 px-4 font-bold text-gray-900">{{ $attendance->student->name ?? 'Unknown Student' }}</td>
-                                    <td class="py-3.5 px-4 text-gray-500">{{ $attendance->student->grade_section ?? 'N/A' }}</td>
-                                    <td class="py-3.5 px-4 text-gray-600">{{ \Carbon\Carbon::parse($attendance->time_in)->format('h:i A') }}</td>
-                                    <td class="py-3.5 px-4">
-                                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 font-semibold rounded-full border border-emerald-200/60 text-[10px]">
-                                            {{ $attendance->status ?? 'On-Time' }}
-                                        </span>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="py-10 text-center text-gray-400 text-sm font-medium">
-                                        No live attendance logs recorded yet.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-        </main>
+            </form>
+        </div>
     </div>
 
+    <!-- Scripts -->
+    <script>
+        function openAdminProfileModal() {
+            const modal = document.getElementById('adminProfileModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeAdminProfileModal() {
+            const modal = document.getElementById('adminProfileModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function previewAdminImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('admin_preview_img');
+                    const initial = document.getElementById('admin_initial_span');
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                    img.classList.add('block');
+                    if (initial) {
+                        initial.classList.add('hidden');
+                        initial.classList.remove('block');
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
 </body>
 </html>

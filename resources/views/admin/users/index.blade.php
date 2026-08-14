@@ -1,1034 +1,306 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Management - SIATRACK</title>
-
-    @vite([
-        'resources/css/app.css',
-        'resources/js/app.js'
-    ])
-
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
 </head>
 
+<body class="bg-[#fcfbfb] text-gray-800 antialiased min-h-screen flex">
 
-<body class="bg-gray-50">
-
-
-    {{-- SIDEBAR --}}
-
-    @include('layouts.sidebar')
-
-
-    {{-- MAIN CONTENT --}}
-
-    <main class="ml-64 min-h-screen">
-
-
-        {{-- HEADER --}}
-
-        <header class="bg-white border-b border-gray-200">
-
-            <div class="px-8 py-6">
-
-                <div class="flex items-center justify-between">
-
-                    <div>
-
-                        <h1
-                            class="text-2xl
-                                   font-bold
-                                   text-gray-900"
-                        >
-                            User Management
-                        </h1>
-
-                        <p
-                            class="mt-1
-                                   text-sm
-                                   text-gray-500"
-                        >
-                            Manage users and their account information.
-                        </p>
-
+    <!-- ==================== SIDEBAR ==================== -->
+    @if(view()->exists('layouts.sidebar'))
+        @include('layouts.sidebar')
+    @else
+        <aside class="w-64 bg-white border-r border-red-100 flex flex-col justify-between shrink-0 h-screen sticky top-0">
+            <div>
+                <div class="p-6 pb-5 border-b border-gray-100">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl font-black tracking-tight text-[#b91c1c]">SIATRACK</span>
+                        <i class="fa-solid fa-wifi rotate-45 text-[#b91c1c] text-lg"></i>
                     </div>
-
-
-                    {{-- ADD USER --}}
-
-                    <a
-                        href="{{ route('admin.users.create') }}"
-                        class="inline-flex
-                               items-center
-                               gap-2
-                               px-5
-                               py-3
-                               bg-red-600
-                               hover:bg-red-700
-                               text-white
-                               rounded-xl
-                               text-sm
-                               font-semibold
-                               transition"
-                    >
-
-                        <svg
-                            class="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M12 4v16m8-8H4"
-                            />
-
-                        </svg>
-
-                        Add New User
-
-                    </a>
-
+                    <p class="text-[11px] font-semibold text-gray-400 mt-0.5">Southern Isabela Academy</p>
                 </div>
-
+                <nav class="p-4 space-y-2 text-sm font-semibold">
+                    <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-2xl transition">
+                        <i class="fa-solid fa-gauge text-sm"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 px-4 py-3 bg-[#cf2e2e] text-white rounded-2xl shadow-sm transition">
+                        <i class="fa-solid fa-users text-sm"></i>
+                        <span>User Management</span>
+                    </a>
+                    <a href="{{ route('admin.attendance') }}" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-2xl transition">
+                        <i class="fa-solid fa-clipboard-user text-sm"></i>
+                        <span>Attendance Records</span>
+                    </a>
+                </nav>
             </div>
+            <div class="p-4 border-t border-gray-100 bg-gray-50">
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="w-full flex items-center justify-center gap-2 py-2 text-xs font-bold text-gray-600 hover:text-red-600 transition">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
+                </form>
+            </div>
+        </aside>
+    @endif
 
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <main class="flex-1 flex flex-col min-w-0">
+        
+        <!-- Header -->
+        <header class="bg-white border-b border-red-100 px-8 py-4 flex items-center justify-between sticky top-0 z-20 shadow-xs">
+            <h1 class="text-2xl font-black text-gray-900 tracking-tight">User Management</h1>
+            <div class="flex items-center gap-4">
+                <a href="{{ route('admin.users.create') }}" 
+                   class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus"></i> Add New User
+                </a>
+            </div>
         </header>
 
+        <div class="p-8 space-y-6 max-w-7xl w-full">
 
-        {{-- PAGE CONTENT --}}
-
-        <div class="p-8">
-
-
-            {{-- SUCCESS MESSAGE --}}
-
+            <!-- Alerts -->
             @if(session('success'))
-
-                <div
-                    class="mb-6
-                           flex
-                           items-center
-                           gap-3
-                           rounded-xl
-                           border border-green-200
-                           bg-green-50
-                           px-5
-                           py-4
-                           text-sm
-                           text-green-700"
-                >
-
-                    <svg
-                        class="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M5 13l4 4L19 7"
-                        />
-
-                    </svg>
-
-                    {{ session('success') }}
-
+                <div class="p-4 bg-green-50 border border-green-200 text-green-700 font-bold rounded-2xl flex items-center gap-3">
+                    <i class="fa-solid fa-circle-check text-green-600 text-lg"></i>
+                    <span>{{ session('success') }}</span>
                 </div>
-
             @endif
 
-
-            {{-- STATISTICS --}}
-
-            <div
-                class="grid
-                       grid-cols-1
-                       sm:grid-cols-2
-                       lg:grid-cols-4
-                       gap-5
-                       mb-8"
-            >
-
-
-                {{-- TOTAL --}}
-
-                <div
-                    class="bg-white
-                           border border-gray-200
-                           rounded-2xl
-                           p-5
-                           shadow-sm"
-                >
-
-                    <p
-                        class="text-sm
-                               text-gray-500"
-                    >
-                        Total Users
-                    </p>
-
-                    <p
-                        class="mt-2
-                               text-3xl
-                               font-bold
-                               text-gray-900"
-                    >
-                        {{ $totalUsers }}
-                    </p>
-
+            @if($errors->any())
+                <div class="p-4 bg-red-50 border border-red-200 text-red-700 font-bold rounded-2xl">
+                    <ul class="list-disc list-inside text-xs">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
+            @endif
 
-
-                {{-- STUDENTS --}}
-
-                <div
-                    class="bg-white
-                           border border-gray-200
-                           rounded-2xl
-                           p-5
-                           shadow-sm"
-                >
-
-                    <p
-                        class="text-sm
-                               text-gray-500"
-                    >
-                        Students
-                    </p>
-
-                    <p
-                        class="mt-2
-                               text-3xl
-                               font-bold
-                               text-gray-900"
-                    >
-                        {{ $studentCount }}
-                    </p>
-
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="bg-white border border-gray-200 p-4 rounded-2xl shadow-2xs">
+                    <p class="text-xs font-bold text-gray-500">Total Users</p>
+                    <p class="text-2xl font-black text-gray-900 mt-1">{{ $totalUsers }}</p>
                 </div>
-
-
-                {{-- TEACHERS --}}
-
-                <div
-                    class="bg-white
-                           border border-gray-200
-                           rounded-2xl
-                           p-5
-                           shadow-sm"
-                >
-
-                    <p
-                        class="text-sm
-                               text-gray-500"
-                    >
-                        Teachers
-                    </p>
-
-                    <p
-                        class="mt-2
-                               text-3xl
-                               font-bold
-                               text-gray-900"
-                    >
-                        {{ $teacherCount }}
-                    </p>
-
+                <div class="bg-white border border-gray-200 p-4 rounded-2xl shadow-2xs">
+                    <p class="text-xs font-bold text-gray-500">Students</p>
+                    <p class="text-2xl font-black text-blue-600 mt-1">{{ $studentCount }}</p>
                 </div>
-
-
-                {{-- ACTIVE --}}
-
-                <div
-                    class="bg-white
-                           border border-gray-200
-                           rounded-2xl
-                           p-5
-                           shadow-sm"
-                >
-
-                    <p
-                        class="text-sm
-                               text-gray-500"
-                    >
-                        Active Users
-                    </p>
-
-                    <p
-                        class="mt-2
-                               text-3xl
-                               font-bold
-                               text-green-600"
-                    >
-                        {{ $activeUsers }}
-                    </p>
-
+                <div class="bg-white border border-gray-200 p-4 rounded-2xl shadow-2xs">
+                    <p class="text-xs font-bold text-gray-500">Faculty / Teachers</p>
+                    <p class="text-2xl font-black text-red-600 mt-1">{{ $teacherCount }}</p>
                 </div>
-
+                <div class="bg-white border border-gray-200 p-4 rounded-2xl shadow-2xs">
+                    <p class="text-xs font-bold text-gray-500">Active Accounts</p>
+                    <p class="text-2xl font-black text-green-600 mt-1">{{ $activeUsers }}</p>
+                </div>
             </div>
 
-
-            {{-- SEARCH / FILTERS --}}
-
-            <div
-                class="bg-white
-                       border border-gray-200
-                       rounded-2xl
-                       p-5
-                       shadow-sm
-                       mb-6"
-            >
-
-                <form
-                    method="GET"
-                    action="{{ route('admin.users.index') }}"
-                    class="flex flex-col xl:flex-row gap-3"
-                >
-
-
-                    {{-- SEARCH --}}
-
-                    <div class="relative flex-1">
-
-                        <svg
-                            class="absolute
-                                   left-4
-                                   top-1/2
-                                   -translate-y-1/2
-                                   w-5
-                                   h-5
-                                   text-gray-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0z"
-                            />
-
-                        </svg>
-
-
-                        <input
-                            type="text"
-                            name="search"
-                            value="{{ request('search') }}"
-                            placeholder="Search ID, name, or email..."
-                            class="w-full
-                                   pl-11
-                                   pr-4
-                                   py-3
-                                   rounded-xl
-                                   border border-gray-300
-                                   bg-white
-                                   text-sm
-                                   focus:outline-none
-                                   focus:ring-2
-                                   focus:ring-red-500
-                                   focus:border-red-500"
-                        >
-
-                    </div>
-
-
-                    {{-- ROLE --}}
-
-                    <div class="w-full xl:w-52">
-
-                        <select
-                            name="role"
-                            onchange="this.form.submit()"
-                            class="w-full
-                                   px-4
-                                   py-3
-                                   rounded-xl
-                                   border border-gray-300
-                                   bg-white
-                                   text-sm
-                                   text-gray-700
-                                   focus:outline-none
-                                   focus:ring-2
-                                   focus:ring-red-500
-                                   focus:border-red-500"
-                        >
-
-                            <option value="">
-                                All Roles
-                            </option>
-
-
+            <!-- Users Table Card -->
+            <div class="bg-white border-2 border-red-200 rounded-3xl p-6 shadow-xs">
+                
+                <!-- Table Controls (Search & Filter) -->
+                <form method="GET" action="{{ route('admin.users.index') }}" class="flex flex-wrap items-center justify-between gap-4 mb-5">
+                    <div class="flex items-center gap-2">
+                        <select name="role" onchange="this.form.submit()" class="text-xs font-semibold px-3 py-2 border border-gray-300 rounded-xl outline-none focus:border-red-500">
+                            <option value="">All Roles</option>
                             @foreach($roles as $role)
-
-                                <option
-                                    value="{{ $role->id }}"
-                                    {{ (string) request('role') === (string) $role->id ? 'selected' : '' }}
-                                >
-
+                                <option value="{{ $role->id }}" {{ request('role') == $role->id ? 'selected' : '' }}>
                                     {{ ucfirst($role->name) }}
-
                                 </option>
-
                             @endforeach
-
                         </select>
-
                     </div>
 
-
-                    {{-- STATUS --}}
-
-                    <div class="w-full xl:w-52">
-
-                        <select
-                            name="status"
-                            onchange="this.form.submit()"
-                            class="w-full
-                                   px-4
-                                   py-3
-                                   rounded-xl
-                                   border border-gray-300
-                                   bg-white
-                                   text-sm
-                                   text-gray-700
-                                   focus:outline-none
-                                   focus:ring-2
-                                   focus:ring-red-500
-                                   focus:border-red-500"
-                        >
-
-                            <option value="">
-                                All Status
-                            </option>
-
-                            <option
-                                value="active"
-                                {{ request('status') === 'active' ? 'selected' : '' }}
-                            >
-                                Active
-                            </option>
-
-                            <option
-                                value="inactive"
-                                {{ request('status') === 'inactive' ? 'selected' : '' }}
-                            >
-                                Inactive
-                            </option>
-
-                        </select>
-
+                    <div class="relative w-72">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-red-600 pointer-events-none">
+                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        </span>
+                        <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Search ID, Name, Email..." 
+                               class="w-full pl-9 pr-4 py-2 text-xs border border-gray-300 rounded-full focus:border-red-500 focus:outline-none">
                     </div>
-
-
-                    {{-- SEARCH BUTTON --}}
-
-                    <button
-                        type="submit"
-                        class="px-6
-                               py-3
-                               rounded-xl
-                               bg-red-600
-                               hover:bg-red-700
-                               text-white
-                               text-sm
-                               font-semibold
-                               transition"
-                    >
-                        Search
-                    </button>
-
-
-                    {{-- CLEAR --}}
-
-                    @if(
-                        request()->filled('search') ||
-                        request()->filled('role') ||
-                        request()->filled('status')
-                    )
-
-                        <a
-                            href="{{ route('admin.users.index') }}"
-                            class="px-6
-                                   py-3
-                                   rounded-xl
-                                   bg-gray-100
-                                   hover:bg-gray-200
-                                   text-gray-700
-                                   text-sm
-                                   font-semibold
-                                   transition
-                                   text-center"
-                        >
-                            Clear
-                        </a>
-
-                    @endif
-
                 </form>
 
-            </div>
-
-
-            {{-- USER TABLE --}}
-
-            <div
-                class="bg-white
-                       border border-gray-200
-                       rounded-2xl
-                       shadow-sm
-                       overflow-hidden"
-            >
-
-                <div class="overflow-x-auto">
-
-                    <table class="w-full">
-
-                        <thead class="bg-gray-50 border-b border-gray-200">
-
-                            <tr>
-
-                                <th
-                                    class="px-6
-                                           py-4
-                                           text-left
-                                           text-xs
-                                           font-semibold
-                                           text-gray-500
-                                           uppercase
-                                           tracking-wider"
-                                >
-                                    ID Number
-                                </th>
-
-
-                                <th
-                                    class="px-6
-                                           py-4
-                                           text-left
-                                           text-xs
-                                           font-semibold
-                                           text-gray-500
-                                           uppercase
-                                           tracking-wider"
-                                >
-                                    Full Name
-                                </th>
-
-
-                                <th
-                                    class="px-6
-                                           py-4
-                                           text-left
-                                           text-xs
-                                           font-semibold
-                                           text-gray-500
-                                           uppercase
-                                           tracking-wider"
-                                >
-                                    Role / Designation
-                                </th>
-
-
-                                <th
-                                    class="px-6
-                                           py-4
-                                           text-left
-                                           text-xs
-                                           font-semibold
-                                           text-gray-500
-                                           uppercase
-                                           tracking-wider"
-                                >
-                                    Grade / Section
-                                </th>
-
-
-                                <th
-                                    class="px-6
-                                           py-4
-                                           text-left
-                                           text-xs
-                                           font-semibold
-                                           text-gray-500
-                                           uppercase
-                                           tracking-wider"
-                                >
-                                    NFC Tag ID
-                                </th>
-
-
-                                <th
-                                    class="px-6
-                                           py-4
-                                           text-left
-                                           text-xs
-                                           font-semibold
-                                           text-gray-500
-                                           uppercase
-                                           tracking-wider"
-                                >
-                                    Contact Number
-                                </th>
-
-
-                                <th
-                                    class="px-6
-                                           py-4
-                                           text-left
-                                           text-xs
-                                           font-semibold
-                                           text-gray-500
-                                           uppercase
-                                           tracking-wider"
-                                >
-                                    Status
-                                </th>
-
-
-                                <th
-                                    class="px-6
-                                           py-4
-                                           text-right
-                                           text-xs
-                                           font-semibold
-                                           text-gray-500
-                                           uppercase
-                                           tracking-wider"
-                                >
-                                    Actions
-                                </th>
-
+                <!-- Users Table -->
+                <div class="overflow-x-auto rounded-2xl border border-gray-200">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white font-bold uppercase tracking-wider">
+                                <th class="py-3 px-4">User</th>
+                                <th class="py-3 px-4">ID Number</th>
+                                <th class="py-3 px-4">Role</th>
+                                <th class="py-3 px-4">Contact</th>
+                                <th class="py-3 px-4">Status</th>
+                                <th class="py-3 px-4 text-center">Actions</th>
                             </tr>
-
                         </thead>
-
-
-                        <tbody class="divide-y divide-gray-100">
-
-
-                            @forelse($users as $user)
-
-                                <tr
-                                    class="hover:bg-gray-50
-                                           transition"
-                                >
-
-
-                                    {{-- USER ID --}}
-
-                                    <td
-                                        class="px-6
-                                               py-5
-                                               whitespace-nowrap"
-                                    >
-
-                                        <span
-                                            class="font-semibold
-                                                   text-gray-900"
-                                        >
-                                            {{ $user->id_number }}
+                        <tbody class="divide-y divide-gray-200 font-medium text-gray-800 bg-white">
+                            @forelse($users as $u)
+                                <tr class="hover:bg-red-50/40 transition">
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-full bg-red-100 text-red-600 font-bold flex items-center justify-center text-xs shrink-0">
+                                                {{ strtoupper(substr($u->first_name, 0, 1)) }}
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-gray-900">{{ $u->first_name }} {{ $u->last_name }}</p>
+                                                <p class="text-[11px] text-gray-500">{{ $u->email }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 font-mono font-bold text-gray-700">
+                                        {{ $u->id_number ?? 'N/A' }}
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider 
+                                            {{ $u->role_id == 1 ? 'bg-purple-100 text-purple-700' : ($u->role_id == 2 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700') }}">
+                                            {{ $u->role->name ?? 'User' }}
                                         </span>
-
                                     </td>
-
-
-                                    {{-- FULL NAME --}}
-
-                                    <td
-                                        class="px-6
-                                               py-5
-                                               whitespace-nowrap"
-                                    >
-
-                                        <div
-                                            class="font-semibold
-                                                   text-gray-900"
-                                        >
-                                            {{ $user->first_name }}
-                                            {{ $user->last_name }}
-                                        </div>
-
-                                        <div
-                                            class="text-xs
-                                                   text-gray-400
-                                                   mt-1"
-                                        >
-                                            {{ $user->email }}
-                                        </div>
-
+                                    <td class="py-3 px-4 text-gray-600">
+                                        {{ $u->phone_number ?? '-' }}
                                     </td>
-
-
-                                    {{-- ROLE --}}
-
-                                    <td
-                                        class="px-6
-                                               py-5
-                                               whitespace-nowrap"
-                                    >
-
-                                        @if($user->role)
-
-                                            <span
-                                                class="inline-flex
-                                                       items-center
-                                                       px-3
-                                                       py-1
-                                                       rounded-full
-                                                       bg-red-50
-                                                       text-red-700
-                                                       text-xs
-                                                       font-semibold"
-                                            >
-                                                {{ ucfirst($user->role->name) }}
-                                            </span>
-
-                                        @else
-
-                                            <span
-                                                class="text-gray-400
-                                                       text-sm"
-                                            >
-                                                No role
-                                            </span>
-
-                                        @endif
-
-                                    </td>
-
-
-                                    {{-- GRADE / SECTION --}}
-
-<td class="px-6 py-5 whitespace-nowrap">
-    @if($user->sections->count())
-
-        @foreach($user->sections as $section)
-
-            <span class="text-sm text-gray-700">
-                {{ $section->grade_level }} - {{ $section->section_name }}
-            </span>
-
-        @endforeach
-
-    @else
-
-        <span class="text-sm text-gray-400">
-            —
-        </span>
-
-    @endif
-</td>
-
-
-                                    {{-- NFC TAG --}}
-
-                                    <td
-                                        class="px-6
-                                               py-5
-                                               whitespace-nowrap"
-                                    >
-
-                                        <span
-                                            class="text-sm
-                                                   text-gray-400"
-                                        >
-                                            —
+                                    <td class="py-3 px-4">
+                                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold {{ $u->is_active ? 'text-green-600' : 'text-gray-400' }}">
+                                            <span class="w-2 h-2 rounded-full {{ $u->is_active ? 'bg-green-500' : 'bg-gray-300' }}"></span>
+                                            {{ $u->is_active ? 'Active' : 'Inactive' }}
                                         </span>
-
                                     </td>
-
-
-                                    {{-- CONTACT --}}
-
-                                    <td
-                                        class="px-6
-                                               py-5
-                                               whitespace-nowrap"
-                                    >
-
-                                        @if($user->phone_number)
-
-                                            <span
-                                                class="text-sm
-                                                       text-gray-700"
-                                            >
-                                                {{ $user->phone_number }}
-                                            </span>
-
-                                        @else
-
-                                            <span
-                                                class="text-sm
-                                                       text-gray-400"
-                                            >
-                                                —
-                                            </span>
-
-                                        @endif
-
-                                    </td>
-
-
-                                    {{-- STATUS --}}
-
-                                    <td
-                                        class="px-6
-                                               py-5
-                                               whitespace-nowrap"
-                                    >
-
-                                        @if($user->is_active)
-
-                                            <span
-                                                class="inline-flex
-                                                       items-center
-                                                       px-3
-                                                       py-1
-                                                       rounded-full
-                                                       bg-green-50
-                                                       text-green-700
-                                                       text-xs
-                                                       font-semibold"
-                                            >
-                                                Active
-                                            </span>
-
-                                        @else
-
-                                            <span
-                                                class="inline-flex
-                                                       items-center
-                                                       px-3
-                                                       py-1
-                                                       rounded-full
-                                                       bg-gray-100
-                                                       text-gray-600
-                                                       text-xs
-                                                       font-semibold"
-                                            >
-                                                Inactive
-                                            </span>
-
-                                        @endif
-
-                                    </td>
-
-
-                                    {{-- ACTIONS --}}
-
-                                    <td
-                                        class="px-6
-                                               py-5
-                                               whitespace-nowrap"
-                                    >
-
-                                        <div
-                                            class="flex
-                                                   items-center
-                                                   justify-end
-                                                   gap-2"
-                                        >
-
-
-                                            {{-- EDIT --}}
-
-                                            <a
-                                                href="{{ route('admin.users.edit', $user) }}"
-                                                class="inline-flex
-                                                       items-center
-                                                       justify-center
-                                                       w-9
-                                                       h-9
-                                                       rounded-lg
-                                                       bg-gray-100
-                                                       text-gray-600
-                                                       hover:bg-red-50
-                                                       hover:text-red-600
-                                                       transition"
-                                                title="Edit User"
-                                            >
-
-                                                <svg
-                                                    class="w-4 h-4"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                >
-
-                                                    <path
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.5-9.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 8.5-8.5z"
-                                                    />
-
-                                                </svg>
-
-                                            </a>
-
-
-                                            {{-- DELETE --}}
-
-                                            <form
-                                                method="POST"
-                                                action="{{ route('admin.users.destroy', $user) }}"
-                                                onsubmit="return confirm('Are you sure you want to delete this user?');"
-                                            >
-
-                                                @csrf
-
-                                                @method('DELETE')
-
-                                                <button
-                                                    type="submit"
-                                                    class="inline-flex
-                                                           items-center
-                                                           justify-center
-                                                           w-9
-                                                           h-9
-                                                           rounded-lg
-                                                           bg-gray-100
-                                                           text-gray-600
-                                                           hover:bg-red-50
-                                                           hover:text-red-600
-                                                           transition"
-                                                    title="Delete User"
-                                                >
-
-                                                    <svg
-                                                        class="w-4 h-4"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                                        />
-
-                                                    </svg>
-
-                                                </button>
-
-                                            </form>
-
+                                    <td class="py-3 px-4 text-center">
+                                        <div class="flex items-center justify-center gap-1.5">
+                                            <!-- RESET PASSWORD TRIGGER BUTTON -->
+                                            <button type="button" 
+                                                    onclick="openResetPasswordModal('{{ $u->id }}', '{{ addslashes($u->first_name . ' ' . $u->last_name) }}', '{{ $u->id_number ?? $u->email }}')"
+                                                    class="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition" 
+                                                    title="Reset Password">
+                                                <i class="fa-solid fa-key text-sm"></i>
+                                            </button>
                                         </div>
-
                                     </td>
-
                                 </tr>
-
-
                             @empty
-
                                 <tr>
-
-                                    <td
-                                        colspan="8"
-                                        class="px-6
-                                               py-16
-                                               text-center"
-                                    >
-
-                                        <div
-                                            class="flex
-                                                   flex-col
-                                                   items-center"
-                                        >
-
-                                            <svg
-                                                class="w-12 h-12 text-gray-300"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="1.5"
-                                                    d="M20 21a8 8 0 00-16 0m16 0H4m16 0v-1a8 8 0 00-16 0v1m12-13a4 4 0 11-8 0 4 4 0 018 0z"
-                                                />
-
-                                            </svg>
-
-
-                                            <h3
-                                                class="mt-4
-                                                       text-sm
-                                                       font-semibold
-                                                       text-gray-900"
-                                            >
-                                                No users found
-                                            </h3>
-
-
-                                            <p
-                                                class="mt-1
-                                                       text-sm
-                                                       text-gray-500"
-                                            >
-                                                Try changing your search or filters.
-                                            </p>
-
-                                        </div>
-
+                                    <td colspan="6" class="py-8 text-center text-gray-500">
+                                        No user accounts found.
                                     </td>
-
                                 </tr>
-
                             @endforelse
-
                         </tbody>
-
                     </table>
-
                 </div>
 
-
-                {{-- PAGINATION --}}
-
-                @if($users->hasPages())
-
-                    <div
-                        class="px-6
-                               py-4
-                               border-t border-gray-200"
-                    >
-
-                        {{ $users->links() }}
-
-                    </div>
-
-                @endif
+                <!-- Pagination -->
+                <div class="mt-4">
+                    {{ $users->links() }}
+                </div>
 
             </div>
 
         </div>
-
     </main>
 
-</body>
+    <!-- ==================== RESET PASSWORD MODAL ==================== -->
+    <div id="resetPasswordModal" class="fixed inset-0 z-50 bg-black/60 hidden items-center justify-center p-4 backdrop-blur-xs">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 border-2 border-red-300 shadow-2xl relative animate-in fade-in zoom-in duration-150">
+            
+            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-sm">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-gray-900">Reset User Password</h3>
+                        <p class="text-[11px] text-gray-500 font-medium">Southern Isabela Academy &bull; Admin Control</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeResetPasswordModal()" class="text-gray-400 hover:text-gray-700 text-xl p-1">
+                    &times;
+                </button>
+            </div>
 
+            <!-- Target User Info Banner -->
+            <div class="mt-4 p-3 bg-red-50 border border-red-100 rounded-2xl">
+                <p class="text-[11px] text-gray-500 font-semibold uppercase">Target Account:</p>
+                <p id="target_user_name" class="text-sm font-black text-gray-900 mt-0.5">User Name</p>
+                <p id="target_user_id" class="text-xs text-red-700 font-mono font-bold">ID: 00000</p>
+            </div>
+
+            <form id="resetPasswordForm" method="POST" action="" class="space-y-4 mt-4">
+                @csrf
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">New Password</label>
+                    <input type="password" name="password" id="modal_new_password" required placeholder="Enter new password (min. 6 chars)"
+                           class="w-full text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Confirm New Password</label>
+                    <input type="password" name="password_confirmation" id="modal_confirm_password" required placeholder="Confirm new password"
+                           class="w-full text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
+                </div>
+
+                <!-- Quick Preset Button -->
+                <div class="flex items-center justify-between text-xs pt-1">
+                    <span class="text-gray-500 text-[11px]">Quick Action:</span>
+                    <button type="button" onclick="setPresetPassword('siatrack2026')" class="text-red-600 font-bold hover:underline">
+                        Set to Default ("siatrack2026")
+                    </button>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-4 border-t border-gray-100">
+                    <button type="button" onclick="closeResetPasswordModal()" 
+                            class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-bold transition">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-black shadow-md transition">
+                        Update Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        function openResetPasswordModal(userId, userName, userIdentifier) {
+            document.getElementById('target_user_name').innerText = userName;
+            document.getElementById('target_user_id').innerText = userIdentifier;
+            
+            // Set dynamic form action URL
+            document.getElementById('resetPasswordForm').action = "/admin/users/" + userId + "/reset-password";
+            
+            // Clear inputs
+            document.getElementById('modal_new_password').value = '';
+            document.getElementById('modal_confirm_password').value = '';
+
+            const modal = document.getElementById('resetPasswordModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeResetPasswordModal() {
+            const modal = document.getElementById('resetPasswordModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function setPresetPassword(pwd) {
+            document.getElementById('modal_new_password').value = pwd;
+            document.getElementById('modal_confirm_password').value = pwd;
+        }
+    </script>
+</body>
 </html>

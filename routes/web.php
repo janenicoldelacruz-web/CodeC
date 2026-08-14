@@ -47,12 +47,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // 1. Admin Portal Routes
+  // 1. Admin Portal Routes
     Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', function () {
-            return view('admin.dashboard');
+            // Kinukuha ang quick stats para sa dashboard
+            $totalStudents = \App\Models\User::where('role_id', 3)->count();
+            $totalFaculty  = \App\Models\User::where('role_id', 2)->count();
+            $activeSMS     = 112; // Base metric sa documentation
+            $attendanceRate = '94.7%';
+            return view('admin.dashboard', compact('totalStudents', 'totalFaculty', 'activeSMS', 'attendanceRate'));
         })->name('dashboard');
         
+        // Admin Profile Update Route
+        Route::post('/profile/update', [AdminUserController::class, 'updateProfile'])->name('profile.update');
+        
+        Route::post('/users/{id}/reset-password', [AdminUserController::class, 'resetPassword'])->name('users.reset-password');
         Route::resource('users', AdminUserController::class);
         
         Route::get('/attendance', function () {
@@ -68,9 +77,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         })->name('reports');
     });
 
-    // 2. Teacher / Faculty Portal Routes
+   // 2. Teacher / Faculty Portal Routes
     Route::middleware(['role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {
         Route::get('/dashboard', [TeacherDashboardController::class, 'index'])->name('dashboard');
+        Route::post('/schedule/update', [TeacherDashboardController::class, 'updateSchedule'])->name('schedule.update');
+        Route::post('/profile/update', [TeacherDashboardController::class, 'updateProfile'])->name('profile.update');
         Route::get('/absence-reporting', [TeacherDashboardController::class, 'absenceReporting'])->name('absence.reporting');
         Route::get('/evaluation-report', [TeacherDashboardController::class, 'evaluationReport'])->name('evaluation.report');
     });

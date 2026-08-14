@@ -15,6 +15,11 @@
 
 <body class="bg-[#fcfbfb] text-gray-800 antialiased min-h-screen flex">
 
+    @php
+        $user = auth()->user();
+        $avatarPath = $user->profile_picture ?? session('faculty_avatar_' . $user->id);
+    @endphp
+
     <!-- ==================== SIDEBAR ==================== -->
     <aside class="w-64 bg-white border-r border-red-100 flex flex-col justify-between shrink-0 h-screen sticky top-0">
         <div>
@@ -31,21 +36,18 @@
 
             <!-- Navigation Links -->
             <nav class="p-4 space-y-2 text-sm font-semibold">
-                <!-- Class Attendance View (Active) -->
                 <a href="{{ route('teacher.dashboard') }}" 
                    class="flex items-center gap-3 px-4 py-3 bg-[#cf2e2e] text-white rounded-2xl shadow-sm transition">
                     <i class="fa-solid fa-users text-sm"></i>
                     <span>Class Attendance View</span>
                 </a>
 
-                <!-- Absence Reporting -->
                 <a href="{{ route('teacher.absence.reporting') }}" 
                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-2xl transition">
                     <i class="fa-solid fa-file-invoice text-sm text-teal-600"></i>
                     <span>Absence Reporting</span>
                 </a>
 
-                <!-- Evaluation Report View -->
                 <a href="{{ route('teacher.evaluation.report') }}" 
                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-2xl transition">
                     <i class="fa-solid fa-chart-simple text-sm text-gray-500"></i>
@@ -54,20 +56,26 @@
             </nav>
         </div>
 
-        <!-- Faculty Profile & Logout -->
+        <!-- Faculty Profile Footer Button -->
         <div class="p-4 border-t border-gray-100 bg-gray-50/60">
             <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-xs border border-red-200">
-                        {{ strtoupper(substr(auth()->user()->first_name ?? 'F', 0, 1)) }}
+                <button type="button" onclick="openProfileModal()" class="flex items-center gap-3 text-left group">
+                    <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-red-200 group-hover:border-red-500 transition shrink-0 bg-red-100 flex items-center justify-center">
+                        @if($avatarPath && file_exists(public_path($avatarPath)))
+                            <img src="{{ asset($avatarPath) }}" alt="Avatar" class="w-full h-full object-cover">
+                        @else
+                            <span class="font-black text-sm text-red-600">
+                                {{ strtoupper(substr($user->first_name ?? 'F', 0, 1)) }}
+                            </span>
+                        @endif
                     </div>
                     <div class="overflow-hidden">
-                        <p class="text-xs font-bold text-gray-800 truncate">
-                            {{ auth()->user()->first_name ?? 'Faculty' }} {{ auth()->user()->last_name ?? 'Member' }}
+                        <p class="text-xs font-bold text-gray-800 truncate group-hover:text-red-600 transition">
+                            {{ $user->first_name ?? 'Faculty' }} {{ $user->last_name ?? 'Member' }}
                         </p>
-                        <p class="text-[10px] text-red-600 font-bold uppercase tracking-wider">Faculty</p>
+                        <p class="text-[10px] text-red-600 font-bold uppercase tracking-wider">Faculty (Edit)</p>
                     </div>
-                </div>
+                </button>
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
@@ -103,12 +111,26 @@
                            class="w-full pl-9 pr-4 py-1.5 text-xs bg-white border border-red-500 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-600 placeholder-gray-400">
                 </form>
 
+                <!-- Faculty Profile Button & Avatar -->
                 <div class="flex items-center gap-4">
-                    <span class="text-sm font-bold text-gray-900 hover:text-red-600 cursor-pointer">
-                        Faculty Profile
-                    </span>
-                    <button class="relative text-gray-800 hover:text-red-600 transition text-lg">
+                    <button type="button" 
+                            onclick="openProfileModal()" 
+                            class="flex items-center gap-2.5 text-sm font-bold text-gray-900 hover:text-red-600 cursor-pointer transition bg-gray-50 px-3.5 py-1.5 rounded-full border border-gray-200 hover:border-red-300">
+                        <div class="w-6 h-6 rounded-full overflow-hidden bg-red-100 flex items-center justify-center text-[11px] font-bold text-red-600 shrink-0">
+                            @if($avatarPath && file_exists(public_path($avatarPath)))
+                                <img src="{{ asset($avatarPath) }}" alt="Avatar" class="w-full h-full object-cover">
+                            @else
+                                {{ strtoupper(substr($user->first_name ?? 'F', 0, 1)) }}
+                            @endif
+                        </div>
+                        <span>Faculty Profile</span>
+                    </button>
+
+                    <button type="button" 
+                            onclick="alert('No new system notifications.')"
+                            class="relative text-gray-800 hover:text-red-600 transition text-lg p-1.5 rounded-full hover:bg-gray-100">
                         <i class="fa-regular fa-bell"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-600 rounded-full"></span>
                     </button>
                 </div>
             </div>
@@ -116,6 +138,24 @@
 
         <!-- Body Area -->
         <div class="p-8 space-y-8 max-w-7xl w-full">
+
+            @if(session('success'))
+                <div class="p-4 bg-green-50 border border-green-200 text-green-700 font-bold rounded-2xl flex items-center gap-3">
+                    <i class="fa-solid fa-circle-check text-green-600 text-lg"></i>
+                    <span>{{ session('success') }}</span>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="p-4 bg-red-50 border border-red-200 text-red-700 font-bold rounded-2xl">
+                    <ul class="list-disc list-inside text-xs">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <!-- SECTION 1: Session Info & Strand Cards -->
             <section class="space-y-4">
                 <div class="flex items-center gap-3">
@@ -134,7 +174,7 @@
                     <!-- Active Class Cards -->
                     <div class="lg:col-span-8 space-y-4">
                         @forelse($activeClasses as $class)
-                            <div class="bg-white border-2 border-red-300 rounded-3xl p-5 shadow-xs relative">
+                            <div class="bg-white border-2 border-red-300 rounded-3xl p-5 shadow-xs relative transition hover:shadow-md">
                                 <div class="flex justify-between items-start">
                                     <div>
                                         <h3 class="text-sm font-black text-gray-900">
@@ -147,8 +187,12 @@
                                             Scheduled Time: <span class="font-normal text-gray-600">{{ $class->time }}</span>
                                         </p>
                                     </div>
-                                    <button class="text-gray-600 hover:text-red-600 p-1" title="Edit Class Details">
-                                        <i class="fa-regular fa-pen-to-square text-base"></i>
+                                    
+                                    <button type="button" 
+                                            onclick="openEditModal('{{ $class->id }}', '{{ addslashes($class->title) }}', '{{ addslashes($class->subject) }}', '{{ addslashes($class->time) }}', '{{ addslashes($class->room) }}')"
+                                            class="text-gray-500 hover:text-red-600 p-2 rounded-xl hover:bg-red-50 transition" 
+                                            title="Edit Class Details">
+                                        <i class="fa-regular fa-pen-to-square text-lg"></i>
                                     </button>
                                 </div>
                                 <div class="flex justify-end gap-1.5 mt-2">
@@ -281,7 +325,226 @@
         </div>
     </main>
 
+    <!-- ==================== FACULTY PROFILE MODAL (WITH PHOTO UPLOADER) ==================== -->
+    <div id="facultyProfileModal" class="fixed inset-0 z-50 bg-black/60 hidden items-center justify-center p-4 backdrop-blur-xs">
+        <div class="bg-white rounded-3xl max-w-xl w-full p-6 border-2 border-red-300 shadow-2xl relative animate-in fade-in zoom-in duration-150">
+            
+            <div class="flex justify-between items-center pb-4 border-b border-gray-100">
+                <!-- Interactive Profile Avatar with Upload Click -->
+                <div class="flex items-center gap-4">
+                    <div class="relative group cursor-pointer" onclick="document.getElementById('profile_picture_input').click()" title="Click to change photo">
+                        <div class="w-14 h-14 rounded-full overflow-hidden bg-red-600 text-white flex items-center justify-center font-black text-xl border-2 border-red-400 shadow-md">
+                            <img id="avatar_preview_img" 
+                                 src="{{ ($avatarPath && file_exists(public_path($avatarPath))) ? asset($avatarPath) : '' }}" 
+                                 alt="Avatar" 
+                                 class="{{ ($avatarPath && file_exists(public_path($avatarPath))) ? 'block' : 'hidden' }} w-full h-full object-cover">
+                            
+                            <span id="avatar_initial_span" class="{{ ($avatarPath && file_exists(public_path($avatarPath))) ? 'hidden' : 'block' }}">
+                                {{ strtoupper(substr($user->first_name ?? 'F', 0, 1)) }}
+                            </span>
+                        </div>
+                        
+                        <!-- Camera overlay badge -->
+                        <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-150">
+                            <i class="fa-solid fa-camera text-white text-sm"></i>
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 bg-white text-red-600 w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center text-[10px] shadow-xs">
+                            <i class="fa-solid fa-pen"></i>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-base font-black text-gray-900">Faculty Profile & Settings</h3>
+                        <p class="text-xs text-gray-500 font-medium">Southern Isabela Academy &bull; SHS Department</p>
+                        <button type="button" 
+                                onclick="document.getElementById('profile_picture_input').click()" 
+                                class="text-[11px] font-bold text-red-600 hover:underline mt-0.5 flex items-center gap-1">
+                            <i class="fa-solid fa-upload text-[10px]"></i> Change Profile Picture
+                        </button>
+                    </div>
+                </div>
+
+                <button type="button" onclick="closeProfileModal()" class="text-gray-400 hover:text-gray-700 text-xl p-1">
+                    &times;
+                </button>
+            </div>
+
+            <form method="POST" action="{{ route('teacher.profile.update') }}" enctype="multipart/form-data" class="space-y-4 mt-4">
+                @csrf
+                
+                <!-- Hidden file input for Avatar -->
+                <input type="file" 
+                       id="profile_picture_input" 
+                       name="profile_picture" 
+                       accept="image/*" 
+                       class="hidden" 
+                       onchange="previewProfileImage(event)">
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">First Name</label>
+                        <input type="text" name="first_name" value="{{ $user->first_name }}" required
+                               class="w-full text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Last Name</label>
+                        <input type="text" name="last_name" value="{{ $user->last_name }}" required
+                               class="w-full text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Email Address</label>
+                        <input type="email" name="email" value="{{ $user->email }}" required
+                               class="w-full text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Contact Phone</label>
+                        <input type="text" name="phone_number" value="{{ $user->phone_number }}"
+                               placeholder="e.g. 09123456789"
+                               class="w-full text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
+                    </div>
+                </div>
+
+                <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-3">
+                    <p class="text-xs font-bold text-gray-800">Change Password (leave blank if unchanged)</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <input type="password" name="password" placeholder="New Password"
+                                   class="w-full text-xs font-semibold px-4 py-2 rounded-lg border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none bg-white">
+                        </div>
+                        <div>
+                            <input type="password" name="password_confirmation" placeholder="Confirm Password"
+                                   class="w-full text-xs font-semibold px-4 py-2 rounded-lg border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none bg-white">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                    <button type="button" onclick="closeProfileModal()" 
+                            class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-bold transition">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black shadow-md transition">
+                        Save Profile
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== EDIT CLASS MODAL ==================== -->
+    <div id="editClassModal" class="fixed inset-0 z-50 bg-black/60 hidden items-center justify-center p-4 backdrop-blur-xs">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 border-2 border-red-300 shadow-2xl relative animate-in fade-in zoom-in duration-150">
+            <div class="flex justify-between items-center pb-4 border-b border-gray-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 bg-red-600 rounded-full"></span>
+                    <h3 class="text-lg font-black text-gray-900">Edit Class Session Details</h3>
+                </div>
+                <button type="button" onclick="closeEditModal()" class="text-gray-400 hover:text-gray-700 text-xl p-1">
+                    &times;
+                </button>
+            </div>
+
+            <form method="POST" action="{{ route('teacher.schedule.update') }}" class="space-y-4 mt-4">
+                @csrf
+                <input type="hidden" name="class_id" id="edit_class_id">
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Class Title & Section</label>
+                    <input type="text" name="title" id="edit_title" required
+                           class="w-full text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Subject Area</label>
+                    <input type="text" name="subject" id="edit_subject" required
+                           class="w-full text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Scheduled Time</label>
+                        <input type="text" name="time" id="edit_time" required
+                               placeholder="e.g. 8:00 AM - 9:30 AM"
+                               class="w-full text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Room / Venue</label>
+                        <input type="text" name="room" id="edit_room" required
+                               placeholder="e.g. Computer Lab 1"
+                               class="w-full text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-4 border-t border-gray-100">
+                    <button type="button" onclick="closeEditModal()" 
+                            class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-bold transition">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black shadow-md transition">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script>
+        function openProfileModal() {
+            const modal = document.getElementById('facultyProfileModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeProfileModal() {
+            const modal = document.getElementById('facultyProfileModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Live Profile Image Preview
+        function previewProfileImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('avatar_preview_img');
+                    const initial = document.getElementById('avatar_initial_span');
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                    img.classList.add('block');
+                    if (initial) {
+                        initial.classList.add('hidden');
+                        initial.classList.remove('block');
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function openEditModal(id, title, subject, time, room) {
+            document.getElementById('edit_class_id').value = id;
+            document.getElementById('edit_title').value = title;
+            document.getElementById('edit_subject').value = subject;
+            document.getElementById('edit_time').value = time;
+            document.getElementById('edit_room').value = room;
+
+            const modal = document.getElementById('editClassModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('editClassModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
         function updateOnlineStatus() {
             const badge = document.getElementById('conn-badge');
             if (navigator.onLine) {
