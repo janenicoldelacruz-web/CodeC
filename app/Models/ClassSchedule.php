@@ -2,37 +2,39 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class ClassSchedule extends Model
 {
-    protected $fillable = [
-        'section_id',
-        'subject_id',
-        'teacher_id',
-        'day_of_week',
-        'start_time',
-        'end_time',
-        'grace_period_minutes',
-    ];
+    use HasFactory;
 
-    public function section()
-    {
-        return $this->belongsTo(AcademicSection::class);
-    }
+    protected $table = 'class_schedules';
 
-    public function subject()
-    {
-        return $this->belongsTo(Subject::class);
-    }
+    protected $guarded = [];
 
     public function teacher()
     {
         return $this->belongsTo(User::class, 'teacher_id');
     }
 
-    public function attendanceLogs()
+    // Renamed relationship to avoid collision with column names
+    public function subjectRecord()
     {
-        return $this->hasMany(AttendanceLog::class);
+        return $this->belongsTo(Subject::class, 'subject_id');
+    }
+
+    public function academicSection()
+    {
+        return $this->belongsTo(AcademicSection::class, 'section_id');
+    }
+
+    public function getTimeSlotAttribute()
+    {
+        if (!$this->start_time || !$this->end_time) {
+            return '--:-- - --:--';
+        }
+        return Carbon::parse($this->start_time)->format('h:i A') . ' - ' . Carbon::parse($this->end_time)->format('h:i A');
     }
 }

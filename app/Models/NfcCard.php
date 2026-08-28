@@ -9,6 +9,8 @@ class NfcCard extends Model
 {
     use HasFactory;
 
+    protected $table = 'nfc_cards';
+
     protected $fillable = [
         'user_id',
         'tag_id',
@@ -16,9 +18,6 @@ class NfcCard extends Model
 
     public function user()
     {
-        return $this->belongsTo(
-            User::class,
-            'user_id'
-        );
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

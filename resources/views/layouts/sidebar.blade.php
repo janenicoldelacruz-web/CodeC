@@ -1,54 +1,184 @@
-<!-- Fixed Sidebar Component -->
-<aside class="w-64 bg-white border-r border-red-100 flex flex-col justify-between fixed inset-y-0 left-0 z-30 shadow-sm">
-    <div>
-        <!-- Sidebar Header / Logo -->
-        <div class="p-6 border-b border-red-50">
-            <div class="flex items-center gap-2">
-                <span class="text-xl font-black tracking-wider text-red-600">SIATRACK</span>
-                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/>
-                </svg>
+<aside class="w-72 bg-white border-r-2 border-slate-200 flex flex-col justify-between shrink-0 h-screen fixed top-0 left-0 z-30 shadow-xl shadow-slate-900/5">
+    
+    <!-- Top Accent Trim -->
+    <div class="h-1.5 bg-gradient-to-r from-[#8b1818] via-amber-400 to-[#8b1818] w-full shrink-0"></div>
+
+    <div class="flex-1 flex flex-col min-h-0">
+        <!-- Brand Header -->
+        <div class="p-5 border-b-2 border-slate-100 flex items-center gap-3.5 bg-slate-50/60">
+            <div class="w-11 h-11 rounded-xl bg-white p-1 border-2 border-[#8b1818] ring-2 ring-amber-300/60 shadow-xs flex items-center justify-center shrink-0 overflow-hidden">
+                <img src="{{ asset('images/sia-logo.png') }}" alt="SIA Logo" class="w-full h-full object-contain">
             </div>
-            <p class="text-[11px] text-gray-400 font-medium mt-0.5 tracking-tight">Southern Isabela Academy</p>
+            <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg font-black tracking-tight text-[#8b1818]">SIATRACK</span>
+                    
+                    {{-- Dynamic Role Badge --}}
+                    @if(auth()->user()->role_id === 1)
+                        <span class="px-2 py-0.5 rounded bg-amber-100 border border-amber-300 text-[10px] font-black text-amber-900 uppercase">Admin</span>
+                    @elseif(auth()->user()->role_id === 2)
+                        <span class="px-2 py-0.5 rounded bg-red-100 border border-red-300 text-[10px] font-black text-[#8b1818] uppercase">Teacher</span>
+                    @else
+                        <span class="px-2 py-0.5 rounded bg-blue-100 border border-blue-300 text-[10px] font-black text-blue-900 uppercase">Student</span>
+                    @endif
+                </div>
+                <p class="text-xs font-bold text-slate-500 truncate mt-0.5">Southern Isabela Academy</p>
+            </div>
         </div>
 
-        <!-- Navigation Links with Active States -->
-        <nav class="p-4 space-y-1.5">
-            <a href="{{ url('/admin/dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->is('admin/dashboard') ? 'bg-red-50 text-red-700 font-semibold border border-red-200' : 'text-gray-600 hover:bg-red-50 hover:text-red-700 font-medium' }} text-sm transition-all duration-200 group">
-                <svg class="w-5 h-5 {{ request()->is('admin/dashboard') ? 'text-red-600' : 'text-gray-400 group-hover:text-red-600' }} transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                Dashboard
+        <!-- Navigation Links -->
+        <nav class="p-4 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
+            
+            {{-- ==================== ADMIN NAVIGATION ==================== --}}
+            @if(auth()->user()->role_id === 1)
+                <div>
+                    <p class="px-3.5 text-xs font-black uppercase tracking-wider text-slate-400 mb-2">Management Menu</p>
+                    <div class="space-y-1.5 text-sm font-bold">
+                        <a href="{{ route('admin.dashboard') }}" 
+                           class="group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('admin.dashboard') ? 'bg-[#8b1818] text-white shadow-md shadow-red-950/20' : 'text-slate-700 hover:bg-red-50 hover:text-[#8b1818]' }}">
+                            <div class="flex items-center gap-3.5">
+                                <i class="fa-solid fa-table-cells-large text-base {{ request()->routeIs('admin.dashboard') ? 'text-amber-300' : 'text-slate-400 group-hover:text-[#8b1818]' }}"></i>
+                                <span class="text-[14px]">Dashboard</span>
+                            </div>
+                        </a>
+                        <a href="{{ route('admin.users.index') }}" 
+                           class="group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('admin.users.*') ? 'bg-[#8b1818] text-white shadow-md shadow-red-950/20' : 'text-slate-700 hover:bg-red-50 hover:text-[#8b1818]' }}">
+                            <div class="flex items-center gap-3.5">
+                                <i class="fa-solid fa-users text-base {{ request()->routeIs('admin.users.*') ? 'text-amber-300' : 'text-slate-400 group-hover:text-[#8b1818]' }}"></i>
+                                <span class="text-[14px]">User Management</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="px-3.5 text-xs font-black uppercase tracking-wider text-slate-400 mb-2">Modules</p>
+                    <div class="space-y-1.5 text-sm font-bold">
+                        <!-- Class Schedule -->
+                        <a href="{{ route('admin.schedules') }}" 
+                           class="group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('admin.schedules*') ? 'bg-[#8b1818] text-white shadow-md shadow-red-950/20' : 'text-slate-700 hover:bg-red-50 hover:text-[#8b1818]' }}">
+                            <div class="flex items-center gap-3.5">
+                                <i class="fa-solid fa-calendar-days text-base {{ request()->routeIs('admin.schedules*') ? 'text-amber-300' : 'text-slate-400 group-hover:text-[#8b1818]' }}"></i>
+                                <span class="text-[14px]">Class Schedule</span>
+                            </div>
+                        </a>
+
+                        <!-- Attendance (Kiosk Attendance) -->
+                        <a href="{{ route('admin.attendance') }}" 
+                           class="group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('admin.attendance*') ? 'bg-[#8b1818] text-white shadow-md shadow-red-950/20' : 'text-slate-700 hover:bg-red-50 hover:text-[#8b1818]' }}">
+                            <div class="flex items-center gap-3.5">
+                                <i class="fa-solid fa-id-card-clip text-base {{ request()->routeIs('admin.attendance*') ? 'text-amber-300' : 'text-slate-400 group-hover:text-[#8b1818]' }}"></i>
+                                <span class="text-[14px]">Attendance (Kiosk)</span>
+                            </div>
+                        </a>
+
+                        <!-- Evaluation -->
+                        <a href="{{ route('admin.evaluations') }}" 
+                           class="group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('admin.evaluations*') ? 'bg-[#8b1818] text-white shadow-md shadow-red-950/20' : 'text-slate-700 hover:bg-red-50 hover:text-[#8b1818]' }}">
+                            <div class="flex items-center gap-3.5">
+                                <i class="fa-solid fa-star-half-stroke text-base {{ request()->routeIs('admin.evaluations*') ? 'text-amber-300' : 'text-slate-400 group-hover:text-[#8b1818]' }}"></i>
+                                <span class="text-[14px]">Evaluation</span>
+                            </div>
+                        </a>
+
+                        <!-- Report -->
+                        <a href="{{ route('admin.reports') }}" 
+                           class="group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('admin.reports*') ? 'bg-[#8b1818] text-white shadow-md shadow-red-950/20' : 'text-slate-700 hover:bg-red-50 hover:text-[#8b1818]' }}">
+                            <div class="flex items-center gap-3.5">
+                                <i class="fa-solid fa-file-invoice text-base {{ request()->routeIs('admin.reports*') ? 'text-amber-300' : 'text-slate-400 group-hover:text-[#8b1818]' }}"></i>
+                                <span class="text-[14px]">Report</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+           {{-- ==================== TEACHER NAVIGATION ==================== --}}
+@elseif(auth()->user()->role_id === 2)
+    <div>
+        <p class="px-3.5 text-xs font-black uppercase tracking-wider text-slate-400 mb-2">Faculty Portal</p>
+        <div class="space-y-1.5 text-sm font-bold">
+            
+            <!-- Class Schedule (Now the primary landing page) -->
+            <a href="{{ route('teacher.schedules') }}" 
+               class="group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('teacher.schedules*') ? 'bg-[#8b1818] text-white shadow-md shadow-red-950/20' : 'text-slate-700 hover:bg-red-50 hover:text-[#8b1818]' }}">
+                <div class="flex items-center gap-3.5">
+                    <i class="fa-solid fa-calendar-days text-base {{ request()->routeIs('teacher.schedules*') ? 'text-amber-300' : 'text-slate-400 group-hover:text-[#8b1818]' }}"></i>
+                    <span class="text-[14px]">Class Schedule</span>
+                </div>
             </a>
 
-            <a href="{{ url('/admin/users') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->is('admin/users*') ? 'bg-red-50 text-red-700 font-semibold border border-red-200' : 'text-gray-600 hover:bg-red-50 hover:text-red-700 font-medium' }} text-sm transition-all duration-200 group">
-                <svg class="w-5 h-5 {{ request()->is('admin/users*') ? 'text-red-600' : 'text-gray-400 group-hover:text-red-600' }} transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                User Management
+            <!-- Attendance (Kiosk Attendance Feed) -->
+<a href="{{ route('teacher.attendance') }}" 
+   class="group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('teacher.attendance*') ? 'bg-[#8b1818] text-white shadow-md shadow-red-950/20' : 'text-slate-700 hover:bg-red-50 hover:text-[#8b1818]' }}">
+    <div class="flex items-center gap-3.5">
+        <i class="fa-solid fa-clipboard-user text-base {{ request()->routeIs('teacher.attendance*') ? 'text-amber-300' : 'text-slate-400 group-hover:text-[#8b1818]' }}"></i>
+        <span class="text-[14px]">Attendance</span>
+    </div>
+</a>
+
+            <!-- Evaluation -->
+            <a href="{{ route('teacher.evaluation.report') }}" 
+               class="group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('teacher.evaluation*') ? 'bg-[#8b1818] text-white shadow-md shadow-red-950/20' : 'text-slate-700 hover:bg-red-50 hover:text-[#8b1818]' }}">
+                <div class="flex items-center gap-3.5">
+                    <i class="fa-solid fa-star-half-stroke text-base {{ request()->routeIs('teacher.evaluation*') ? 'text-amber-300' : 'text-slate-400 group-hover:text-[#8b1818]' }}"></i>
+                    <span class="text-[14px]">Evaluation</span>
+                </div>
             </a>
 
-            <a href="{{ url('/admin/attendance') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->is('admin/attendance*') ? 'bg-red-50 text-red-700 font-semibold border border-red-200' : 'text-gray-600 hover:bg-red-50 hover:text-red-700 font-medium' }} text-sm transition-all duration-200 group">
-                <svg class="w-5 h-5 {{ request()->is('admin/attendance*') ? 'text-red-600' : 'text-gray-400 group-hover:text-red-600' }} transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                Attendance Records
+            <!-- Report -->
+            <a href="{{ route('teacher.evaluation.report') }}" 
+               class="group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('teacher.report*') ? 'bg-[#8b1818] text-white shadow-md shadow-red-950/20' : 'text-slate-700 hover:bg-red-50 hover:text-[#8b1818]' }}">
+                <div class="flex items-center gap-3.5">
+                    <i class="fa-solid fa-file-invoice text-base {{ request()->routeIs('teacher.report*') ? 'text-amber-300' : 'text-slate-400 group-hover:text-[#8b1818]' }}"></i>
+                    <span class="text-[14px]">Report</span>
+                </div>
             </a>
+        </div>
+    </div>
+    
+            {{-- ==================== STUDENT NAVIGATION ==================== --}}
+            @elseif(auth()->user()->role_id === 3)
+                <div>
+                    <p class="px-3.5 text-xs font-black uppercase tracking-wider text-slate-400 mb-2">Student Portal</p>
+                    <div class="space-y-1.5 text-sm font-bold">
+                        <a href="{{ route('student.dashboard') }}" 
+                           class="group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('student.dashboard') ? 'bg-[#8b1818] text-white shadow-md shadow-red-950/20' : 'text-slate-700 hover:bg-red-50 hover:text-[#8b1818]' }}">
+                            <div class="flex items-center gap-3.5">
+                                <i class="fa-solid fa-gauge text-base {{ request()->routeIs('student.dashboard') ? 'text-amber-300' : 'text-slate-400 group-hover:text-[#8b1818]' }}"></i>
+                                <span class="text-[14px]">My Dashboard</span>
+                            </div>
+                        </a>
+                        <a href="{{ route('student.attendance') }}" 
+                           class="group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('student.attendance*') ? 'bg-[#8b1818] text-white shadow-md shadow-red-950/20' : 'text-slate-700 hover:bg-red-50 hover:text-[#8b1818]' }}">
+                            <div class="flex items-center gap-3.5">
+                                <i class="fa-solid fa-calendar-check text-base {{ request()->routeIs('student.attendance*') ? 'text-amber-300' : 'text-slate-400 group-hover:text-[#8b1818]' }}"></i>
+                                <span class="text-[14px]">Attendance Records</span>
+                            </div>
+                        </a>
+                        <a href="{{ route('student.evaluations') }}" 
+                           class="group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('student.evaluations*') ? 'bg-[#8b1818] text-white shadow-md shadow-red-950/20' : 'text-slate-700 hover:bg-red-50 hover:text-[#8b1818]' }}">
+                            <div class="flex items-center gap-3.5">
+                                <i class="fa-solid fa-star-half-stroke text-base {{ request()->routeIs('student.evaluations*') ? 'text-amber-300' : 'text-slate-400 group-hover:text-[#8b1818]' }}"></i>
+                                <span class="text-[14px]">Evaluation</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            @endif
 
-            <a href="{{ url('/admin/evaluations') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->is('admin/evaluations*') ? 'bg-red-50 text-red-700 font-semibold border border-red-200' : 'text-gray-600 hover:bg-red-50 hover:text-red-700 font-medium' }} text-sm transition-all duration-200 group">
-                <svg class="w-5 h-5 {{ request()->is('admin/evaluations*') ? 'text-red-600' : 'text-gray-400 group-hover:text-red-600' }} transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Faculty Evaluation Mgmt
-            </a>
-
-            <a href="{{ url('/admin/reports') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->is('admin/reports*') ? 'bg-red-50 text-red-700 font-semibold border border-red-200' : 'text-gray-600 hover:bg-red-50 hover:text-red-700 font-medium' }} text-sm transition-all duration-200 group">
-                <svg class="w-5 h-5 {{ request()->is('admin/reports*') ? 'text-red-600' : 'text-gray-400 group-hover:text-red-600' }} transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
-                Report Generation
-            </a>
         </nav>
     </div>
 
-    <!-- Sidebar Footer Logout -->
-    <div class="p-4 border-t border-red-50">
+    <!-- Bottom Logout -->
+    <div class="p-4 border-t-2 border-slate-100 bg-slate-50/80">
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-            <button type="submit" class="w-full py-2.5 px-4 bg-red-50 hover:bg-red-600 hover:text-white text-red-600 font-semibold rounded-xl text-xs transition-all duration-200 flex items-center justify-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                Sign Out
+            <button type="submit" 
+                    class="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl text-sm font-extrabold text-slate-700 hover:text-white hover:bg-[#8b1818] bg-white border-2 border-slate-200 hover:border-[#8b1818] shadow-2xs hover:shadow-md transition-all duration-150 active:scale-[0.99] group cursor-pointer">
+                <i class="fa-solid fa-right-from-bracket text-base text-slate-400 group-hover:text-amber-300 transition"></i>
+                <span class="text-sm">Sign Out</span>
             </button>
         </form>
     </div>
+
 </aside>

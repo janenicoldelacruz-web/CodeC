@@ -2,294 +2,135 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClassSchedule;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class TeacherDashboardController extends Controller
 {
-    /**
-     * 1. Class Attendance View (Figure 17)
-     */
-    public function index(Request $request)
+
+
+// SCHEDULE MATRIX METHOD (Main Landing Page)
+// SCHEDULE MATRIX METHOD (Main Landing Page)
+    public function schedule(Request $request)
     {
-        $selectedStrand = $request->query('strand');
-        $search = $request->query('search');
+        $teacher = Auth::user();
+        $search = trim((string) $request->query('search'));
 
-        $query = User::where('role_id', 3);
+        $schedCols = Schema::hasTable('class_schedules') ? Schema::getColumnListing('class_schedules') : [];
+        $teacherCol = in_array('teacher_id', $schedCols) ? 'teacher_id' : (in_array('user_id', $schedCols) ? 'user_id' : null);
 
-        if (!empty($selectedStrand)) {
-            $query->where('strand', $selectedStrand);
+        if (!Schema::hasTable('class_schedules') || !$teacherCol) {
+            $emptyCollection = collect();
+            return view('teacher.schedules', [
+                'teacher' => $teacher,
+                'mySchedules' => $emptyCollection,
+                'schedules' => $emptyCollection,
+                'search' => $search
+            ]);
         }
 
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('id_number', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+        $query = ClassSchedule::with(['subjectRecord', 'academicSection'])
+            ->where($teacherCol, $teacher->id);
+
+        if ($search) {
+            $query->where(function($q) use ($search, $schedCols) {
+                if (in_array('subject_name', $schedCols)) {
+                    $q->where('subject_name', 'like', "%{$search}%");
+                } elseif (in_array('subject', $schedCols)) {
+                    $q->orWhere('subject', 'like', "%{$search}%");
+                }
+                
+                if (in_array('section', $schedCols)) {
+                    $q->orWhere('section', 'like', "%{$search}%");
+                }
+
+                $q->orWhereHas('subjectRecord', function($subQ) use ($search) {
+                    $subQ->where('name', 'like', "%{$search}%")
+                         ->orWhere('code', 'like', "%{$search}%");
+                });
             });
         }
 
-        $students = $query->get();
-
-        $attendanceLogs = $students->map(function ($student, $index) {
-            $log = null;
-
-            try {
-                if (Schema::hasTable('attendance_logs')) {
-                    $attendanceQuery = DB::table('attendance_logs');
-
-                    if (Schema::hasColumn('attendance_logs', 'student_id')) {
-                        $attendanceQuery->where('student_id', $student->id);
-                    } elseif (Schema::hasColumn('attendance_logs', 'user_id')) {
-                        $attendanceQuery->where('user_id', $student->id);
-                    } else {
-                        $attendanceQuery = null;
-                    }
-
-                    if ($attendanceQuery) {
-                        $log = $attendanceQuery->latest()->first();
-                    }
-                }
-            } catch (\Throwable $e) {
-                $log = null;
-            }
-
-            if ($log) {
-                $timeField = $log->time_in ?? $log->created_at ?? now();
-                $timeIn = Carbon::parse($timeField)->format('h:i A');
-                $status = strtoupper($log->status ?? 'ON-TIME');
-            } else {
-                $statuses = ['ON-TIME', 'LATE', 'ABSENT', 'ON-TIME'];
-                $times    = ['8:05 AM', '8:30 AM', '9:00 AM', '8:10 AM'];
-                $status   = $statuses[$index % count($statuses)];
-                $timeIn   = ($status === 'ABSENT') ? '--:--' : $times[$index % count($times)];
-            }
-
-            return (object) [
-                'id'        => $student->id,
-                'id_number' => $student->id_number ?? '00' . (230 + $student->id),
-                'name'      => $student->first_name . ' ' . $student->last_name,
-                'strand'    => $student->strand ?? 'N/A',
-                'time_in'   => $timeIn,
-                'status'    => $status,
-            ];
-        });
-
-        $defaultClasses = [
-            1 => [
-                'id'      => 1,
-                'title'   => 'Programming 1 - Grade 11 - B',
-                'subject' => 'Information & Communications Technology',
-                'time'    => '8:00 AM - 9:30 AM',
-                'room'    => 'Computer Lab 1',
-            ],
-            2 => [
-                'id'      => 2,
-                'title'   => 'Empowerment Technologies - Grade 12 - A',
-                'subject' => 'Applied Subject Area',
-                'time'    => '10:00 AM - 11:30 AM',
-                'room'    => 'Room 204',
-            ],
-        ];
-
-        $storedClasses = session('custom_active_classes', $defaultClasses);
-        $activeClasses = collect($storedClasses)->map(fn($item) => (object)$item);
-
-        return view('teacher.dashboard', compact('attendanceLogs', 'activeClasses', 'selectedStrand', 'search'));
+        $mySchedules = $query->get();
+        $schedules = $mySchedules; // Alias in case the view loops through $schedules
+        return view('teacher.schedules', compact('teacher', 'mySchedules', 'schedules', 'search'));
     }
 
-    /**
-     * Update Class Schedule Details
-     */
-    public function updateSchedule(Request $request)
-    {
-        $request->validate([
-            'class_id' => 'required',
-            'title'    => 'required|string|max:255',
-            'subject'  => 'required|string|max:255',
-            'time'     => 'required|string|max:100',
-            'room'     => 'required|string|max:100',
-        ]);
-
-        $defaultClasses = [
-            1 => [
-                'id'      => 1,
-                'title'   => 'Programming 1 - Grade 11 - B',
-                'subject' => 'Information & Communications Technology',
-                'time'    => '8:00 AM - 9:30 AM',
-                'room'    => 'Computer Lab 1',
-            ],
-            2 => [
-                'id'      => 2,
-                'title'   => 'Empowerment Technologies - Grade 12 - A',
-                'subject' => 'Applied Subject Area',
-                'time'    => '10:00 AM - 11:30 AM',
-                'room'    => 'Room 204',
-            ],
-        ];
-
-        $activeClasses = session('custom_active_classes', $defaultClasses);
-        $classId = (int) $request->class_id;
-
-        $activeClasses[$classId] = [
-            'id'      => $classId,
-            'title'   => $request->title,
-            'subject' => $request->subject,
-            'time'    => $request->time,
-            'room'    => $request->room,
-        ];
-
-        session(['custom_active_classes' => $activeClasses]);
-
-        return redirect()->route('teacher.dashboard')->with('success', 'Class details updated successfully!');
-    }
-
-   /**
-     * Update Faculty Profile & Profile Picture
-     */
+    // PROFILE UPDATE METHOD (Handles the Edit Faculty Profile modal)
     public function updateProfile(Request $request)
     {
-        $user = auth()->user();
+        $teacher = Auth::user();
 
         $request->validate([
-            'first_name'      => ['required', 'string', 'max:255'],
-            'last_name'       => ['required', 'string', 'max:255'],
-            'email'           => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'phone_number'    => ['nullable', 'string', 'max:20'],
-            'profile_picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
-            'password'        => ['nullable', 'string', 'min:6', 'confirmed'],
+            'first_name'   => ['required', 'string', 'max:255'],
+            'last_name'    => ['required', 'string', 'max:255'],
+            'email'        => ['required', 'email', 'max:255', 'unique:users,email,' . $teacher->id],
+            'id_number'    => ['required', 'string', 'max:255'],
+            'gender'       => ['required', 'in:1,2'],
+            'phone_number' => ['nullable', 'string', 'max:20'],
+            'password'     => ['nullable', 'string', 'min:8', 'confirmed'],
+            'photo'        => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
         ]);
 
-        $user->first_name   = $request->first_name;
-        $user->last_name    = $request->last_name;
-        $user->email        = $request->email;
-        $user->phone_number = $request->phone_number;
-
-        // Upload Profile Picture kung may pinili
-        if ($request->hasFile('profile_picture')) {
-            $file = $request->file('profile_picture');
-            $filename = 'faculty_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
-            
-            // I-save sa public/uploads/profiles directory
-            $file->move(public_path('uploads/profiles'), $filename);
-            $photoPath = 'uploads/profiles/' . $filename;
-
-            // I-save sa database column kung meron, at sa session para sigurado
-            if (Schema::hasColumn('users', 'profile_picture')) {
-                $user->profile_picture = $photoPath;
-            }
-            session(['faculty_avatar_' . $user->id => $photoPath]);
-        }
+        $teacher->first_name   = $request->first_name;
+        $teacher->last_name    = $request->last_name;
+        $teacher->email        = $request->email;
+        $teacher->id_number    = $request->id_number;
+        $teacher->gender       = $request->gender;
+        $teacher->phone_number = $request->phone_number;
 
         if ($request->filled('password')) {
-            $user->password = Hash::make($request->password);
+            $teacher->password = Hash::make($request->password);
         }
 
-        $user->save();
-
-        return back()->with('success', 'Faculty profile and photo updated successfully!');
-    }
-
-    /**
-     * 2. Absence Reporting (Figure 18)
-     */
-    public function absenceReporting(Request $request)
-    {
-        $selectedDate = $request->query('date', Carbon::today()->format('Y-m-d'));
-        $search = $request->query('search');
-
-        $studentsQuery = User::where('role_id', 3);
-        if (!empty($search)) {
-            $studentsQuery->where(function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('id_number', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            });
-        }
-        $allStudents = $studentsQuery->get();
-
-        $totalStudents = $allStudents->count() > 0 ? $allStudents->count() : 40;
-
-        $presentStudents = collect();
-        $waitingForScan = collect();
-
-        foreach ($allStudents as $index => $student) {
-            if ($index % 5 !== 4) {
-                $presentStudents->push((object)[
-                    'id'        => $student->id,
-                    'id_number' => $student->id_number ?? '00' . (230 + $student->id),
-                    'name'      => $student->first_name . ' ' . $student->last_name,
-                    'time_in'   => '8:05 AM',
-                    'time_out'  => '10:05 AM',
-                ]);
-            } else {
-                $waitingForScan->push((object)[
-                    'id'        => $student->id,
-                    'id_number' => $student->id_number ?? '00' . (230 + $student->id),
-                    'name'      => $student->first_name . ' ' . $student->last_name,
-                ]);
+        if ($request->hasFile('photo')) {
+            if ($teacher->photo && Storage::disk('public')->exists($teacher->photo)) {
+                Storage::disk('public')->delete($teacher->photo);
             }
+            $path = $request->file('photo')->store('teacher-photos', 'public');
+            $teacher->photo = $path;
         }
 
-        $absentCount = $waitingForScan->count() > 0 ? $waitingForScan->count() : 5;
+        $teacher->save();
 
-        return view('teacher.absence-reporting', compact(
-            'totalStudents',
-            'absentCount',
-            'presentStudents',
-            'waitingForScan',
-            'allStudents',
-            'selectedDate',
-            'search'
-        ));
+        return redirect()->back()->with('success', 'Faculty profile updated successfully!');
     }
 
-    /**
-     * 3. Evaluation Report View (Figure 19)
-     */
+public function attendance()
+    {
+        $teacher = Auth::user();
+        return view('teacher.attendance', compact('teacher'));
+    }
+
     public function evaluationReport()
     {
-        $performanceMetrics = [
-            (object) ['criteria' => 'Mastery of Subject Matter', 'score' => 4.8],
-            (object) ['criteria' => 'Communication Skills', 'score' => 4.9],
-            (object) ['criteria' => 'Classroom Management', 'score' => 4.7],
-            (object) ['criteria' => 'Teaching Methodology & Evaluation', 'score' => 4.9],
-            (object) ['criteria' => 'Professional and Personal Qualities', 'score' => 5.0],
-        ];
+        return view('teacher.evaluation-report');
+    }
 
-        $overallAverage = collect($performanceMetrics)->avg('score');
-        $totalEvaluations = 350;
+    // CLASS LIST PER SUBJECT METHOD
+    public function classList($scheduleId)
+    {
+        $teacher = Auth::user();
 
-        $studentFeedbacks = [
-            (object) [
-                'tone'     => 'Highly Positive',
-                'feedback' => 'The teacher explains the lessons very clearly and provides real-world examples without just reading from the slides.',
-            ],
-            (object) [
-                'tone'     => 'Highly Positive',
-                'feedback' => 'Very approachable during consultations and always begins and ends class on time with structured discussions.',
-            ],
-            (object) [
-                'tone'     => 'Positive',
-                'feedback' => 'Gives engaging hands-on programming activities and encourages critical thinking among all students.',
-            ],
-            (object) [
-                'tone'     => 'Highly Positive',
-                'feedback' => 'Consistently treats every student fairly and makes the learning environment encouraging and enjoyable.',
-            ],
-        ];
+        // 1. Fetch the specific class schedule/subject assigned to this teacher
+        $schedule = ClassSchedule::where('id', $scheduleId)
+            ->where('teacher_id', $teacher->id)
+            ->firstOrFail();
 
-        return view('teacher.evaluation-report', compact(
-            'overallAverage',
-            'totalEvaluations',
-            'performanceMetrics',
-            'studentFeedbacks'
-        ));
+        // 2. Fetch students enrolled in this section/strand
+        // (Adjust the query based on how your students are linked to sections/strands)
+        $students = User::where('role_id', 3) // Assuming role_id 3 is student
+            ->when(Schema::hasColumn('users', 'section'), function($q) use ($schedule) {
+                $q->where('section', $schedule->section);
+            })
+            ->get();
+
+        return view('teacher.class-list', compact('teacher', 'schedule', 'students'));
     }
 }

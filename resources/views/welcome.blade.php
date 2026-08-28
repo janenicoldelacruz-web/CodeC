@@ -1,73 +1,66 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SIATRACK - Portal Selection</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIATRACK Portal - Southern Isabela Academy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
 </head>
-<body class="bg-slate-200 min-h-screen flex items-center justify-center p-4 font-sans antialiased">
+<body class="bg-[#d1d5db] min-h-screen flex items-center justify-center p-4">
 
-    <!-- Main Card Container -->
-    <div class="relative bg-white rounded-3xl shadow-2xl p-8 pt-16 max-w-md w-full text-center mt-10">
+    <div class="relative bg-white w-full max-w-sm rounded-[36px] p-8 pt-14 shadow-2xl border border-gray-100 flex flex-col items-center">
         
-        <!-- Floating Logo at Top Center -->
-        <div class="absolute -top-12 left-1/2 transform -translate-x-1/2 w-24 h-24 bg-white rounded-full p-1.5 shadow-lg border-4 border-white flex items-center justify-center">
-            <img src="{{ asset('images/sia-logo.png') }}" alt="Southern Isabela Academy Logo" class="w-full h-full object-contain rounded-full">
+        <!-- Official SIA Seal Logo -->
+        <div class="absolute -top-14 w-28 h-28 rounded-full bg-white p-1 shadow-xl border-2 border-red-500 flex items-center justify-center">
+            <img src="{{ asset('images/sia-logo.png') }}" alt="SIA Official Seal" class="w-full h-full object-contain rounded-full">
         </div>
 
-        <!-- Portal Header Titles -->
-        <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">SIATRACK Portal</h1>
-            <p class="text-xs text-gray-400 font-medium mt-0.5">Southern Isabela Academy</p>
+        <h1 class="text-2xl font-black text-gray-900 tracking-tight text-center mt-2">SIATRACK Portal</h1>
+        <p class="text-xs text-gray-500 font-semibold mt-0.5 mb-6 text-center">Southern Isabela Academy</p>
+
+        <!-- Admin & Faculty Access Section -->
+        <div class="w-full">
+            <div class="relative flex py-2 items-center">
+                <div class="flex-grow border-t border-gray-300"></div>
+                <span class="flex-shrink mx-3 text-[11px] font-bold text-gray-500">Admin & Faculty Access</span>
+                <div class="flex-grow border-t border-gray-300"></div>
+            </div>
+
+            <div class="space-y-3 mt-3">
+                <a href="{{ route('login.portal', ['role' => 'teacher']) }}" 
+                   class="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-[#38bdf8] via-[#60a5fa] to-[#93c5fd] hover:opacity-90 text-white font-black text-sm flex items-center justify-center gap-2.5 shadow-md transition transform active:scale-95">
+                    <i class="fa-solid fa-right-from-bracket text-base"></i>
+                    <span>Faculty Login</span>
+                </a>
+
+                <a href="{{ route('login.portal', ['role' => 'admin']) }}" 
+                   class="w-full py-3.5 px-5 rounded-2xl bg-[#1e293b] hover:bg-black text-white font-black text-sm flex items-center justify-center gap-2.5 shadow-md transition transform active:scale-95">
+                    <i class="fa-solid fa-user-gear text-base"></i>
+                    <span>Admin Access</span>
+                </a>
+            </div>
         </div>
 
-        <!-- Section Divider: Admin & Faculty -->
-        <div class="relative flex py-3 items-center">
-            <div class="flex-grow border-t border-gray-300"></div>
-            <span class="flex-shrink mx-3 text-gray-400 text-xs font-medium">Admin & Faculty Access</span>
-            <div class="flex-grow border-t border-gray-300"></div>
-        </div>
+        <!-- Student Access Section -->
+        <div class="w-full mt-6">
+            <div class="relative flex py-2 items-center">
+                <div class="flex-grow border-t border-gray-300"></div>
+                <span class="flex-shrink mx-3 text-[11px] font-bold text-gray-500">Student Access</span>
+                <div class="flex-grow border-t border-gray-300"></div>
+            </div>
 
-        <!-- Action Buttons (Faculty & Admin) -->
-        <div class="space-y-3.5 my-4">
-            
-            <!-- Faculty Login Button -->
-            <a href="{{ route('login.portal', 'teacher') }}" 
-               class="w-full py-3 px-4 bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white font-medium text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-                </svg>
-                Faculty Login
-            </a>
-
-            <!-- Admin Access Button -->
-            <a href="{{ route('login.portal', 'admin') }}" 
-               class="w-full py-3 px-4 bg-gray-900 hover:bg-gray-800 text-white font-medium text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.654 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                Admin Access
-            </a>
-
-        </div>
-
-        <!-- Section Divider: Student -->
-        <div class="relative flex py-3 items-center">
-            <div class="flex-grow border-t border-gray-300"></div>
-            <span class="flex-shrink mx-3 text-gray-400 text-xs font-medium">Student Access</span>
-            <div class="flex-grow border-t border-gray-300"></div>
-        </div>
-
-        <!-- Student Portal Button -->
-        <div class="mt-4">
-            <a href="{{ route('login.portal', 'student') }}" 
-               class="w-full py-3 px-4 bg-gradient-to-r from-emerald-400 to-green-600 hover:from-emerald-500 hover:to-green-700 text-white font-medium text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                Student Portal
-            </a>
+            <div class="mt-3">
+                <a href="{{ route('login.portal', ['role' => 'student']) }}" 
+                   class="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-[#22c55e] to-[#16a34a] hover:opacity-90 text-white font-black text-sm flex items-center justify-center gap-2.5 shadow-md transition transform active:scale-95">
+                    <i class="fa-solid fa-circle-check text-base"></i>
+                    <span>Evaluate Faculty</span>
+                </a>
+            </div>
         </div>
 
     </div>

@@ -9,13 +9,15 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::create('section_student', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
-    }
+public function up(): void
+{
+    Schema::create('section_student', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('student_id')->constrained('users')->onDelete('cascade');
+        $table->foreignId('section_id')->constrained('academic_sections')->onDelete('cascade');
+        $table->timestamps();
+    });
+}
 
     /**
      * Reverse the migrations.

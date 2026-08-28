@@ -9,13 +9,19 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::create('sms_logs', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
-    }
+public function up(): void
+{
+    Schema::create('sms_logs', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+        $table->string('phone_number', 50);
+        $table->text('message');
+        $table->string('type', 50)->default('ATTENDANCE');
+        $table->string('status', 50)->default('SENT');
+        $table->text('api_response')->nullable();
+        $table->timestamps();
+    });
+}
 
     /**
      * Reverse the migrations.

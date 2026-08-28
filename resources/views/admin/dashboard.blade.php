@@ -1,420 +1,528 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - SIATRACK</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .slanted-pill { transform: skewX(-20deg); }
-    </style>
-</head>
+@extends('layouts.app')
 
-<body class="bg-[#fcfbfb] text-gray-800 antialiased min-h-screen flex">
+@section('title', 'Admin Dashboard - SIATRACK')
 
-    @php
-        $user = auth()->user();
-        $avatarPath = $user->profile_picture ?? session('admin_avatar_' . $user->id);
-    @endphp
+@section('content')
+<div class="w-full min-h-screen flex flex-col bg-slate-50/70">
 
-    <!-- ==================== SIDEBAR ==================== -->
-    <aside class="w-64 bg-white border-r border-red-100 flex flex-col justify-between shrink-0 h-screen sticky top-0">
+    <!-- Top Header Bar -->
+    <header class="bg-white border-b-2 border-slate-200 pl-8 lg:pl-12 pr-6 lg:pr-8 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-20 shadow-xs w-full">
         <div>
-            <!-- Branding Header -->
-            <div class="p-6 pb-5 border-b border-gray-100">
-                <div class="flex items-center gap-2">
-                    <span class="text-2xl font-black tracking-tight text-[#b91c1c]">SIATRACK</span>
-                    <i class="fa-solid fa-wifi rotate-45 text-[#b91c1c] text-lg"></i>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-[#8b1818] text-white flex items-center justify-center text-base shadow-xs shrink-0">
+                    <i class="fa-solid fa-table-cells-large text-amber-300"></i>
                 </div>
-                <p class="text-[11px] font-semibold text-gray-400 mt-0.5">
-                    Southern Isabela Academy
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-2xl font-black text-slate-900 tracking-tight">Admin Dashboard</h1>
+                        <span class="px-2.5 py-0.5 rounded-md text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 uppercase">
+                            A.Y. {{ date('Y') }}-{{ date('Y') + 1 }}
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500 font-bold mt-0.5">
+                        <i class="fa-regular fa-calendar text-slate-400 mr-1"></i>
+                        {{ \Carbon\Carbon::now()->format('l, F d, Y') }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <!-- Editable Admin Profile Button -->
+            <button type="button" 
+                    onclick="openEditProfileModal()"
+                    title="Click to edit profile"
+                    class="group flex items-center gap-3 p-1.5 pr-4 rounded-2xl hover:bg-slate-100 border-2 border-slate-200 hover:border-slate-300 transition text-left bg-white shadow-2xs cursor-pointer">
+                <div class="relative">
+                    <div class="w-10 h-10 rounded-xl bg-[#8b1818] text-white font-black text-xs flex items-center justify-center shadow-xs group-hover:scale-105 transition">
+                        {{ strtoupper(substr(auth()->user()->first_name ?? 'A', 0, 1)) }}{{ strtoupper(substr(auth()->user()->last_name ?? 'D', 0, 1)) }}
+                    </div>
+                    <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-white border border-slate-200 rounded-full flex items-center justify-center text-[9px] text-slate-600 shadow-2xs group-hover:text-[#8b1818]">
+                        <i class="fa-solid fa-pen"></i>
+                    </span>
+                </div>
+                <div class="hidden sm:block">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xs font-black text-slate-900 group-hover:text-[#8b1818] transition">
+                            {{ auth()->user()->first_name }} {{ auth()->user()->last_name }}
+                        </span>
+                        <i class="fa-solid fa-pen-to-square text-[10px] text-slate-400 group-hover:text-[#8b1818] transition opacity-0 group-hover:opacity-100"></i>
+                    </div>
+                    <span class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Administrator</span>
+                </div>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="pt-10 pb-12 pl-8 lg:pl-12 pr-6 lg:pr-8 w-full space-y-8 flex-1">
+
+        <!-- Flash Notifications -->
+        @if(session('success'))
+            <div class="p-4 bg-emerald-50 border-2 border-emerald-300 text-emerald-900 text-xs font-bold rounded-2xl flex items-center justify-between shadow-xs w-full">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-circle-check text-emerald-600 text-base shrink-0"></i>
+                    <span>{{ session('success') }}</span>
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-950 text-sm cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        @endif
+
+        <!-- ================= Section 1: KPI Summary Metrics ================= -->
+        <div class="space-y-3 w-full">
+            <div class="flex items-center justify-between">
+                <p class="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie text-[#8b1818] text-xs"></i>
+                    <span>Institutional Metrics Overview</span>
                 </p>
             </div>
 
-            <!-- Navigation Links -->
-            <nav class="p-4 space-y-2 text-sm font-semibold">
-                <a href="{{ route('admin.dashboard') }}" 
-                   class="flex items-center gap-3 px-4 py-3 bg-[#cf2e2e] text-white rounded-2xl shadow-sm transition">
-                    <i class="fa-solid fa-gauge text-sm"></i>
-                    <span>Dashboard</span>
-                </a>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
 
-                <a href="{{ route('admin.users.index') }}" 
-                   class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-2xl transition">
-                    <i class="fa-solid fa-users text-sm"></i>
-                    <span>User Management</span>
-                </a>
-
-                <a href="{{ route('admin.attendance') }}" 
-                   class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-2xl transition">
-                    <i class="fa-solid fa-clipboard-user text-sm"></i>
-                    <span>Attendance Records</span>
-                </a>
-
-                <a href="{{ route('admin.evaluations') }}" 
-                   class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-2xl transition">
-                    <i class="fa-solid fa-chart-pie text-sm"></i>
-                    <span>Faculty Evaluation Mgmt</span>
-                </a>
-
-                <a href="{{ route('admin.reports') }}" 
-                   class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-2xl transition">
-                    <i class="fa-solid fa-file-waveform text-sm"></i>
-                    <span>Report Generation</span>
-                </a>
-            </nav>
-        </div>
-
-        <!-- Admin Profile Footer Button -->
-        <div class="p-4 border-t border-gray-100 bg-gray-50/60">
-            <div class="flex items-center justify-between">
-                <button type="button" onclick="openAdminProfileModal()" class="flex items-center gap-3 text-left group">
-                    <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-red-200 group-hover:border-red-500 transition shrink-0 bg-red-100 flex items-center justify-center">
-                        @if($avatarPath && file_exists(public_path($avatarPath)))
-                            <img src="{{ asset($avatarPath) }}" alt="Avatar" class="w-full h-full object-cover">
-                        @else
-                            <span class="font-black text-sm text-red-600">
-                                {{ strtoupper(substr($user->first_name ?? 'A', 0, 1)) }}
-                            </span>
-                        @endif
+                <!-- 1. Total Students Enrolled -->
+                <div class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-amber-300 transition w-full">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-[11px] font-black text-slate-500 uppercase tracking-wider">Total Students</p>
+                            <h3 class="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight mt-1">{{ number_format($totalStudents ?? 0) }}</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-amber-50 border-2 border-amber-200 text-amber-700 flex items-center justify-center text-xl shadow-xs shrink-0">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
                     </div>
-                    <div class="overflow-hidden">
-                        <p class="text-xs font-bold text-gray-800 truncate group-hover:text-red-600 transition">
-                            {{ $user->first_name ?? 'Administrator' }} {{ $user->last_name ?? '' }}
-                        </p>
-                        <p class="text-[10px] text-red-600 font-bold uppercase tracking-wider">System Admin</p>
+                    <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-bold">
+                        <span>Academic Year</span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
                     </div>
-                </button>
+                </div>
 
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" title="Logout" class="text-gray-400 hover:text-red-600 p-1.5 transition">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                    </button>
-                </form>
+                <!-- 2. Daily Attendance Rate -->
+                <div class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-red-300 transition w-full">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-[11px] font-black text-slate-500 uppercase tracking-wider">Attendance Rate</p>
+                            <h3 class="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight mt-1">{{ $attendanceRate ?? '0%' }}</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-red-50 border-2 border-red-200 text-[#8b1818] flex items-center justify-center text-xl shadow-xs shrink-0">
+                            <i class="fa-solid fa-clipboard-check"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-2">
+                            <div class="bg-[#8b1818] h-full rounded-full transition-all duration-500" style="width: {{ min(100, (float)($attendanceRate ?? 0)) }}%"></div>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-slate-600 font-bold">
+                            <span>Present Today</span>
+                            <span class="text-[#8b1818] font-mono font-black">{{ $presentTodayCount ?? 0 }} / {{ $totalStudents ?? 0 }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Faculty Evaluation Progress -->
+                <div class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-blue-300 transition w-full">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-[11px] font-black text-slate-500 uppercase tracking-wider">Faculty Evaluation</p>
+                            <h3 class="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight mt-1">{{ $evalProgress ?? '0%' }}</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-blue-50 border-2 border-blue-200 text-blue-700 flex items-center justify-center text-xl shadow-xs shrink-0">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-2">
+                            <div class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: {{ min(100, (float)($evalProgress ?? 0)) }}%"></div>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-slate-600 font-bold">
+                            <span>Student Reviews</span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Active SMS Dispatched Today -->
+                <div class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-emerald-300 transition w-full">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-[11px] font-black text-slate-500 uppercase tracking-wider">SMS Sent Today</p>
+                            <h3 class="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight mt-1">{{ number_format($activeSMS ?? 0) }}</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-50 border-2 border-emerald-200 text-emerald-700 flex items-center justify-center text-xl shadow-xs shrink-0">
+                            <i class="fa-solid fa-comment-sms"></i>
+                        </div>
+                    </div>
+                    <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-bold">
+                        <span>Parent Alerts</span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                    </div>
+                </div>
+
             </div>
         </div>
-    </aside>
 
-    <!-- ==================== MAIN CONTENT ==================== -->
-    <main class="flex-1 flex flex-col min-w-0">
-        
-        <!-- Header -->
-        <header class="bg-white border-b border-red-100 px-8 py-4 flex items-center justify-between sticky top-0 z-20 shadow-xs">
-            <h1 class="text-2xl font-black text-gray-900 tracking-tight">Admin Dashboard</h1>
+        <!-- ================= Section 2: Real-Time Attendance Stream ================= -->
+        <div class="p-6 lg:p-8 bg-white rounded-3xl border-2 border-slate-200 shadow-xs space-y-6 w-full">
 
-            <!-- Functional Admin Profile Trigger & Bell -->
-            <div class="flex items-center gap-4">
-                <button type="button" 
-                        onclick="openAdminProfileModal()" 
-                        class="flex items-center gap-2.5 text-sm font-bold text-gray-900 hover:text-red-600 cursor-pointer transition bg-gray-50 px-3.5 py-1.5 rounded-full border border-gray-200 hover:border-red-300">
-                    <div class="w-6 h-6 rounded-full overflow-hidden bg-red-100 flex items-center justify-center text-[11px] font-bold text-red-600 shrink-0">
-                        @if($avatarPath && file_exists(public_path($avatarPath)))
-                            <img src="{{ asset($avatarPath) }}" alt="Avatar" class="w-full h-full object-cover">
-                        @else
-                            {{ strtoupper(substr($user->first_name ?? 'A', 0, 1)) }}
-                        @endif
+            <!-- Table Header & Live Search Box -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b-2 border-slate-100 w-full">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center text-sm font-black shadow-2xs">
+                        <i class="fa-solid fa-tower-broadcast text-[#8b1818]"></i>
                     </div>
-                    <span>Admin Profile</span>
-                </button>
+                    <div>
+                        <h2 class="text-lg font-black text-slate-900 tracking-tight">Live Gate Attendance Feed</h2>
+                        <p class="text-xs text-slate-500 font-bold mt-0.5">Real-time NFC card taps recorded today</p>
+                    </div>
+                </div>
 
-                <button type="button" 
-                        onclick="alert('No new administrative alerts.')"
-                        class="relative text-gray-800 hover:text-red-600 transition text-lg p-1.5 rounded-full hover:bg-gray-100">
-                    <i class="fa-regular fa-bell"></i>
-                    <span class="absolute top-1 right-1 w-2 h-2 bg-red-600 rounded-full"></span>
-                </button>
+                <div class="flex items-center gap-3">
+                    <div class="relative w-full md:w-80">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="feedSearch" onkeyup="filterFeedTable()" placeholder="Filter live scans..."
+                               class="w-full pl-9 pr-4 py-2.5 text-xs font-bold border-2 border-slate-200 rounded-2xl focus:border-[#8b1818] outline-none bg-white transition shadow-2xs">
+                    </div>
+                </div>
             </div>
-        </header>
 
-        <div class="p-8 space-y-8 max-w-7xl w-full">
+            <!-- Feed Table -->
+            <div class="overflow-x-auto rounded-2xl border-2 border-slate-200 shadow-2xs w-full">
+                <table class="w-full text-left border-collapse" id="feedTable">
+                    <thead>
+                        <tr class="bg-slate-50/90 text-slate-700 uppercase font-black tracking-wider text-xs border-b-2 border-slate-200">
+                            <th class="py-4 px-5">Student Name</th>
+                            <th class="py-4 px-5 text-center">LRN / School ID</th>
+                            <th class="py-4 px-5 text-center">Academic Placement</th>
+                            <th class="py-4 px-5 text-center">Time In</th>
+                            <th class="py-4 px-5 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm font-semibold text-slate-800">
+                        @forelse($recentTaps as $tap)
+                            @php
+                                $trackLabel = match((int)($tap->track ?? $tap->strand ?? 0)) {
+                                    1 => 'Academic Track',
+                                    2 => 'Technical-Professional',
+                                    default => 'General Track'
+                                };
+                                $sectionLabel = match((int)($tap->section ?? 0)) {
+                                    1 => 'Amber',
+                                    2 => 'Crystal',
+                                    3 => 'Pearl',
+                                    4 => 'Turquoise',
+                                    default => !empty($tap->section) ? 'Sec. ' . $tap->section : null
+                                };
+                                $gradeLabel = !empty($tap->grade_level) ? 'Grade ' . $tap->grade_level : 'Grade 11';
+                            @endphp
+                            <tr class="hover:bg-red-50/40 transition tap-row">
+                                <!-- Student Info -->
+                                <td class="py-4 px-5">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-full bg-red-100 border border-red-200 text-[#8b1818] text-xs font-black flex items-center justify-center shrink-0 shadow-2xs">
+                                            {{ strtoupper(substr($tap->first_name ?? 'S', 0, 1)) }}{{ strtoupper(substr($tap->last_name ?? 'T', 0, 1)) }}
+                                        </div>
+                                        <div>
+                                            <span class="text-slate-900 font-extrabold block leading-tight student-name">{{ $tap->first_name }} {{ $tap->last_name }}</span>
+                                        </div>
+                                    </div>
+                                </td>
 
-            @if(session('success'))
-                <div class="p-4 bg-green-50 border border-green-200 text-green-700 font-bold rounded-2xl flex items-center gap-3">
-                    <i class="fa-solid fa-circle-check text-green-600 text-lg"></i>
-                    <span>{{ session('success') }}</span>
-                </div>
-            @endif
+                                <!-- ID / LRN -->
+                                <td class="py-4 px-5 text-center text-slate-900 font-mono font-bold text-sm student-id">
+                                    {{ $tap->id_number ?? 'N/A' }}
+                                </td>
 
-            @if($errors->any())
-                <div class="p-4 bg-red-50 border border-red-200 text-red-700 font-bold rounded-2xl">
-                    <ul class="list-disc list-inside text-xs">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+                                <!-- Placement (Grade, Track & Section) -->
+                                <td class="py-4 px-5 text-center student-placement">
+                                    <div class="space-y-1">
+                                        <span class="px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-800 text-xs font-black border border-slate-300 shadow-2xs inline-block">
+                                            {{ $gradeLabel }}
+                                        </span>
+                                        <div>
+                                            <span class="px-2 py-0.5 rounded-md bg-red-50 text-[#8b1818] text-[10px] font-black border border-red-200">
+                                                {{ $trackLabel }} @if($sectionLabel) • {{ $sectionLabel }} @endif
+                                            </span>
+                                        </div>
+                                    </div>
+                                </td>
 
-            <!-- KPI SUMMARY CARDS (Figure 13) -->
-            <section class="space-y-3">
-                <h2 class="text-base font-extrabold text-gray-900">KPI Summary Cards</h2>
+                                <!-- Time In -->
+                                <td class="py-4 px-5 text-center text-slate-900 font-mono font-bold text-xs">
+                                    @if(!empty($tap->time_in))
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-50 border border-slate-200">
+                                            <i class="fa-regular fa-clock text-amber-600 text-xs"></i>
+                                            <span>{{ \Carbon\Carbon::parse($tap->time_in)->format('h:i:s A') }}</span>
+                                        </span>
+                                    @else
+                                        <span class="text-slate-400 font-sans font-semibold text-xs">--:--:--</span>
+                                    @endif
+                                </td>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                    <!-- Total Students -->
-                    <div class="bg-white border-2 border-red-300 rounded-3xl p-5 relative shadow-xs flex flex-col justify-between">
-                        <div class="absolute -top-3 left-6 bg-white px-3 border-t-2 border-x-2 border-red-300 rounded-t-lg h-3"></div>
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-full border-2 border-gray-900 flex items-center justify-center text-gray-800 text-lg">
-                                <i class="fa-regular fa-user"></i>
-                            </div>
-                            <div>
-                                <p class="text-2xl font-black text-gray-900">{{ $totalStudents ?? '550' }}</p>
-                                <p class="text-xs text-gray-500 font-bold">Total Students Enrolled</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Daily Attendance Rate -->
-                    <div class="bg-white border-2 border-red-300 rounded-3xl p-5 relative shadow-xs flex flex-col justify-between">
-                        <div class="absolute -top-3 left-6 bg-white px-3 border-t-2 border-x-2 border-red-300 rounded-t-lg h-3"></div>
-                        <div class="flex items-center gap-3">
-                            <div class="border border-red-300 rounded-lg p-1.5 text-center w-12 h-12 flex flex-col items-center justify-center bg-gray-50">
-                                <span class="text-xs font-black text-red-600">{{ date('d') }}</span>
-                            </div>
-                            <div>
-                                <p class="text-2xl font-black text-gray-900">94.7%</p>
-                                <p class="text-xs text-gray-500 font-bold">Daily Attendance Rate</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Faculty Evaluation Progress -->
-                    <div class="bg-white border-2 border-red-300 rounded-3xl p-5 relative shadow-xs flex flex-col justify-between">
-                        <div class="absolute -top-3 left-6 bg-white px-3 border-t-2 border-x-2 border-red-300 rounded-t-lg h-3"></div>
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-full bg-red-50 text-red-600 border border-red-200 flex items-center justify-center text-lg">
-                                <i class="fa-solid fa-clipboard-check"></i>
-                            </div>
-                            <div>
-                                <p class="text-2xl font-black text-gray-900">78%</p>
-                                <p class="text-xs text-gray-500 font-bold">Evaluation Progress</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Active SMS Today -->
-                    <div class="bg-white border-2 border-red-300 rounded-3xl p-5 relative shadow-xs flex flex-col justify-between">
-                        <div class="absolute -top-3 left-6 bg-white px-3 border-t-2 border-x-2 border-red-300 rounded-t-lg h-3"></div>
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center text-lg">
-                                <i class="fa-solid fa-comment-sms"></i>
-                            </div>
-                            <div>
-                                <p class="text-2xl font-black text-gray-900">{{ $activeSMS ?? '112' }}</p>
-                                <p class="text-xs text-gray-500 font-bold">Active SMS Today</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- REAL-TIME ACTIVITY FEED (Figure 13) -->
-            <section class="space-y-3">
-                <div class="bg-white border-2 border-red-300 rounded-3xl p-6 shadow-xs relative">
-                    <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-base font-extrabold text-gray-900">
-                            Real-Time Activity Feed: Live Attendance Stream
-                        </h2>
-                        <span class="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-bold">
-                            Live Sync Active
-                        </span>
-                    </div>
-
-                    <div class="overflow-x-auto rounded-xl">
-                        <table class="w-full text-left text-xs border-collapse">
-                            <thead>
-                                <tr class="bg-gray-800 text-white font-bold uppercase tracking-wider">
-                                    <th class="py-3 px-4">Student Name</th>
-                                    <th class="py-3 px-4 text-center">Grade / Section</th>
-                                    <th class="py-3 px-4 text-center">Time In</th>
-                                    <th class="py-3 px-4 text-center">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 font-medium text-gray-900 bg-[#f3f4f6]">
-                                <tr class="hover:bg-gray-200 transition">
-                                    <td class="py-2.5 px-4 font-bold">Jane Nicol Dela Cruz</td>
-                                    <td class="py-2.5 px-4 text-center">12 - STEM A</td>
-                                    <td class="py-2.5 px-4 text-center font-bold">7:15 AM</td>
-                                    <td class="py-2.5 px-4 text-center"><span class="bg-green-500 text-white px-3 py-0.5 rounded-full text-[10px] font-black">On-Time</span></td>
-                                </tr>
-                                <tr class="hover:bg-gray-200 transition">
-                                    <td class="py-2.5 px-4 font-bold">Ceazar Muaa Rodolfo</td>
-                                    <td class="py-2.5 px-4 text-center">11 - HUMSS B</td>
-                                    <td class="py-2.5 px-4 text-center font-bold">7:18 AM</td>
-                                    <td class="py-2.5 px-4 text-center"><span class="bg-green-500 text-white px-3 py-0.5 rounded-full text-[10px] font-black">On-Time</span></td>
-                                </tr>
-                                <tr class="hover:bg-gray-200 transition">
-                                    <td class="py-2.5 px-4 font-bold">Marco Manlapaz</td>
-                                    <td class="py-2.5 px-4 text-center">12 - ABM A</td>
-                                    <td class="py-2.5 px-4 text-center font-bold">7:25 AM</td>
-                                    <td class="py-2.5 px-4 text-center"><span class="bg-green-500 text-white px-3 py-0.5 rounded-full text-[10px] font-black">On-Time</span></td>
-                                </tr>
-                                <tr class="hover:bg-gray-200 transition">
-                                    <td class="py-2.5 px-4 font-bold">Eliza Peralta</td>
-                                    <td class="py-2.5 px-4 text-center">11 - GAS A</td>
-                                    <td class="py-2.5 px-4 text-center font-bold">7:30 AM</td>
-                                    <td class="py-2.5 px-4 text-center"><span class="bg-green-500 text-white px-3 py-0.5 rounded-full text-[10px] font-black">On-Time</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="flex justify-end gap-2 mt-5">
-                        <span class="w-7 h-3.5 bg-[#881337] rounded-sm slanted-pill"></span>
-                        <span class="w-7 h-3.5 bg-[#881337] rounded-sm slanted-pill"></span>
-                        <span class="w-7 h-3.5 bg-[#881337] rounded-sm slanted-pill"></span>
-                    </div>
-                </div>
-            </section>
+                                <!-- Status Badge -->
+                                <td class="py-4 px-5 text-center">
+                                    @if(strtoupper($tap->status ?? '') === 'ON-TIME')
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> ON-TIME
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span> LATE
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="py-16 text-center text-slate-400 font-medium">
+                                    <div class="w-14 h-14 rounded-2xl bg-slate-100 border-2 border-slate-200 text-slate-400 flex items-center justify-center mx-auto mb-3.5 text-2xl shadow-2xs">
+                                        <i class="fa-solid fa-clipboard-list"></i>
+                                    </div>
+                                    <p class="text-base font-extrabold text-slate-800">No Attendance Taps Logged Today</p>
+                                    <p class="text-xs text-slate-500 font-semibold mt-1">Scans will appear here in real-time as students tap their NFC cards.</p>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
 
         </div>
+
     </main>
+</div>
 
-    <!-- ==================== ADMIN PROFILE MODAL ==================== -->
-    <div id="adminProfileModal" class="fixed inset-0 z-50 bg-black/60 hidden items-center justify-center p-4 backdrop-blur-xs">
-        <div class="bg-white rounded-3xl max-w-xl w-full p-6 border-2 border-red-300 shadow-2xl relative animate-in fade-in zoom-in duration-150">
-            
-            <div class="flex justify-between items-center pb-4 border-b border-gray-100">
-                <div class="flex items-center gap-4">
-                    <!-- Interactive Photo Click -->
-                    <div class="relative group cursor-pointer" onclick="document.getElementById('admin_picture_input').click()" title="Click to upload profile photo">
-                        <div class="w-14 h-14 rounded-full overflow-hidden bg-red-600 text-white flex items-center justify-center font-black text-xl border-2 border-red-400 shadow-md">
-                            <img id="admin_preview_img" 
-                                 src="{{ ($avatarPath && file_exists(public_path($avatarPath))) ? asset($avatarPath) : '' }}" 
-                                 alt="Avatar" 
-                                 class="{{ ($avatarPath && file_exists(public_path($avatarPath))) ? 'block' : 'hidden' }} w-full h-full object-cover">
-                            
-                            <span id="admin_initial_span" class="{{ ($avatarPath && file_exists(public_path($avatarPath))) ? 'hidden' : 'block' }}">
-                                {{ strtoupper(substr($user->first_name ?? 'A', 0, 1)) }}
-                            </span>
-                        </div>
-                        
-                        <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-150">
-                            <i class="fa-solid fa-camera text-white text-sm"></i>
-                        </div>
-                        <div class="absolute -bottom-1 -right-1 bg-white text-red-600 w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center text-[10px] shadow-xs">
-                            <i class="fa-solid fa-pen"></i>
+<!-- ================= Modal: Edit Admin Profile ================= -->
+<div id="editProfileModal" 
+     class="fixed inset-0 z-50 bg-slate-950/60 hidden items-center justify-center p-4 sm:p-6"
+     style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border-2 border-slate-200 overflow-hidden max-h-[92vh] flex flex-col">
+        
+        <!-- Modal Header -->
+        <div class="px-8 py-5 border-b-2 border-slate-100 bg-slate-50/80 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3.5">
+                <div class="w-10 h-10 rounded-xl bg-[#8b1818] text-white flex items-center justify-center text-sm shadow-xs shrink-0">
+                    <i class="fa-solid fa-user-gear text-amber-300"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-black text-slate-900 tracking-tight">Administrator Profile</h3>
+                    <p class="text-xs text-slate-500 font-semibold mt-0.5">Manage your administrative credentials and personal details</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeEditProfileModal()" class="w-9 h-9 rounded-xl hover:bg-slate-200/70 text-slate-400 hover:text-slate-700 flex items-center justify-center transition focus:outline-none cursor-pointer">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+        </div>
+
+        <!-- Form Body -->
+        <form action="{{ route('admin.profile.update') }}" method="POST" id="adminProfileForm" class="p-8 overflow-y-auto space-y-6">
+            @csrf
+
+            <!-- Section 1: Personal & Institutional Information -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <span class="text-xs font-black text-slate-400 uppercase tracking-wider">Profile Information</span>
+                </div>
+
+                <!-- First & Last Name Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">First Name <span class="text-red-600">*</span></label>
+                        <div class="relative flex items-center rounded-xl border border-slate-300 focus-within:border-[#8b1818] bg-white">
+                            <span class="pl-3.5 text-slate-400 text-xs"><i class="fa-solid fa-user"></i></span>
+                            <input type="text" name="first_name" value="{{ old('first_name', auth()->user()->first_name) }}" required placeholder="First Name"
+                                   class="w-full py-2.5 px-3 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none bg-transparent">
                         </div>
                     </div>
 
                     <div>
-                        <h3 class="text-base font-black text-gray-900">Administrator Profile & Settings</h3>
-                        <p class="text-xs text-gray-500 font-medium">Southern Isabela Academy &bull; System Administration</p>
-                        <button type="button" 
-                                onclick="document.getElementById('admin_picture_input').click()" 
-                                class="text-[11px] font-bold text-red-600 hover:underline mt-0.5 flex items-center gap-1">
-                            <i class="fa-solid fa-upload text-[10px]"></i> Change Profile Picture
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Last Name <span class="text-red-600">*</span></label>
+                        <div class="relative flex items-center rounded-xl border border-slate-300 focus-within:border-[#8b1818] bg-white">
+                            <span class="pl-3.5 text-slate-400 text-xs"><i class="fa-solid fa-user"></i></span>
+                            <input type="text" name="last_name" value="{{ old('last_name', auth()->user()->last_name) }}" required placeholder="Last Name"
+                                   class="w-full py-2.5 px-3 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none bg-transparent">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin ID & Contact Phone -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Employee / Admin ID</label>
+                        <div class="relative flex items-center rounded-xl border border-slate-300 focus-within:border-[#8b1818] bg-white">
+                            <span class="pl-3.5 text-slate-400 text-xs"><i class="fa-solid fa-hashtag"></i></span>
+                            <input type="text" name="id_number" value="{{ old('id_number', auth()->user()->id_number) }}" placeholder="ADM-2026-001"
+                                   class="w-full py-2.5 px-3 text-sm font-mono font-bold text-slate-800 placeholder-slate-400 focus:outline-none bg-transparent">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Contact Number</label>
+                        <div class="relative flex items-center rounded-xl border border-slate-300 focus-within:border-[#8b1818] bg-white">
+                            <span class="pl-3.5 text-slate-400 text-xs"><i class="fa-solid fa-phone"></i></span>
+                            <input type="text" name="phone_number" value="{{ old('phone_number', auth()->user()->phone_number) }}" placeholder="09171234567"
+                                   class="w-full py-2.5 px-3 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none bg-transparent">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Address -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Institutional Email Address <span class="text-red-600">*</span></label>
+                    <div class="relative flex items-center rounded-xl border border-slate-300 focus-within:border-[#8b1818] bg-white">
+                        <span class="pl-3.5 text-slate-400 text-xs"><i class="fa-solid fa-envelope"></i></span>
+                        <input type="email" name="email" value="{{ old('email', auth()->user()->email) }}" required placeholder="admin@siatrack.edu.ph"
+                               class="w-full py-2.5 px-3 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none bg-transparent">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Security & Password Management -->
+            <div class="space-y-4 pt-2">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <span class="text-xs font-black text-slate-400 uppercase tracking-wider">Authentication & Security</span>
+                    <span class="text-[10px] font-bold text-slate-400 italic">Leave empty to keep current password</span>
+                </div>
+
+                <!-- Current Password -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Current Password</label>
+                    <div class="relative flex items-center rounded-xl border border-slate-300 focus-within:border-[#8b1818] bg-white">
+                        <span class="pl-3.5 text-slate-400 text-xs"><i class="fa-solid fa-key"></i></span>
+                        <input type="password" id="current_password_field" name="current_password" placeholder="Required only if updating password"
+                               class="w-full py-2.5 px-3 pr-10 text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none bg-transparent">
+                        <button type="button" onclick="togglePasswordVisibility('current_password_field', this)" class="absolute right-3 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer">
+                            <i class="fa-solid fa-eye text-xs"></i>
                         </button>
                     </div>
                 </div>
 
-                <button type="button" onclick="closeAdminProfileModal()" class="text-gray-400 hover:text-gray-700 text-xl p-1">
-                    &times;
-                </button>
+                <!-- New Password & Confirm Password Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">New Password</label>
+                        <div class="relative flex items-center rounded-xl border border-slate-300 focus-within:border-[#8b1818] bg-white">
+                            <span class="pl-3.5 text-slate-400 text-xs"><i class="fa-solid fa-lock"></i></span>
+                            <input type="password" id="new_password_field" name="password" minlength="8" placeholder="Minimum 8 characters"
+                                   class="w-full py-2.5 px-3 pr-10 text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none bg-transparent">
+                            <button type="button" onclick="togglePasswordVisibility('new_password_field', this)" class="absolute right-3 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer">
+                                <i class="fa-solid fa-eye text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Confirm New Password</label>
+                        <div class="relative flex items-center rounded-xl border border-slate-300 focus-within:border-[#8b1818] bg-white">
+                            <span class="pl-3.5 text-slate-400 text-xs"><i class="fa-solid fa-lock-open"></i></span>
+                            <input type="password" id="confirm_password_field" name="password_confirmation" minlength="8" placeholder="Re-enter new password"
+                                   class="w-full py-2.5 px-3 pr-10 text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none bg-transparent">
+                            <button type="button" onclick="togglePasswordVisibility('confirm_password_field', this)" class="absolute right-3 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer">
+                                <i class="fa-solid fa-eye text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <form method="POST" action="{{ route('admin.profile.update') }}" enctype="multipart/form-data" class="space-y-4 mt-4">
-                @csrf
-                
-                <!-- Hidden file input for Photo -->
-                <input type="file" 
-                       id="admin_picture_input" 
-                       name="profile_picture" 
-                       accept="image/*" 
-                       class="hidden" 
-                       onchange="previewAdminImage(event)">
+            <!-- Modal Footer -->
+            <div class="pt-5 border-t-2 border-slate-100 flex items-center justify-end gap-3">
+                <button type="button" onclick="closeEditProfileModal()" 
+                        class="px-5 py-2.5 rounded-xl border-2 border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-extrabold cursor-pointer">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-6 py-2.5 rounded-xl bg-[#8b1818] hover:bg-[#721313] text-white text-xs font-black shadow-md shadow-red-950/20 flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-floppy-disk text-xs"></i>
+                    <span>Save Changes</span>
+                </button>
+            </div>
+        </form>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">First Name</label>
-                        <input type="text" name="first_name" value="{{ $user->first_name }}" required
-                               class="w-full text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Last Name</label>
-                        <input type="text" name="last_name" value="{{ $user->last_name }}" required
-                               class="w-full text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Email Address</label>
-                        <input type="email" name="email" value="{{ $user->email }}" required
-                               class="w-full text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Contact Phone</label>
-                        <input type="text" name="phone_number" value="{{ $user->phone_number }}"
-                               placeholder="e.g. 09123456789"
-                               class="w-full text-xs font-semibold px-4 py-2.5 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
-                    </div>
-                </div>
-
-                <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-3">
-                    <p class="text-xs font-bold text-gray-800">Change Password (leave blank if unchanged)</p>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <input type="password" name="password" placeholder="New Password"
-                                   class="w-full text-xs font-semibold px-4 py-2 rounded-lg border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none bg-white">
-                        </div>
-                        <div>
-                            <input type="password" name="password_confirmation" placeholder="Confirm Password"
-                                   class="w-full text-xs font-semibold px-4 py-2 rounded-lg border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none bg-white">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
-                    <button type="button" onclick="closeAdminProfileModal()" 
-                            class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-bold transition">
-                        Cancel
-                    </button>
-                    <button type="submit" 
-                            class="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black shadow-md transition">
-                        Save Profile
-                    </button>
-                </div>
-            </form>
-        </div>
     </div>
+</div>
+@endsection
 
-    <!-- Scripts -->
-    <script>
-        function openAdminProfileModal() {
-            const modal = document.getElementById('adminProfileModal');
+@push('scripts')
+<script>
+    function openEditProfileModal() {
+        const modal = document.getElementById('editProfileModal');
+        if (modal) {
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
         }
+    }
 
-        function closeAdminProfileModal() {
-            const modal = document.getElementById('adminProfileModal');
+    function closeEditProfileModal() {
+        const modal = document.getElementById('editProfileModal');
+        if (modal) {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+            document.body.classList.remove('overflow-hidden');
         }
+    }
 
-        function previewAdminImage(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.getElementById('admin_preview_img');
-                    const initial = document.getElementById('admin_initial_span');
-                    img.src = e.target.result;
-                    img.classList.remove('hidden');
-                    img.classList.add('block');
-                    if (initial) {
-                        initial.classList.add('hidden');
-                        initial.classList.remove('block');
-                    }
-                };
-                reader.readAsDataURL(file);
+    function togglePasswordVisibility(fieldId, btn) {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+
+        const icon = btn.querySelector('i');
+        if (field.type === 'password') {
+            field.type = 'text';
+            if (icon) {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        } else {
+            field.type = 'password';
+            if (icon) {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
             }
         }
-    </script>
-</body>
-</html>
+    }
+
+    function filterFeedTable() {
+        const searchInput = document.getElementById('feedSearch');
+        if (!searchInput) return;
+
+        const query = searchInput.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('.tap-row');
+
+        rows.forEach(row => {
+            const name = row.querySelector('.student-name')?.innerText.toLowerCase() || '';
+            const id = row.querySelector('.student-id')?.innerText.toLowerCase() || '';
+            const placement = row.querySelector('.student-placement')?.innerText.toLowerCase() || '';
+
+            if (name.includes(query) || id.includes(query) || placement.includes(query)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('editProfileModal');
+        
+        if (modal) {
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) {
+                    closeEditProfileModal();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+                closeEditProfileModal();
+            }
+        });
+
+        @if($errors->any())
+            openEditProfileModal();
+        @endif
+    });
+</script>
+@endpush

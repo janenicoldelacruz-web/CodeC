@@ -8,17 +8,22 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // 1. Users Table (References existing 'roles' table)
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->string('id_number', 50)->nullable()->unique();
             $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
             $table->string('first_name');
             $table->string('last_name');
+            $table->string('photo')->nullable();
+            $table->unsignedTinyInteger('gender')->nullable(); // 1 = Male, 2 = Female
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
             $table->string('phone_number')->nullable();
+            $table->string('parent_name')->nullable();
             $table->string('parent_phone_number')->nullable();
+            $table->unsignedTinyInteger('grade_level')->nullable(); // 11 = Grade 11, 12 = Grade 12
+            $table->unsignedTinyInteger('track')->nullable(); // 1 = Academic Track, 2 = Technical-Professional
+            $table->unsignedTinyInteger('section')->nullable(); // 1 = Crystal, 2 = Turquoise, 3 = Amber, 4 = Pearl
+            $table->string('password');
             $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->timestamps();

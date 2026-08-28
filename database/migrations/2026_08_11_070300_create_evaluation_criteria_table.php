@@ -9,13 +9,16 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::create('evaluation_criteria', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
-    }
+public function up(): void
+{
+    Schema::create('evaluation_criteria', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('category_id')->constrained('evaluation_categories')->onDelete('cascade');
+        $table->text('criteria_text');
+        $table->integer('order_index')->default(0);
+        $table->timestamps();
+    });
+}
 
     /**
      * Reverse the migrations.
