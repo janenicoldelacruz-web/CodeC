@@ -7,6 +7,7 @@ use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\TeacherDashboardController;
 use App\Http\Controllers\StudentDashboardController;
 use App\Http\Controllers\NfcAttendanceController;
+use App\Http\Controllers\DashboardController;
 
 // Admin Controllers (Inside Admin Folder Subspace)
 use App\Http\Controllers\Admin\AdminDashboardController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Admin\AdminAnnouncementController;
 use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminSettingController;
+
 /*
 |--------------------------------------------------------------------------
 | Public & Authentication Routes
@@ -48,8 +50,17 @@ Route::get('/api/nfc/latest-tap', [NfcAttendanceController::class, 'latestTap'])
 */
 Route::middleware(['auth', 'verified'])->group(function () {
     
-    // Role-Based Landing Redirect
-    Route::get('/dashboard', [LoginController::class, 'redirectDashboard'])->name('dashboard');
+    // Role-Based Landing Redirect (Fixed using closure)
+    Route::get('/dashboard', function () {
+        $user = auth()->user();
+        $roleName = is_object($user->role) ? $user->role->name : $user->role;
+        return match ($roleName) {
+            'admin'   => redirect()->route('admin.dashboard'),
+            'teacher' => redirect()->route('teacher.schedules'),
+            'student' => redirect()->route('student.dashboard'),
+            default   => redirect('/'),
+        };
+    })->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -63,6 +74,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
 
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        
+        // Student Status Analytics & Filtering Screen Route (Mapped to DashboardController)
+        Route::get('/students/analytics', [DashboardController::class, 'studentAnalytics'])->name('students.analytics');
         
         // User Management
         Route::post('/profile/update', [AdminUserController::class, 'updateProfile'])->name('profile.update');
@@ -138,7 +152,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware(['role:student'])->prefix('student')->name('student.')->group(function () {
-        Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');
     });
 
 });
