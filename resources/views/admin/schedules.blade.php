@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Class Schedules - SIATRACK')
 
@@ -14,9 +14,7 @@
             <div>
                 <div class="flex items-center gap-2">
                     <h1 class="text-2xl font-black text-slate-900 tracking-tight">Class Schedules</h1>
-                    <span class="px-3 py-1 rounded-xl text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 uppercase tracking-wide shadow-2xs">
-                        A.Y. {{ date('Y') }}-{{ date('Y') + 1 }}
-                    </span>
+                    <span class="px-3 py-1 rounded-xl text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 uppercase tracking-wide shadow-2xs">A.Y. {{ $activeSchoolYear ?? '2027-2028' }}</span>
                 </div>
                 <p class="text-xs text-slate-500 font-bold mt-0.5">Manage subject loads, section timetables, and faculty assignments</p>
             </div>

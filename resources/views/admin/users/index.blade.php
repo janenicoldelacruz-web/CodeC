@@ -366,9 +366,7 @@
 
                                 <!-- Position Badge -->
                                 <td class="py-4 px-6 text-center">
-                                    <span class="px-3 py-1 rounded-xl text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
-                                        Faculty Member
-                                    </span>
+                                    <span class="px-3 py-1 rounded-xl text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">A.Y. {{ $activeSchoolYear ?? '2027-2028' }}</span>
                                 </td>
 
                                 <!-- Contact Number -->

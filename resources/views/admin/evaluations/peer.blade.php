@@ -36,9 +36,7 @@
                                 <span class="text-xs text-slate-400 font-medium">Subject Teacher</span>
                             </td>
                             <td class="py-3.5 px-4 text-center">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono text-xs font-black bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
-                                    ★ {{ number_format($score, 1) }} / 5.0
-                                </span>
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono text-xs font-black bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">A.Y. {{ $activeSchoolYear ?? '2027-2028' }}</span>
                             </td>
                             <td class="py-3.5 px-4 text-slate-600 text-xs max-w-xs">
                                 <div class="truncate font-medium bg-slate-50 p-2 rounded-xl border border-slate-200 text-slate-700">

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -122,6 +122,83 @@ Route::middleware(['auth', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
+
+                        // Academic / School Year Dedicated Dashboard Routes
+        Route::get('/school-year', function () {
+            $totalStudents = \App\Models\User::where('role_id', 3)->count();
+            $totalFaculty  = \App\Models\User::where('role_id', 2)->count();
+            $totalLogs     = \Illuminate\Support\Facades\Schema::hasTable('attendance_logs') 
+                ? \Illuminate\Support\Facades\DB::table('attendance_logs')->count() 
+                : 0;
+            $recentTaps    = collect();
+
+            $activePeriod = \Illuminate\Support\Facades\Schema::hasTable('academic_periods')
+                ? \Illuminate\Support\Facades\DB::table('academic_periods')->where('is_active', 1)->first()
+                : null;
+
+            $activeSchoolYear = $activePeriod->school_year ?? \Illuminate\Support\Facades\Cache::get('active_academic_year', '2027-2028');
+            $activeSemester   = $activePeriod->semester ?? '2nd Semester';
+
+            return view('admin.school_year', compact('totalStudents', 'totalFaculty', 'totalLogs', 'recentTaps', 'activeSchoolYear', 'activeSemester'));
+        })->name('school-year');
+
+        Route::post('/school-year/update', function (\Illuminate\Http\Request $request) {
+            $request->validate([
+                'admin_password' => 'required',
+                'academic_year' => 'required'
+            ]);
+
+            if (!\Illuminate\Support\Facades\Hash::check($request->admin_password, auth()->user()->password)) {
+                return back()->with('error', 'Incorrect admin password. Action aborted!');
+            }
+
+            $rawYear = (string)$request->input('academic_year', '2027-2028');
+            $year = trim(str_replace(["\xe2\x80\x93", "\xe2\x80\x94", '–', '—', ' '], ['-', '-', '-', '-', ''], $rawYear));
+            $semester = trim((string)$request->input('semester', '1st Semester'));
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('academic_periods')) {
+                $cols = \Illuminate\Support\Facades\Schema::getColumnListing('academic_periods');
+                if (in_array('is_active', $cols)) {
+                    \Illuminate\Support\Facades\DB::table('academic_periods')->update(['is_active' => 0]);
+                }
+                $matchCol = in_array('school_year', $cols) ? 'school_year' : (in_array('academic_year', $cols) ? 'academic_year' : 'name');
+                $data = [
+                    $matchCol    => $year,
+                    'is_active'  => 1,
+                    'updated_at' => now()
+                ];
+                if (in_array('semester', $cols)) $data['semester'] = $semester;
+                if (in_array('name', $cols)) $data['name'] = 'A.Y. ' . $year;
+
+                $exists = \Illuminate\Support\Facades\DB::table('academic_periods')->where($matchCol, $year)->first();
+                if ($exists) {
+                    \Illuminate\Support\Facades\DB::table('academic_periods')->where('id', $exists->id)->update($data);
+                } else {
+                    if (in_array('created_at', $cols)) $data['created_at'] = now();
+                    \Illuminate\Support\Facades\DB::table('academic_periods')->insert($data);
+                }
+            }
+
+            \Illuminate\Support\Facades\Cache::forever('active_academic_year', $year);
+            \Illuminate\Support\Facades\Cache::forever('active_semester', $semester);
+
+            return back()->with('success', 'Academic Period successfully updated to ' . $year . ' (' . $semester . ')');
+        })->name('school-year.update');
+
+        Route::post('/school-year/reset', function (\Illuminate\Http\Request $request) {
+            $request->validate([
+                'admin_password' => 'required'
+            ]);
+
+            if (!\Illuminate\Support\Facades\Hash::check($request->admin_password, auth()->user()->password)) {
+                return back()->with('error', 'Incorrect admin password. Action aborted!');
+            }
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('attendance_logs')) {
+                \Illuminate\Support\Facades\DB::table('attendance_logs')->truncate();
+            }
+            return back()->with('success', 'Attendance logs have been safely reset for the new academic year.');
+        })->name('school-year.reset');
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         
         // Schedule Routes
@@ -260,7 +337,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
                 $query = DB::table('attendance_logs');
                 if ($foreignKey) { $query->leftJoin('users', 'attendance_logs.' . $foreignKey, '=', 'users.id'); }
-                $logs = $query->select('attendance_logs.*', 'users.first_name', 'users.last_name', 'users.id_number', 'users.strand')->latest('attendance_logs.created_at')->paginate(20);
+                $logs = $query->select('attendance_logs.*', 'users.first_name', 'users.last_name', 'users.id_number', DB::raw("NULL as strand"))->latest('attendance_logs.created_at')->paginate(20);
             }
 
             $attendanceRate = $totalStudents > 0 ? round(($presentTodayCount / $totalStudents) * 100, 1) . '%' : '0%';
@@ -275,7 +352,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             $foreignKey = in_array('student_id', $cols) ? 'student_id' : (in_array('user_id', $cols) ? 'user_id' : 'student_id');
             $logs = collect();
             if (Schema::hasTable('attendance_logs')) {
-                $logs = DB::table('attendance_logs')->leftJoin('users', 'attendance_logs.' . $foreignKey, '=', 'users.id')->select('attendance_logs.*', 'users.first_name', 'users.last_name', 'users.id_number', 'users.strand')->latest('attendance_logs.created_at')->get();
+                $logs = DB::table('attendance_logs')->leftJoin('users', 'attendance_logs.' . $foreignKey, '=', 'users.id')->select('attendance_logs.*', 'users.first_name', 'users.last_name', 'users.id_number', DB::raw("NULL as strand"))->latest('attendance_logs.created_at')->get();
             }
             $csvFileName = 'SIATRACK_Attendance_' . date('Y-m-d') . '.csv';
             $headers = ["Content-type" => "text/csv", "Content-Disposition" => "attachment; filename=$csvFileName", "Pragma" => "no-cache", "Cache-Control" => "must-revalidate, post-check=0, pre-check=0", "Expires" => "0"];

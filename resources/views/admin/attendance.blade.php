@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Attendance Records - SIATRACK')
 
@@ -14,9 +14,7 @@
             <div>
                 <div class="flex items-center gap-2">
                     <h1 class="text-2xl font-black text-slate-900 tracking-tight">Attendance Records</h1>
-                    <span class="px-3 py-1 rounded-xl text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 uppercase tracking-wide shadow-2xs">
-                        A.Y. {{ date('Y') }}-{{ date('Y') + 1 }}
-                    </span>
+                    <span class="px-3 py-1 rounded-xl text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 uppercase tracking-wide shadow-2xs">A.Y. {{ $activeSchoolYear ?? '2027-2028' }}</span>
                 </div>
                 <p class="text-xs text-slate-500 font-bold mt-0.5">Real-time gate logging, period tracking, and automated SMS alerts</p>
             </div>
@@ -73,7 +71,7 @@
                         <p class="text-[11px] font-black text-slate-500 uppercase tracking-wider">Late Arrivals</p>
                         <div class="flex items-baseline gap-2 mt-1">
                             <h3 class="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">{{ number_format($lateTodayCount ?? 0) }}</h3>
-                            <span class="text-xs font-black text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-200">{{ $lateRate ?? '0%' }}</span>
+                            <span class="text-xs font-black text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-200">A.Y. {{ $activeSchoolYear ?? '2027-2028' }}</span>
                         </div>
                     </div>
                     <div class="w-12 h-12 rounded-2xl bg-amber-50 border-2 border-amber-200 text-amber-700 flex items-center justify-center text-xl shadow-xs shrink-0">
@@ -265,8 +263,7 @@
                                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> ON-TIME
                                             </span>
                                         @else
-                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span> LATE
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">A.Y. {{ $activeSchoolYear ?? '2027-2028' }}</span> LATE
                                             </span>
                                         @endif
                                     </td>

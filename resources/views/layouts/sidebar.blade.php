@@ -1,4 +1,4 @@
-<aside class="w-72 bg-white border-r-2 border-slate-200 flex flex-col justify-between shrink-0 h-screen fixed top-0 left-0 z-30 shadow-xl shadow-slate-900/5">
+﻿<aside class="w-72 bg-white border-r-2 border-slate-200 flex flex-col justify-between shrink-0 h-screen fixed top-0 left-0 z-30 shadow-xl shadow-slate-900/5">
     
     <!-- Top Accent Trim -->
     <div class="h-1.5 bg-gradient-to-r from-[#8b1818] via-amber-400 to-[#8b1818] w-full shrink-0"></div>
@@ -15,7 +15,7 @@
                     
                     {{-- Dynamic Role Badge --}}
                     @if(auth()->user()->role_id === 1)
-                        <span class="px-2 py-0.5 rounded bg-amber-100 border border-amber-300 text-[10px] font-black text-amber-900 uppercase">Admin</span>
+                        <span class="px-2 py-0.5 rounded bg-amber-100 border border-amber-300 text-[10px] font-black text-amber-900 uppercase">A.Y. {{ $activeSchoolYear ?? '2027-2028' }}</span>
                     @elseif(auth()->user()->role_id === 2)
                         <span class="px-2 py-0.5 rounded bg-red-100 border border-red-300 text-[10px] font-black text-[#8b1818] uppercase">Teacher</span>
                     @else
@@ -89,6 +89,10 @@
                                 <span class="text-[14px]">Report</span>
                             </div>
                         </a>
+            <a href="{{ route('admin.school-year') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition {{ request()->routeIs('admin.school-year*') ? 'bg-[#8b1818] text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100' }}">
+                <i class="fa-solid fa-calendar-check text-sm w-4"></i>
+                <span>School Year</span>
+            </a>
                     </div>
                 </div>
 

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Faculty Evaluation Management - SIATRACK')
 
@@ -26,7 +26,7 @@
                 <div class="flex items-center gap-3">
                     <h1 class="text-xl lg:text-2xl font-black text-slate-900 tracking-tight">Faculty Evaluation Management</h1>
                     <span class="px-3 py-1 rounded-lg text-xs font-black bg-amber-50 text-amber-900 border border-amber-200 uppercase tracking-wider">
-                        A.Y. {{ $activeAcademicYear }}
+                        A.Y. {{ $activeSchoolYear ?? '2027-2028' }}
                     </span>
                 </div>
                 <p class="text-xs text-slate-500 font-semibold mt-0.5">Manage 360-degree evaluation forms (Student, Peer, Self), criteria, and analytical insights</p>
