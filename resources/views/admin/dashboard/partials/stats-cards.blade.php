@@ -1,0 +1,95 @@
+<!-- Section 1: KPI Summary Metrics -->
+<div class="space-y-3 w-full">
+    <div class="flex items-center justify-between">
+        <p class="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-chart-pie text-[#590d0d] text-xs"></i>
+            <span>Institutional Metrics Overview</span>
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+
+        <!-- 1. Total Students Enrolled -->
+        <div class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-amber-300 transition w-full">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-[11px] font-black text-slate-500 uppercase tracking-wider">Total Students</p>
+                    <h3 class="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight mt-1">{{ number_format($totalStudents ?? 0) }}</h3>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-amber-50 border-2 border-amber-200 text-amber-700 flex items-center justify-center text-xl shadow-xs shrink-0">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+            </div>
+            <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="studentSparkline"></canvas></div>
+            <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-bold">
+                <span>Academic Year</span>
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+            </div>
+        </div>
+
+        <!-- 2. Daily Attendance Rate -->
+        <div class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-red-300 transition w-full">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-[11px] font-black text-slate-500 uppercase tracking-wider">Attendance Rate</p>
+                    <h3 class="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight mt-1">{{ $attendanceRate ?? '0%' }}</h3>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-red-50 border-2 border-red-200 text-[#590d0d] flex items-center justify-center text-xl shadow-xs shrink-0">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+            </div>
+            <div>
+                <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-2">
+                    <div class="bg-[#590d0d] h-full rounded-full transition-all duration-500" style="width: {{ min(100, (float)($attendanceRate ?? 0)) }}%"></div>
+                </div>
+                <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="attendanceSparkline"></canvas></div>
+                <div class="flex items-center justify-between text-xs text-slate-600 font-bold">
+                    <span>Present Today</span>
+                    <span class="text-[#590d0d] font-mono font-black">{{ $presentTodayCount ?? 0 }} / {{ $totalStudents ?? 0 }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Faculty Evaluation Progress -->
+        <div class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-blue-300 transition w-full">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-[11px] font-black text-slate-500 uppercase tracking-wider">Faculty Evaluation</p>
+                    <h3 class="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight mt-1">{{ $evalProgress ?? '0%' }}</h3>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-blue-50 border-2 border-blue-200 text-blue-700 flex items-center justify-center text-xl shadow-xs shrink-0">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                </div>
+            </div>
+            <div>
+                <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-2">
+                    <div class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: {{ min(100, (float)($evalProgress ?? 0)) }}%"></div>
+                </div>
+                <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="evalSparkline"></canvas></div>
+                <div class="flex items-center justify-between text-xs text-slate-600 font-bold">
+                    <span>Student Reviews</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Active SMS Dispatched Today -->
+        <div class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-emerald-300 transition w-full">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-[11px] font-black text-slate-500 uppercase tracking-wider">SMS Sent Today</p>
+                    <h3 class="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight mt-1">{{ number_format($activeSMS ?? 0) }}</h3>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 border-2 border-emerald-200 text-emerald-700 flex items-center justify-center text-xl shadow-xs shrink-0">
+                    <i class="fa-solid fa-comment-sms"></i>
+                </div>
+            </div>
+            <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="smsSparkline"></canvas></div>
+            <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-bold">
+                <span>Parent Alerts</span>
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+            </div>
+        </div>
+
+    </div>
+</div>

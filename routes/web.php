@@ -81,7 +81,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // User Management
         Route::post('/profile/update', [AdminUserController::class, 'updateProfile'])->name('profile.update');
         Route::post('/users/{id}/reset-password', [AdminUserController::class, 'resetPassword'])->name('users.reset-password');
-        Route::get('/users/export', [AdminUserController::class, 'export'])->name('users.export');
+        Route::get('/users/export', [AdminUserController::class, 'export'])->name('users.export');      
+Route::get('/analytics/{type}', [AdminDashboardController::class, 'showAnalyticsReport'])->name('analytics.report');
         Route::resource('users', AdminUserController::class);
 
         // NFC Management

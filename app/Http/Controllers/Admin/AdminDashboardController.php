@@ -102,8 +102,19 @@ class AdminDashboardController extends Controller
             }
         }
 
-        // Return your main dashboard view instead of evaluations.index
-        return view('admin.dashboard', compact(
+        // Fetch the encoded school year from the database settings table
+        $activeSchoolYear = null;
+        if (Schema::hasTable('settings')) {
+            $activeSchoolYear = DB::table('settings')->where('key', 'active_school_year')->value('value');
+        }
+
+        // Fallback message if nothing has been encoded in the system yet
+        if (!$activeSchoolYear) {
+            $activeSchoolYear = 'Not Encoded';
+        }
+
+        // Return your modular dashboard index view with $activeSchoolYear included
+        return view('admin.dashboard.index', compact(
             'totalStudents',
             'totalFaculty',
             'totalAdmins',
@@ -114,10 +125,26 @@ class AdminDashboardController extends Controller
             'recentTaps',
             'attendanceRate',
             'evalProgress',
-            'activeSMS'
+            'activeSMS',
+            'activeSchoolYear'
         ));
     }
+    public function showAnalyticsReport($type)
+    {
+        $reportTitle = match($type) {
+            'students' => 'Total Students Analytics & Demographics',
+            'attendance' => 'Subject Attendance & Gate Tap Summary Report',
+            'evaluation' => 'Faculty Evaluation Performance Metrics',
+            'sms' => 'Parent SMS Gateway Delivery Logs',
+            default => 'Institutional Analytics Report'
+        };
 
+        // Fetch auxiliary data if needed depending on $type
+        $totalStudents = User::where('role_id', 3)->count();
+        $totalFaculty  = User::where('role_id', 2)->count();
+
+        return view('admin.dashboard.analytics-report', compact('type', 'reportTitle', 'totalStudents', 'totalFaculty'));
+    }
     public function evaluations(Request $request)
     {
         $averageScore = 0.0;
