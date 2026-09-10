@@ -16,6 +16,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): View
     {
+        // Kung ang unified login page mo ay welcome.blade.php, palitan ng: return view('welcome');
         return view('auth.login');
     }
 
@@ -30,16 +31,24 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
-        // Direct them based on their actual database role column
-        if ($user->role === 'admin') {
+        // 1 = Admin, 2 = Teacher/Faculty, 3 = Student
+        // (Palitan ang numbers kung iba ang IDs sa roles table mo)
+        if ($user->role_id == 1) {
             return redirect()->route('admin.dashboard');
-        } elseif ($user->role === 'teacher') {
+        } elseif ($user->role_id == 2) {
             return redirect()->route('teacher.schedules');
-        } elseif ($user->role === 'student') {
+        } elseif ($user->role_id == 3) {
             return redirect()->route('student.dashboard');
         }
 
-        // If no matching role is found, log them out safely
+        // Kung sakaling may role string accessor ka sa User model:
+        if (isset($user->role)) {
+            if ($user->role === 'admin') return redirect()->route('admin.dashboard');
+            if ($user->role === 'teacher') return redirect()->route('teacher.schedules');
+            if ($user->role === 'student') return redirect()->route('student.dashboard');
+        }
+
+        // Safety fallback kapag walang valid role
         Auth::logout();
         return redirect()->route('login')->withErrors(['email' => 'This account does not have a valid role assigned.']);
     }

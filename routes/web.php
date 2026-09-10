@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminUserController;
@@ -19,21 +18,14 @@ use App\Http\Controllers\NfcAttendanceController;
 
 /*
 |--------------------------------------------------------------------------
-| Public & Authentication Routes
+| Public & Authentication Routes (Unified Login)
 |--------------------------------------------------------------------------
 */
-Route::get('/', function () { return view('welcome'); })->name('welcome');
-Route::get('/login', function () { return redirect()->route('login.portal', ['role' => 'admin']); })->name('login');
-Route::get('/login/{role}', [LoginController::class, 'showLoginForm'])->name('login.portal');
-Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
-
-// Role-Aware Registration Routes (Defaults to student if no role specified)
-Route::get('/register/{role?}', function ($role = 'student') {
-    $role = in_array(strtolower($role), ['teacher', 'faculty']) ? 'teacher' : 'student';
-    return view('auth.register', compact('role'));
-})->name('register');
-
-Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.submit');
+Route::middleware('guest')->group(function () {
+    Route::get('/', [LoginController::class, 'showLoginForm'])->name('welcome');
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -123,7 +115,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     */
     Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
 
-                        // Academic / School Year Dedicated Dashboard Routes
         Route::get('/school-year', function () {
             $totalStudents = \App\Models\User::where('role_id', 3)->count();
             $totalFaculty  = \App\Models\User::where('role_id', 2)->count();
@@ -199,6 +190,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             }
             return back()->with('success', 'Attendance logs have been safely reset for the new academic year.');
         })->name('school-year.reset');
+
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         
         // Schedule Routes
@@ -209,7 +201,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('/kiosk', [NfcAttendanceController::class, 'kioskView'])->name('kiosk');
 
-        // Non-Admin Export Engine (Strictly Excludes role_id = 1 / admin)
+        // Non-Admin Export Engine
         Route::get('/users/export', function (Request $request) {
             $type = strtolower(trim((string)$request->query('type', 'all')));
             $cols = Schema::getColumnListing('users');
@@ -379,7 +371,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         })->name('reports');
     });
 
-/*
+    /*
     |--------------------------------------------------------------------------
     | Teacher / Faculty Routes
     |--------------------------------------------------------------------------
@@ -390,7 +382,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/schedule/{id}/students', [TeacherDashboardController::class, 'classList'])->name('schedule.students');
         Route::put('/profile/update', [TeacherDashboardController::class, 'updateProfile'])->name('profile.update');
         
-        // --- UPDATED ATTENDANCE & EXPORT ROUTES ---
         Route::get('/attendance', [NfcAttendanceController::class, 'attendanceIndex'])->name('attendance');
         Route::get('/attendance/export', [NfcAttendanceController::class, 'exportCsv'])->name('attendance.export');
         
