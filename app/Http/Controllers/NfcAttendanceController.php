@@ -116,8 +116,11 @@ public function attendanceIndex(Request $request)
     /**
      * Handles NFC Tap from hardware reader or Python bridge in Real-Time
      */
-    public function handleTap(Request $request)
-    {
+    public function handleTap(Request $request) {
+        if($request->has('uid')) {
+            Cache::put('latest_nfc_uid', $request->uid, now()->addSeconds(10));
+        }
+
         $tagId = strtoupper(trim((string) ($request->input('tag_id') ?? $request->query('tag_id'))));
 
         if (empty($tagId)) {

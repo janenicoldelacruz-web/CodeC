@@ -25,5 +25,44 @@
     </main>
 
     @stack('scripts')
+<!-- UNIVERSAL NFC LISTENER -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    setInterval(() => {
+        const inputs = document.querySelectorAll('input');
+        let nfcInput = null;
+        
+        // Hanapin ang kahit anong input na may 'ACR122U' sa placeholder
+        inputs.forEach(el => {
+            if (el.placeholder && el.placeholder.toUpperCase().includes('ACR122U')) {
+                nfcInput = el;
+            }
+        });
+        
+        if (nfcInput) {
+            fetch('/api/nfc/latest-tap')
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.uid && nfcInput.value !== data.uid) {
+                        nfcInput.value = data.uid;
+                        
+                        // Visual Feedback (Magiging green ang textbox)
+                        const oldBg = nfcInput.style.backgroundColor;
+                        nfcInput.style.backgroundColor = '#d1fae5';
+                        nfcInput.style.borderColor = '#10b981';
+                        nfcInput.style.color = '#047857';
+                        nfcInput.style.fontWeight = '900';
+                        
+                        setTimeout(() => {
+                            nfcInput.style.backgroundColor = oldBg;
+                            nfcInput.style.borderColor = '';
+                            nfcInput.style.color = '';
+                        }, 1500);
+                    }
+                }).catch(e => {});
+        }
+    }, 1000);
+});
+</script>
 </body>
 </html>

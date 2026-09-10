@@ -916,22 +916,525 @@ function openMetricModal(type) {
         document.getElementById('sec_attendance').style.display = 'block';
     } else if (type === 'evaluation') {
         title.innerText = "Faculty Evaluation Directory";
-        sub.innerText = "List of faculty members and evaluation cycle status";
-        iconBox.style.background = "#dbeafe";
-        iconBox.innerHTML = '<i class="fa-solid fa-chalkboard-user" style="color: #2563eb; font-size: 1.1rem;"></i>';
-        document.getElementById('sec_evaluation').style.display = 'block';
-    } else if (type === 'sms') {
-        title.innerText = "Parent SMS Alerts Dispatch";
-        sub.innerText = "Status of automated SMS notifications from the gate kiosk";
-        iconBox.style.background = "#d1fae5";
-        iconBox.innerHTML = '<i class="fa-solid fa-comment-sms" style="color: #059669; font-size: 1.1rem;"></i>';
-        document.getElementById('sec_sms').style.display = 'block';
-    }
+        
+        // Remove existing if any
+        const existingKpi = document.getElementById('directory-injected-kpis');
+        if (existingKpi) existingKpi.remove();
 
-    overlay.style.display = 'flex';
-}
+        const kpisWrapper = document.createElement('div');
+        kpisWrapper.innerHTML = `<div id="directory-injected-kpis" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 my-4">
+    <div class="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Overall Average</p>
+            <span class="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">Score Rating</span>
+        </div>
+        <div class="flex items-baseline gap-1 my-1">
+            <h4 class="text-2xl font-black text-slate-900 font-mono">0.0</h4>
+            <span class="text-xs font-bold text-slate-400">/ 5.0</span>
+        </div>
+        <div class="py-1">
+            <svg class="w-full h-8 overflow-visible" viewBox="0 0 100 30" preserveAspectRatio="none">
+                <path d="M0 25 Q 25 22, 50 15 T 100 8" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" />
+                <circle cx="0" cy="25" r="2.5" fill="#f59e0b" />
+                <circle cx="50" cy="15" r="2.5" fill="#f59e0b" />
+                <circle cx="100" cy="8" r="3.5" fill="#b45309" stroke="#fff" stroke-width="1.5" />
+                <text x="96" y="4" text-anchor="end" font-size="7" font-weight="bold" fill="#b45309">5.0 Max</text>
+            </svg>
+        </div>
+        <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-[11px] font-bold">
+            <span class="text-slate-500">Benchmark</span>
+            <span class="text-emerald-600 font-black">Passed (100%)</span>
+        </div>
+    </div>
 
-function closeMetricModal() {
+    <div class="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Total Submissions</p>
+            <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">Reviews</span>
+        </div>
+        <div class="flex items-baseline gap-1 my-1">
+            <h4 class="text-2xl font-black text-slate-900 font-mono">0</h4>
+            <span class="text-xs font-bold text-slate-400">entries</span>
+        </div>
+        <div class="py-2 space-y-1">
+            <div class="flex justify-between text-[9px] font-bold text-slate-500">
+                <span>Turnout rate</span>
+                <span class="text-blue-600">0%</span>
+            </div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden flex">
+                <div class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: 6px; min-width: 6px;"></div>
+            </div>
+        </div>
+        <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-[11px] font-bold">
+            <span class="text-slate-500">Logs Synced</span>
+            <span class="text-blue-600 font-black">100% Live</span>
+        </div>
+    </div>
+
+    <div class="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Faculty Evaluated</p>
+            <span class="text-[10px] font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded border border-violet-100">Personnel</span>
+        </div>
+        <div class="flex items-baseline gap-1 my-1">
+            <h4 class="text-2xl font-black text-slate-900 font-mono">1</h4>
+            <span class="text-xs font-bold text-slate-400">instructors</span>
+        </div>
+        <div class="py-1">
+            <svg class="w-full h-8 overflow-visible" viewBox="0 0 100 30" preserveAspectRatio="none">
+                <path d="M0 26 L 35 26 L 35 14 L 70 14 L 70 6 L 100 6" fill="none" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round" />
+                <circle cx="35" cy="14" r="2.5" fill="#8b5cf6" />
+                <circle cx="70" cy="6" r="2.5" fill="#8b5cf6" />
+                <circle cx="100" cy="6" r="3" fill="#6d28d9" />
+                <text x="100" y="2" text-anchor="end" font-size="7" font-weight="bold" fill="#6d28d9">Active</text>
+            </svg>
+        </div>
+        <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-[11px] font-bold">
+            <span class="text-slate-500">Monitored</span>
+            <span class="text-emerald-600 font-black">100% Verified</span>
+        </div>
+    </div>
+
+    <div class="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">DepEd Schedule</p>
+            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">Framework</span>
+        </div>
+        <div class="my-1">
+            <h4 class="text-lg font-black text-slate-900">3-Term Cycle</h4>
+            <span class="text-[11px] font-bold text-emerald-700">Currently: Term 1</span>
+        </div>
+        <div class="py-2">
+            <div class="grid grid-cols-3 gap-1.5 items-center">
+                <div class="bg-emerald-600 h-2 rounded-full"></div>
+                <div class="bg-slate-200 h-2 rounded-full"></div>
+                <div class="bg-slate-200 h-2 rounded-full"></div>
+            </div>
+            <div class="flex justify-between text-[8px] font-black text-slate-400 mt-1">
+                <span class="text-emerald-700">T1: 100%</span>
+                <span>T2: 0%</span>
+                <span>T3: 0%</span>
+            </div>
+        </div>
+        <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-[11px] font-bold">
+            <span class="text-slate-500">Status</span>
+            <span class="text-emerald-700 font-black">Ongoing</span>
+        </div>
+    </div>
+</div>`;
+        const newCards = kpisWrapper.firstElementChild;
+
+        // I-insert bago ang table o pagkatapos ng header subtitle
+        const subTitle = title.parentElement.querySelector('p') || title.nextElementSibling;
+        if (subTitle && subTitle.parentElement) {
+            subTitle.insertAdjacentElement('afterend', newCards);
+        } else {
+            title.insertAdjacentElement('afterend', newCards);
+        }
+
+            
+            // Render 4 KPI Summary Cards with Graphs inside Directory Modal
+            let modalBodyElem = title.closest('.p-6, .p-5, div') || title.parentElement;
+            if (modalBodyElem && !document.getElementById('directory-injected-kpis')) {
+                const kpisDiv = document.createElement('div');
+                kpisDiv.id = 'directory-injected-kpis';
+                kpisDiv.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 my-4';
+                kpisDiv.innerHTML = `
+                    <div class="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Overall Average</p>
+                            <span class="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">Score Rating</span>
+                        </div>
+                        <div class="flex items-baseline gap-1 my-1">
+                            <h4 class="text-2xl font-black text-slate-900 font-mono">0.0</h4>
+                            <span class="text-xs font-bold text-slate-400">/ 5.0</span>
+                        </div>
+                        <div class="py-1">
+                            <svg class="w-full h-8 overflow-visible" viewBox="0 0 100 30" preserveAspectRatio="none">
+                                <path d="M0 25 Q 25 22, 50 15 T 100 8" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" />
+                                <circle cx="0" cy="25" r="2.5" fill="#f59e0b" />
+                                <circle cx="50" cy="15" r="2.5" fill="#f59e0b" />
+                                <circle cx="100" cy="8" r="3.5" fill="#b45309" stroke="#fff" stroke-width="1.5" />
+                                <text x="96" y="4" text-anchor="end" font-size="7" font-weight="bold" fill="#b45309">5.0 Max</text>
+                            </svg>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-[11px] font-bold">
+                            <span class="text-slate-500">Benchmark</span>
+                            <span class="text-emerald-600 font-black">Passed (100%)</span>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Total Submissions</p>
+                            <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">Reviews</span>
+                        </div>
+                        <div class="flex items-baseline gap-1 my-1">
+                            <h4 class="text-2xl font-black text-slate-900 font-mono">0</h4>
+                            <span class="text-xs font-bold text-slate-400">entries</span>
+                        </div>
+                        <div class="py-2 space-y-1">
+                            <div class="flex justify-between text-[9px] font-bold text-slate-500">
+                                <span>Turnout rate</span>
+                                <span class="text-blue-600">0%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden flex">
+                                <div class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: 6px; min-width: 6px;"></div>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-[11px] font-bold">
+                            <span class="text-slate-500">Logs Synced</span>
+                            <span class="text-blue-600 font-black">100% Live</span>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Faculty Evaluated</p>
+                            <span class="text-[10px] font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded border border-violet-100">Personnel</span>
+                        </div>
+                        <div class="flex items-baseline gap-1 my-1">
+                            <h4 class="text-2xl font-black text-slate-900 font-mono">1</h4>
+                            <span class="text-xs font-bold text-slate-400">instructors</span>
+                        </div>
+                        <div class="py-1">
+                            <svg class="w-full h-8 overflow-visible" viewBox="0 0 100 30" preserveAspectRatio="none">
+                                <path d="M0 26 L 35 26 L 35 14 L 70 14 L 70 6 L 100 6" fill="none" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round" />
+                                <circle cx="35" cy="14" r="2.5" fill="#8b5cf6" />
+                                <circle cx="70" cy="6" r="2.5" fill="#8b5cf6" />
+                                <circle cx="100" cy="6" r="3" fill="#6d28d9" />
+                                <text x="100" y="2" text-anchor="end" font-size="7" font-weight="bold" fill="#6d28d9">Active</text>
+                            </svg>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-[11px] font-bold">
+                            <span class="text-slate-500">Monitored</span>
+                            <span class="text-emerald-600 font-black">100% Verified</span>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">DepEd Schedule</p>
+                            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">Framework</span>
+                        </div>
+                        <div class="my-1">
+                            <h4 class="text-lg font-black text-slate-900">3-Term Cycle</h4>
+                            <span class="text-[11px] font-bold text-emerald-700">Currently: Term 1</span>
+                        </div>
+                        <div class="py-2">
+                            <div class="grid grid-cols-3 gap-1.5 items-center">
+                                <div class="bg-emerald-600 h-2 rounded-full"></div>
+                                <div class="bg-slate-200 h-2 rounded-full"></div>
+                                <div class="bg-slate-200 h-2 rounded-full"></div>
+                            </div>
+                            <div class="flex justify-between text-[8px] font-black text-slate-400 mt-1">
+                                <span class="text-emerald-700">T1: 100%</span>
+                                <span>T2: 0%</span>
+                                <span>T3: 0%</span>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-[11px] font-bold">
+                            <span class="text-slate-500">Status</span>
+                            <span class="text-emerald-700 font-black">Ongoing</span>
+                        </div>
+                    </div>
+                `;
+                
+                if (title.nextElementSibling) {
+                    title.nextElementSibling.insertAdjacentElement('afterend', kpisDiv);
+                } else {
+                    title.insertAdjacentElement('afterend', kpisDiv);
+                }
+            }
+            
+            // Render 4 KPI Summary Cards at the top of Directory Modal
+            let modalBodyElem = title.closest('.p-6, .p-5, div') || title.parentElement;
+            if (modalBodyElem && !document.getElementById('directory-injected-kpis')) {
+                const kpisDiv = document.createElement('div');
+                kpisDiv.id = 'directory-injected-kpis';
+                kpisDiv.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 my-4';
+                kpisDiv.innerHTML = `
+                    <div class="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Overall Average</p>
+                            <span class="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">Score Rating</span>
+                        </div>
+                        <div class="flex items-baseline gap-1 my-1">
+                            <h4 class="text-2xl font-black text-slate-900 font-mono">{{ isset($averageScore) && $averageScore > 0 ? number_format((float)$averageScore, 1) : '0.0' }}</h4>
+                            <span class="text-xs font-bold text-slate-400">/ 5.0</span>
+                        </div>
+                        <!-- Mini Sparkline Graph -->
+                        <div class="py-1">
+                            <svg class="w-full h-8 overflow-visible" viewBox="0 0 100 30" preserveAspectRatio="none">
+                                <path d="M0 25 Q 25 22, 50 15 T 100 8" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" />
+                                <circle cx="0" cy="25" r="2.5" fill="#f59e0b" />
+                                <circle cx="50" cy="15" r="2.5" fill="#f59e0b" />
+                                <circle cx="100" cy="8" r="3.5" fill="#b45309" stroke="#fff" stroke-width="1.5" />
+                                <text x="96" y="4" text-anchor="end" font-size="7" font-weight="bold" fill="#b45309">5.0 Max</text>
+                            </svg>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-[11px] font-bold">
+                            <span class="text-slate-500">Benchmark</span>
+                            <span class="text-emerald-600 font-black">Passed (100%)</span>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Total Submissions</p>
+                            <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">Reviews</span>
+                        </div>
+                        <div class="flex items-baseline gap-1 my-1">
+                            <h4 class="text-2xl font-black text-slate-900 font-mono">{{ number_format($totalEvaluations ?? 0) }}</h4>
+                            <span class="text-xs font-bold text-slate-400">entries</span>
+                        </div>
+                        <!-- Bar Progress Graph -->
+                        <div class="py-2 space-y-1">
+                            <div class="flex justify-between text-[9px] font-bold text-slate-500">
+                                <span>Turnout rate</span>
+                                <span class="text-blue-600">{{ $evalProgress ?? '0%' }}</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden flex">
+                                <div class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: {{ $evalProgress ?? '0%' }}; min-width: 6px;"></div>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-[11px] font-bold">
+                            <span class="text-slate-500">Logs Synced</span>
+                            <span class="text-blue-600 font-black">100% Live</span>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Faculty Evaluated</p>
+                            <span class="text-[10px] font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded border border-violet-100">Personnel</span>
+                        </div>
+                        <div class="flex items-baseline gap-1 my-1">
+                            <h4 class="text-2xl font-black text-slate-900 font-mono">{{ number_format($totalFaculty ?? 1) }}</h4>
+                            <span class="text-xs font-bold text-slate-400">instructors</span>
+                        </div>
+                        <!-- Stepped Activity Graph -->
+                        <div class="py-1">
+                            <svg class="w-full h-8 overflow-visible" viewBox="0 0 100 30" preserveAspectRatio="none">
+                                <path d="M0 26 L 35 26 L 35 14 L 70 14 L 70 6 L 100 6" fill="none" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round" />
+                                <circle cx="35" cy="14" r="2.5" fill="#8b5cf6" />
+                                <circle cx="70" cy="6" r="2.5" fill="#8b5cf6" />
+                                <circle cx="100" cy="6" r="3" fill="#6d28d9" />
+                                <text x="100" y="2" text-anchor="end" font-size="7" font-weight="bold" fill="#6d28d9">Active</text>
+                            </svg>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-[11px] font-bold">
+                            <span class="text-slate-500">Monitored</span>
+                            <span class="text-emerald-600 font-black">100% Verified</span>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">DepEd Schedule</p>
+                            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">Framework</span>
+                        </div>
+                        <div class="my-1">
+                            <h4 class="text-lg font-black text-slate-900">3-Term Cycle</h4>
+                            <span class="text-[11px] font-bold text-emerald-700">Currently: Term 1</span>
+                        </div>
+                        <!-- 3-Phase Stepper Visualizer -->
+                        <div class="py-2">
+                            <div class="grid grid-cols-3 gap-1.5 items-center">
+                                <div class="bg-emerald-600 h-2 rounded-full"></div>
+                                <div class="bg-slate-200 h-2 rounded-full"></div>
+                                <div class="bg-slate-200 h-2 rounded-full"></div>
+                            </div>
+                            <div class="flex justify-between text-[8px] font-black text-slate-400 mt-1">
+                                <span class="text-emerald-700">T1: 100%</span>
+                                <span>T2: 0%</span>
+                                <span>T3: 0%</span>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-[11px] font-bold">
+                            <span class="text-slate-500">Status</span>
+                            <span class="text-emerald-700 font-black">Ongoing</span>
+                        </div>
+                    </div>
+                `;
+                
+                // I-insert pagkatapos ng subtitle / description
+                if (title.nextElementSibling) {
+                    title.nextElementSibling.insertAdjacentElement('afterend', kpisDiv);
+                } else {
+                    title.insertAdjacentElement('afterend', kpisDiv);
+                }
+            }
+            
+            // Render 4 KPI Summary Cards at the top of Directory Modal
+            let modalBodyElem = title.closest('.p-6, .p-5, div') || title.parentElement;
+            if (modalBodyElem && !document.getElementById('directory-injected-kpis')) {
+                const kpisDiv = document.createElement('div');
+                kpisDiv.id = 'directory-injected-kpis';
+                kpisDiv.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 my-4';
+                kpisDiv.innerHTML = `
+                    <div class="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Overall Average</p>
+                            <span class="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">Score Rating</span>
+                        </div>
+                        <div class="flex items-baseline gap-1 my-1">
+                            <h4 class="text-2xl font-black text-slate-900 font-mono">{{ isset($averageScore) && $averageScore > 0 ? number_format((float)$averageScore, 1) : '0.0' }}</h4>
+                            <span class="text-xs font-bold text-slate-400">/ 5.0</span>
+                        </div>
+                        <!-- Mini Sparkline Graph -->
+                        <div class="py-1">
+                            <svg class="w-full h-8 overflow-visible" viewBox="0 0 100 30" preserveAspectRatio="none">
+                                <path d="M0 25 Q 25 22, 50 15 T 100 8" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" />
+                                <circle cx="0" cy="25" r="2.5" fill="#f59e0b" />
+                                <circle cx="50" cy="15" r="2.5" fill="#f59e0b" />
+                                <circle cx="100" cy="8" r="3.5" fill="#b45309" stroke="#fff" stroke-width="1.5" />
+                                <text x="96" y="4" text-anchor="end" font-size="7" font-weight="bold" fill="#b45309">5.0 Max</text>
+                            </svg>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-[11px] font-bold">
+                            <span class="text-slate-500">Benchmark</span>
+                            <span class="text-emerald-600 font-black">Passed (100%)</span>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Total Submissions</p>
+                            <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">Reviews</span>
+                        </div>
+                        <div class="flex items-baseline gap-1 my-1">
+                            <h4 class="text-2xl font-black text-slate-900 font-mono">{{ number_format($totalEvaluations ?? 0) }}</h4>
+                            <span class="text-xs font-bold text-slate-400">entries</span>
+                        </div>
+                        <!-- Bar Progress Graph -->
+                        <div class="py-2 space-y-1">
+                            <div class="flex justify-between text-[9px] font-bold text-slate-500">
+                                <span>Turnout rate</span>
+                                <span class="text-blue-600">{{ $evalProgress ?? '0%' }}</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden flex">
+                                <div class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: {{ $evalProgress ?? '0%' }}; min-width: 6px;"></div>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-[11px] font-bold">
+                            <span class="text-slate-500">Logs Synced</span>
+                            <span class="text-blue-600 font-black">100% Live</span>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Faculty Evaluated</p>
+                            <span class="text-[10px] font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded border border-violet-100">Personnel</span>
+                        </div>
+                        <div class="flex items-baseline gap-1 my-1">
+                            <h4 class="text-2xl font-black text-slate-900 font-mono">{{ number_format($totalFaculty ?? 1) }}</h4>
+                            <span class="text-xs font-bold text-slate-400">instructors</span>
+                        </div>
+                        <!-- Stepped Activity Graph -->
+                        <div class="py-1">
+                            <svg class="w-full h-8 overflow-visible" viewBox="0 0 100 30" preserveAspectRatio="none">
+                                <path d="M0 26 L 35 26 L 35 14 L 70 14 L 70 6 L 100 6" fill="none" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round" />
+                                <circle cx="35" cy="14" r="2.5" fill="#8b5cf6" />
+                                <circle cx="70" cy="6" r="2.5" fill="#8b5cf6" />
+                                <circle cx="100" cy="6" r="3" fill="#6d28d9" />
+                                <text x="100" y="2" text-anchor="end" font-size="7" font-weight="bold" fill="#6d28d9">Active</text>
+                            </svg>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-[11px] font-bold">
+                            <span class="text-slate-500">Monitored</span>
+                            <span class="text-emerald-600 font-black">100% Verified</span>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">DepEd Schedule</p>
+                            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">Framework</span>
+                        </div>
+                        <div class="my-1">
+                            <h4 class="text-lg font-black text-slate-900">3-Term Cycle</h4>
+                            <span class="text-[11px] font-bold text-emerald-700">Currently: Term 1</span>
+                        </div>
+                        <!-- 3-Phase Stepper Visualizer -->
+                        <div class="py-2">
+                            <div class="grid grid-cols-3 gap-1.5 items-center">
+                                <div class="bg-emerald-600 h-2 rounded-full"></div>
+                                <div class="bg-slate-200 h-2 rounded-full"></div>
+                                <div class="bg-slate-200 h-2 rounded-full"></div>
+                            </div>
+                            <div class="flex justify-between text-[8px] font-black text-slate-400 mt-1">
+                                <span class="text-emerald-700">T1: 100%</span>
+                                <span>T2: 0%</span>
+                                <span>T3: 0%</span>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-[11px] font-bold">
+                            <span class="text-slate-500">Status</span>
+                            <span class="text-emerald-700 font-black">Ongoing</span>
+                        </div>
+                    </div>
+                `;
+                
+                // I-insert pagkatapos ng subtitle / description
+                if (title.nextElementSibling) {
+                    title.nextElementSibling.insertAdjacentElement('afterend', kpisDiv);
+                } else {
+                    title.insertAdjacentElement('afterend', kpisDiv);
+                }
+            }
+            
+            // Render 4 KPI Summary Cards at the top of Directory Modal
+            let modalBodyElem = title.closest('.p-6, .p-5, div') || title.parentElement;
+            if (modalBodyElem && !document.getElementById('directory-injected-kpis')) {
+                const kpisDiv = document.createElement('div');
+                kpisDiv.id = 'directory-injected-kpis';
+                kpisDiv.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 my-4';
+                kpisDiv.innerHTML = `
+                    <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Overall Average Score</p>
+                        <h4 class="text-xl font-black text-slate-900 mt-0.5 font-mono">
+                            {{ isset($averageScore) && $averageScore > 0 ? number_format((float)$averageScore, 1) : '0.0' }} <span class="text-xs text-slate-400 font-bold">/ 5.0</span>
+                        </h4>
+                        <div class="mt-2 pt-1.5 border-t border-slate-200 flex justify-between text-[11px] font-bold">
+                            <span class="text-slate-500">Benchmark</span>
+                            <span class="text-emerald-600 font-black">Passed</span>
+                        </div>
+                    </div>
+                    <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Total Submissions</p>
+                        <h4 class="text-xl font-black text-slate-900 mt-0.5 font-mono">{{ number_format($totalEvaluations ?? 0) }}</h4>
+                        <div class="mt-2 pt-1.5 border-t border-slate-200 flex justify-between text-[11px] font-bold">
+                            <span class="text-slate-500">Reviews Logged</span>
+                            <span class="text-blue-600 font-black">Synced</span>
+                        </div>
+                    </div>
+                    <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Faculty Evaluated</p>
+                        <h4 class="text-xl font-black text-slate-900 mt-0.5 font-mono">{{ number_format($totalFaculty ?? 1) }}</h4>
+                        <div class="mt-2 pt-1.5 border-t border-slate-200 flex justify-between text-[11px] font-bold">
+                            <span class="text-slate-500">Active Personnel</span>
+                            <span class="text-amber-600 font-black">Monitored</span>
+                        </div>
+                    </div>
+                    <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">DepEd Schedule</p>
+                        <h4 class="text-base font-black text-slate-900 mt-1">3-Term Framework</h4>
+                        <div class="mt-2 pt-1.5 border-t border-slate-200 flex justify-between text-[11px] font-bold">
+                            <span class="text-slate-500">Active Cycle</span>
+                            <span class="text-emerald-700 font-black">Term 1</span>
+                        </div>
+                    </div>
+                `;
+                
+                // I-insert pagkatapos ng subtitle / description
+                if (title.nextElementSibling) {
+                    title.nextElementSibling.insertAdjacentElement('afterend', kpisDiv);
+                } else {
+                    title.insertAdjacentElement('afterend', kpisDiv);
+                }
+            }
     const overlay = document.getElementById('metricModalOverlay');
     if (overlay) overlay.style.display = 'none';
 }

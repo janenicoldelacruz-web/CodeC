@@ -29,6 +29,14 @@ Route::middleware('guest')->group(function () {
     Route::get('/', [LoginController::class, 'showLoginForm'])->name('welcome');
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+    // Faculty Evaluation
+        Route::get('/evaluations', [AdminEvaluationController::class, 'index'])->name('evaluations');
+        
+        // ITO YUNG IDADAGDAG MO:
+        Route::post('/evaluations/toggle-status', [AdminEvaluationController::class, 'toggleStatus'])->name('evaluations.toggle');
+        
+        Route::get('/evaluations/periods', [AdminEvaluationController::class, 'periods'])->name('evaluations.periods');
+        Route::get('/evaluations/results', [AdminEvaluationController::class, 'results'])->name('evaluations.results');
 });
 
 /*
@@ -37,9 +45,7 @@ Route::middleware('guest')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::get('/kiosk', [NfcAttendanceController::class, 'kioskView'])->name('teacher.kiosk');
-Route::match(['get', 'post'], '/api/nfc/tap', [NfcAttendanceController::class, 'handleTap'])->name('api.nfc.tap');
 Route::match(['get', 'post'], '/api/nfc/store-tap', [NfcAttendanceController::class, 'storeTap'])->name('api.nfc.store-tap');
-Route::get('/api/nfc/latest-tap', [NfcAttendanceController::class, 'latestTap'])->name('api.nfc.latest-tap');
 
 /*
 |--------------------------------------------------------------------------
@@ -94,6 +100,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Faculty Evaluation
         Route::get('/evaluations', [AdminEvaluationController::class, 'index'])->name('evaluations');
+        Route::post('/evaluations/toggle-status', [AdminEvaluationController::class, 'toggleStatus'])->name('evaluations.toggle');
         Route::get('/evaluations/periods', [AdminEvaluationController::class, 'periods'])->name('evaluations.periods');
         Route::get('/evaluations/results', [AdminEvaluationController::class, 'results'])->name('evaluations.results');
 
@@ -145,3 +152,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 // Global Logout Route
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
+
+// --- DIRECT NFC CACHE ROUTES ---
+Route::match(['get', 'post'], '/api/nfc/tap', function(\Illuminate\Http\Request $request) {
+    $uid = $request->input('uid');
+    if ($uid) {
+        \Illuminate\Support\Facades\Cache::put('global_nfc_uid', $uid, now()->addSeconds(10));
+    }
+    return response()->json(['status' => 'success', 'uid' => $uid]);
+});
+
+Route::get('/api/nfc/latest-tap', function() {
+    return response()->json(['uid' => \Illuminate\Support\Facades\Cache::get('global_nfc_uid')]);
+});
+// -------------------------------

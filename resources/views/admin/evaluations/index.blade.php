@@ -138,12 +138,14 @@
                     <div class="p-4 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center justify-between">
                         <div>
                             <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Evaluation State</span>
-                            <span id="statusLabel" class="text-xs font-black text-emerald-700 uppercase tracking-tight flex items-center gap-1.5 mt-1">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> ACTIVE
+                            <span id="statusLabel" class="{{ \Illuminate\Support\Facades\Cache::get('evaluations_open', false) ? 'text-emerald-700' : 'text-slate-500' }} text-xs font-black uppercase tracking-tight flex items-center gap-1.5 mt-1">
+                                <span class="w-2 h-2 rounded-full {{ \Illuminate\Support\Facades\Cache::get('evaluations_open', false) ? 'bg-emerald-500' : 'bg-slate-400' }}"></span> 
+                                {{ \Illuminate\Support\Facades\Cache::get('evaluations_open', false) ? 'ACTIVE' : 'CLOSED' }}
+                            </span> ACTIVE
                             </span>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="evalToggle" checked onchange="confirmToggleEval(this)" class="sr-only peer">
+                            <input type="checkbox" id="evalToggle" {{ \Illuminate\Support\Facades\Cache::get('evaluations_open', false) ? 'checked' : '' }} onchange="confirmToggleEval(this)" class="sr-only peer">
                             <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:width-5 after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8b1818]"></div>
                         </label>
                     </div>
@@ -386,21 +388,36 @@
     }
 
     function closeEvalModal(confirmed) {
-        const modal = document.getElementById('evalModal');
-        const container = document.getElementById('modalContainer');
-        const statusLabel = document.getElementById('statusLabel');
+    const modal = document.getElementById('evalModal');
+    const container = document.getElementById('modalContainer');
+    const statusLabel = document.getElementById('statusLabel');
 
-        if (confirmed && toggleElementRef) {
-            statusLabel.innerHTML = pendingToggleState ? `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ACTIVE` : `<span class="w-2 h-2 rounded-full bg-slate-400"></span> INACTIVE`;
-            statusLabel.className = pendingToggleState ? "text-xs font-black text-emerald-700 uppercase tracking-tight flex items-center gap-1.5 mt-1" : "text-xs font-black text-slate-500 uppercase tracking-tight flex items-center gap-1.5 mt-1";
-        } else if (toggleElementRef) {
-            toggleElementRef.checked = !pendingToggleState;
-        }
-
-        container.classList.remove('scale-100', 'opacity-100');
-        container.classList.add('scale-95', 'opacity-0');
-        setTimeout(() => modal.classList.add('hidden'), 200);
+    if (confirmed && toggleElementRef) {
+        // I-save ang state sa server via AJAX
+        fetch('/admin/evaluations/toggle-status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ status: pendingToggleState })
+        }).then(r => r.json()).then(data => {
+            if (data.is_open) {
+                statusLabel.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ACTIVE`;
+                statusLabel.className = "text-xs font-black text-emerald-700 uppercase tracking-tight flex items-center gap-1.5 mt-1";
+            } else {
+                statusLabel.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-400"></span> CLOSED`;
+                statusLabel.className = "text-xs font-black text-slate-500 uppercase tracking-tight flex items-center gap-1.5 mt-1";
+            }
+        });
+    } else if (toggleElementRef) {
+        toggleElementRef.checked = !pendingToggleState;
     }
+
+    container.classList.remove('scale-100', 'opacity-100');
+    container.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => modal.classList.add('hidden'), 200);
+}
 
     function openCriteriaModal() {
         const modal = document.getElementById('criteriaModal');
