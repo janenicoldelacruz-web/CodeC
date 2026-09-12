@@ -6,12 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\NfcCard;
+use App\Exports\UsersExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+
 
 class AdminUserController extends Controller
 {
@@ -33,13 +34,11 @@ class AdminUserController extends Controller
             });
         }
 
-        // Students Query (Role ID 3)
         $studentsQuery = (clone $baseQuery)->where(function ($q) use ($cols) {
             if (in_array('role_id', $cols)) $q->where('role_id', 3);
             if (in_array('role', $cols)) $q->orWhere('role', 'student')->orWhere('role', 'Student');
         });
 
-        // Faculty Query (Role ID 2)
         $facultyQuery = (clone $baseQuery)->where(function ($q) use ($cols) {
             if (in_array('role_id', $cols)) $q->where('role_id', 2);
             if (in_array('role', $cols)) {
@@ -47,7 +46,13 @@ class AdminUserController extends Controller
             }
         });
 
-        // Admins Query (Role ID 1)
+        $directorsQuery = (clone $baseQuery)->where(function ($q) use ($cols) {
+            if (in_array('role_id', $cols)) $q->where('role_id', 4);
+            if (in_array('role', $cols)) {
+                $q->orWhere('role', 'director')->orWhere('role', 'Director');
+            }
+        });
+
         $adminsQuery = (clone $baseQuery)->where(function ($q) use ($cols) {
             if (in_array('role_id', $cols)) $q->where('role_id', 1);
             if (in_array('role', $cols)) {
@@ -57,43 +62,28 @@ class AdminUserController extends Controller
 
         $students = $studentsQuery->paginate(15, ['*'], 'students_page');
         $faculty = $facultyQuery->paginate(15, ['*'], 'faculty_page');
+        $directors = $directorsQuery->paginate(15, ['*'], 'directors_page');
         $admins = $adminsQuery->paginate(15, ['*'], 'admins_page');
 
         $totalUsers = User::count();
-        $studentCount = User::where(function ($q) use ($cols) {
-            if (in_array('role_id', $cols)) $q->where('role_id', 3);
-            if (in_array('role', $cols)) $q->orWhere('role', 'student')->orWhere('role', 'Student');
-        })->count();
+        $studentCount = (clone $studentsQuery)->count();
+        $teacherCount = (clone $facultyQuery)->count();
+        $directorCount = (clone $directorsQuery)->count();
+        $adminCount = (clone $adminsQuery)->count();
 
-        $teacherCount = User::where(function ($q) use ($cols) {
-            if (in_array('role_id', $cols)) $q->where('role_id', 2);
-            if (in_array('role', $cols)) $q->orWhere('role', 'teacher')->orWhere('role', 'faculty')->orWhere('role', 'Teacher')->orWhere('role', 'Faculty');
-        })->count();
-
-        $adminCount = User::where(function ($q) use ($cols) {
-            if (in_array('role_id', $cols)) $q->where('role_id', 1);
-            if (in_array('role', $cols)) $q->orWhere('role', 'admin')->orWhere('role', 'Admin');
-        })->count();
-
-        $roles = Schema::hasTable('roles') ? Role::all() : collect();
-
-        return view('admin.users.index', compact('students', 'faculty', 'admins', 'roles', 'totalUsers', 'studentCount', 'teacherCount', 'adminCount', 'search', 'roleFilter'));
+        return view('admin.users.index', compact(
+            'students', 'faculty', 'directors', 'admins', 
+            'totalUsers', 'studentCount', 'teacherCount', 'directorCount', 'adminCount', 
+            'search', 'roleFilter'
+        ));
     }
 
-    public function create()
+    public function export(Request $request)
     {
-        @file_put_contents(storage_path('latest_nfc.txt'), '');
-        Cache::forget('latest_nfc_tap');
+        $type = $request->query('type', 'all');
+        $filename = "siatrack_users_{$type}_" . date('Y-m-d') . ".xlsx";
 
-        $roles = Schema::hasTable('roles') ? Role::all() : collect();
-        if ($roles->isEmpty()) {
-            $roles = collect([
-                (object)['id' => 3, 'name' => 'student'],
-                (object)['id' => 2, 'name' => 'teacher'],
-                (object)['id' => 1, 'name' => 'admin'],
-            ]);
-        }
-        return view('admin.users.create', compact('roles'));
+        return Excel::download(new UsersExport($type), $filename);
     }
 
     public function store(Request $request)
@@ -101,29 +91,19 @@ class AdminUserController extends Controller
         $roleId = (int)$request->input('role_id', 3);
         $isStudent = ($roleId === 3);
 
-        $rules = [
+        $request->validate([
             'first_name' => ['required', 'string', 'max:255'],
             'last_name'  => ['required', 'string', 'max:255'],
             'email'      => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password'   => ['required', 'string', 'min:8', 'confirmed'],
-        ];
-
-        $request->validate($rules);
-
-        if ($isStudent && $request->filled('nfc_tag_id') && Schema::hasTable('nfc_cards')) {
-            $cleanTag = strtoupper(trim($request->nfc_tag_id));
-            $existingCard = NfcCard::with('user')->where('tag_id', $cleanTag)->first();
-            if ($existingCard) {
-                $owner = $existingCard->user ? "{$existingCard->user->first_name} {$existingCard->user->last_name}" : "another user";
-                return back()->withInput()->withErrors(['nfc_tag_id' => "NFC Card [{$cleanTag}] is already registered to {$owner}."]);
-            }
-        }
+        ]);
 
         try {
             $cols = Schema::getColumnListing('users');
             $roleString = match ($roleId) {
                 1 => 'admin',
                 2 => 'teacher',
+                4 => 'director',
                 default => 'student',
             };
 
@@ -144,16 +124,10 @@ class AdminUserController extends Controller
             if (in_array('phone_number', $cols)) $userData['phone_number'] = $request->phone_number;
             if (in_array('grade_level', $cols)) $userData['grade_level'] = $isStudent ? $request->grade_level : null;
             
-            $selectedTrack = $request->input('track', $request->input('strand'));
-            if (in_array('strand', $cols)) $userData['strand'] = $isStudent ? $selectedTrack : null;
-            if (in_array('track', $cols)) $userData['track'] = $isStudent ? $selectedTrack : null;
-            
+            if (in_array('strand', $cols)) $userData['strand'] = $isStudent ? $request->strand : null;
             if (in_array('section', $cols)) $userData['section'] = $isStudent ? $request->section : null;
             if (in_array('parent_name', $cols)) $userData['parent_name'] = $isStudent ? $request->parent_name : null;
             if (in_array('parent_phone_number', $cols)) $userData['parent_phone_number'] = $isStudent ? $request->parent_phone_number : null;
-            
-            if (in_array('is_active', $cols)) $userData['is_active'] = 1;
-            if (in_array('status', $cols)) $userData['status'] = 'active';
 
             $user = User::create($userData);
 
@@ -164,38 +138,54 @@ class AdminUserController extends Controller
                 );
             }
 
-            @file_put_contents(storage_path('latest_nfc.txt'), '');
-            Cache::forget('latest_nfc_tap');
-
             return redirect()->route('admin.users.index')
-                ->with('success', "User '{$request->first_name} {$request->last_name}' successfully added!")
-                ->with('new_user_created', [
-                    'name'      => "{$user->first_name} {$user->last_name}",
-                    'role'      => ucfirst($roleString),
-                    'id_number' => $user->id_number ?? 'N/A',
-                    'email'     => $user->email,
-                    'password'  => $plainPassword,
-                    'nfc_tag'   => $request->filled('nfc_tag_id') ? strtoupper(trim($request->nfc_tag_id)) : null,
-                ]);
+                ->with('success', "User '{$request->first_name} {$request->last_name}' successfully added!");
         } catch (\Exception $e) {
             return back()->withInput()->withErrors(['error' => 'Error: ' . $e->getMessage()]);
         }
     }
 
+public function create()
+    {
+        $roles = Schema::hasTable('roles') ? Role::all() : collect([
+            (object)['id' => 3, 'name' => 'student'],
+            (object)['id' => 2, 'name' => 'teacher'],
+            (object)['id' => 4, 'name' => 'director'],
+        ]);
+
+        // Siguraduhing ito ay standard get() lang, WALANG groupBy()
+        $sections = Schema::hasTable('academic_sections') ? DB::table('academic_sections')->get() : collect();
+
+        $gradeLevels = $sections->pluck('grade_level')
+            ->map(fn($v) => ucwords(strtolower(trim($v))))
+            ->unique()
+            ->filter()
+            ->values();
+
+        return view('admin.users.create', compact('roles', 'sections', 'gradeLevels'));
+    }
+
     public function edit($id)
     {
         $user = User::with('nfcCard')->findOrFail($id);
-        $roles = Schema::hasTable('roles') ? Role::all() : collect();
-        if ($roles->isEmpty()) {
-            $roles = collect([
-                (object)['id' => 3, 'name' => 'student'],
-                (object)['id' => 2, 'name' => 'teacher'],
-                (object)['id' => 1, 'name' => 'admin'],
-            ]);
-        }
-        return view('admin.users.create', compact('user', 'roles'));
-    }
+        
+        $roles = Schema::hasTable('roles') ? Role::all() : collect([
+            (object)['id' => 3, 'name' => 'student'],
+            (object)['id' => 2, 'name' => 'teacher'],
+            (object)['id' => 4, 'name' => 'director'],
+        ]);
 
+        // Siguraduhing ito ay standard get() lang, WALANG groupBy()
+        $sections = Schema::hasTable('academic_sections') ? DB::table('academic_sections')->get() : collect();
+
+        $gradeLevels = $sections->pluck('grade_level')
+            ->map(fn($v) => ucwords(strtolower(trim($v))))
+            ->unique()
+            ->filter()
+            ->values();
+
+        return view('admin.users.edit', compact('user', 'roles', 'sections', 'gradeLevels'));
+    }
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
@@ -208,27 +198,18 @@ class AdminUserController extends Controller
             'email'      => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
         ];
 
-        $hasNewPassword = $request->filled('password') && $request->password !== '••••••••';
-        if ($hasNewPassword) {
+        if ($request->filled('password')) {
             $rules['password'] = ['string', 'min:8', 'confirmed'];
         }
 
         $request->validate($rules);
-
-        if ($isStudent && $request->filled('nfc_tag_id') && Schema::hasTable('nfc_cards')) {
-            $cleanTag = strtoupper(trim($request->nfc_tag_id));
-            $existingCard = NfcCard::with('user')->where('tag_id', $cleanTag)->where('user_id', '!=', $id)->first();
-            if ($existingCard) {
-                $owner = $existingCard->user ? "{$existingCard->user->first_name} {$existingCard->user->last_name}" : "another user";
-                return back()->withInput()->withErrors(['nfc_tag_id' => "NFC Card [{$cleanTag}] is already registered to {$owner}."]);
-            }
-        }
 
         try {
             $cols = Schema::getColumnListing('users');
             $roleString = match ($roleId) {
                 1 => 'admin',
                 2 => 'teacher',
+                4 => 'director',
                 default => 'student',
             };
 
@@ -242,16 +223,12 @@ class AdminUserController extends Controller
             if (in_array('gender', $cols)) $user->gender = $request->gender;
             if (in_array('phone_number', $cols)) $user->phone_number = $request->phone_number;
             if (in_array('grade_level', $cols)) $user->grade_level = $isStudent ? $request->grade_level : null;
-            
-            $selectedTrack = $request->input('track', $request->input('strand'));
-            if (in_array('strand', $cols)) $user->strand = $isStudent ? $selectedTrack : null;
-            if (in_array('track', $cols)) $user->track = $isStudent ? $selectedTrack : null;
-
+            if (in_array('strand', $cols)) $user->strand = $isStudent ? $request->strand : null;
             if (in_array('section', $cols)) $user->section = $isStudent ? $request->section : null;
             if (in_array('parent_name', $cols)) $user->parent_name = $isStudent ? $request->parent_name : null;
             if (in_array('parent_phone_number', $cols)) $user->parent_phone_number = $isStudent ? $request->parent_phone_number : null;
 
-            if ($hasNewPassword) {
+            if ($request->filled('password')) {
                 $user->password = Hash::make($request->password);
             }
 
@@ -267,9 +244,6 @@ class AdminUserController extends Controller
                     );
                 }
             }
-
-            @file_put_contents(storage_path('latest_nfc.txt'), '');
-            Cache::forget('latest_nfc_tap');
 
             return redirect()->route('admin.users.index')
                 ->with('success', "User '{$user->first_name} {$user->last_name}' updated successfully!");
