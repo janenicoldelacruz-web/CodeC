@@ -14,7 +14,8 @@
 <body class="bg-[#f4f6f9] text-slate-800 antialiased h-screen w-screen overflow-hidden flex">
 
 @php
-    $evalOpen = $isEvaluationOpen ?? false;
+    // Kukunin nito yung live status mula sa Admin Toggle Switch
+    $evalOpen = \Illuminate\Support\Facades\Cache::get('evaluations_open', false);
 @endphp
 
 <!-- ================= Unified SIATRACK Sidebar (Fixed Height) ================= -->

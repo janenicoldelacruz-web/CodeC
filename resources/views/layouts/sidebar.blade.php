@@ -49,23 +49,17 @@
                             <span class="text-[13px]" x-show="!collapsed">Dashboard</span>
                         </a>
 
-                        <!-- User Management with Sub-items -->
-                        <div x-data="{ open: @json(request()->routeIs('admin.users*')) }" class="space-y-1">
-                            <button @click="open = !open" 
-                                class="w-full group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('admin.users*') ? 'bg-red-900/80 text-amber-300' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}">
-                                <div class="flex items-center gap-3.5">
-                                    <i class="fa-solid fa-users text-base {{ request()->routeIs('admin.users*') ? 'text-amber-300' : 'text-amber-300 group-hover:text-white' }}"></i>
-                                    <span class="text-[13px]" x-show="!collapsed">User Management</span>
-                                </div>
-                            </button>
-                            <div x-show="open && !collapsed" x-cloak class="pl-11 pr-2 space-y-1 py-1">
-                                <a href="{{ route('admin.users.index', ['role' => 'administrator']) }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">Administrators</a>
-                                <a href="{{ route('admin.users.index', ['role' => 'director']) }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">Directors</a>
-                                <a href="{{ route('admin.users.index', ['role' => 'faculty']) }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">Faculty</a>
-                                <a href="{{ route('admin.users.index', ['role' => 'student']) }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">Students</a>
-                            </div>
-                        </div>
-
+<!-- User Management with Sub-items -->
+<div class="space-y-1">
+    <a href="{{ route('admin.users.index') }}" 
+       class="w-full group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('admin.users*') ? 'bg-red-900/80 text-amber-300' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
+       title="User Management">
+        <div class="flex items-center gap-3.5">
+            <i class="fa-solid fa-users text-base {{ request()->routeIs('admin.users*') ? 'text-amber-300' : 'text-amber-300 group-hover:text-white' }}"></i>
+            <span class="text-[13px]" x-show="!collapsed">User Management</span>
+        </div>
+    </a>
+</div>
                         <!-- NFC Management with Sub-items -->
                         <div x-data="{ open: @json(request()->routeIs('admin.nfc*')) }" class="space-y-1">
                             <button @click="open = !open" 

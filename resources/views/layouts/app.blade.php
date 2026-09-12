@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'SIATRACK')</title>
 
+    <!-- INCLUDE ALPINE.JS HERE -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/global.css') }}">
@@ -25,5 +28,42 @@
     </main>
 
     @stack('scripts')
+<!-- UNIVERSAL NFC LISTENER -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    setInterval(() => {
+        const inputs = document.querySelectorAll('input');
+        let nfcInput = null;
+        
+        inputs.forEach(el => {
+            if (el.placeholder && el.placeholder.toUpperCase().includes('ACR122U')) {
+                nfcInput = el;
+            }
+        });
+        
+        if (nfcInput) {
+            fetch('/api/nfc/latest-tap')
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.uid && nfcInput.value !== data.uid) {
+                        nfcInput.value = data.uid;
+                        
+                        const oldBg = nfcInput.style.backgroundColor;
+                        nfcInput.style.backgroundColor = '#d1fae5';
+                        nfcInput.style.borderColor = '#10b981';
+                        nfcInput.style.color = '#047857';
+                        nfcInput.style.fontWeight = '900';
+                        
+                        setTimeout(() => {
+                            nfcInput.style.backgroundColor = oldBg;
+                            nfcInput.style.borderColor = '';
+                            nfcInput.style.color = '';
+                        }, 1500);
+                    }
+                }).catch(e => {});
+        }
+    }, 1000);
+});
+</script>
 </body>
 </html>

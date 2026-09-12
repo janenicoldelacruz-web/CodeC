@@ -19,24 +19,14 @@ class AdminSectionController extends Controller
             ? (DB::table('settings')->where('key', 'active_semester')->value('value') ?? '1st Semester') 
             : '1st Semester';
 
-        // Fetch unique grade levels and strands directly from academic_sections for dropdowns if needed
-        $gradeLevels = Schema::hasTable('academic_sections') 
-            ? DB::table('academic_sections')->select('grade_level as name')->distinct()->get() 
-            : collect([]);
-
-        $strands = Schema::hasTable('academic_sections') 
-            ? DB::table('academic_sections')->whereNotNull('strand')->select('strand as code')->distinct()->get() 
-            : collect([]);
-
-        // Fetch all sections from the single table
+        // Flat collection lang muna para sigurado at walang collection property error
         $sections = Schema::hasTable('academic_sections') 
             ? DB::table('academic_sections')->orderBy('id', 'desc')->get() 
             : collect([]);
 
-        return view('admin.sections.index', compact('sections', 'gradeLevels', 'strands', 'activeSchoolYear', 'activeSemester'));
+        return view('admin.sections.index', compact('sections', 'activeSchoolYear', 'activeSemester'));
     }
 
-    // Store a new Section (Handles Grade, Strand, and Section Name together)
     public function storeSection(Request $request)
     {
         $request->validate([
@@ -45,18 +35,19 @@ class AdminSectionController extends Controller
             'strand' => 'nullable|string|max:50'
         ]);
 
-        DB::table('academic_sections')->insert([
-            'grade_level' => $request->grade_level,
-            'section_name' => $request->section_name,
-            'strand' => strtoupper($request->strand),
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
+        if (Schema::hasTable('academic_sections')) {
+            DB::table('academic_sections')->insert([
+                'grade_level' => ucwords(strtolower(trim($request->grade_level))),
+                'section_name' => trim($request->section_name),
+                'strand' => strtoupper(trim($request->strand)),
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        }
 
         return back()->with('success', 'Class section successfully added.');
     }
 
-    // Delete a section
     public function destroySection($id)
     {
         if (Schema::hasTable('academic_sections')) {
