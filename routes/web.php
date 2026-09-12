@@ -91,9 +91,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('/analytics/{type}', [AdminDashboardController::class, 'showAnalyticsReport'])->name('analytics.report');
         Route::resource('users', AdminUserController::class);
 
-        // NFC Management
-        Route::get('/nfc/binding', [AdminNfcController::class, 'binding'])->name('nfc.binding');
-        Route::get('/nfc/replacement', [AdminNfcController::class, 'replacement'])->name('nfc.replacement');
+// NFC Management
+        Route::prefix('nfc')->name('nfc.')->group(function () {
+            Route::get('/binding', [AdminNfcController::class, 'bindingIndex'])->name('binding');
+            Route::post('/binding', [AdminNfcController::class, 'bindingStore'])->name('binding.store');
+            Route::delete('/binding/{id}', [AdminNfcController::class, 'bindingDestroy'])->name('binding.destroy');
+            Route::get('/replacement', [AdminNfcController::class, 'replacementIndex'])->name('replacement');
+            Route::post('/replacement', [AdminNfcController::class, 'replacementStore'])->name('replacement.store');
+        });
 
        // Academic Setup
         Route::get('/school-year', [AdminSchoolYearController::class, 'index'])->name('school-year');
