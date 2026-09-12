@@ -114,7 +114,7 @@ class AdminDashboardController extends Controller
         }
 
         // Return your modular dashboard index view with $activeSchoolYear included
-        return view('admin.dashboard.index', compact(
+        return view('admin.dashboard', compact(
             'totalStudents',
             'totalFaculty',
             'totalAdmins',
@@ -129,7 +129,8 @@ class AdminDashboardController extends Controller
             'activeSchoolYear'
         ));
     }
-    public function showAnalyticsReport($type)
+
+   public function showAnalyticsReport(Request $request, $type)
     {
         $reportTitle = match($type) {
             'students' => 'Total Students Analytics & Demographics',
@@ -139,150 +140,88 @@ class AdminDashboardController extends Controller
             default => 'Institutional Analytics Report'
         };
 
-        // Fetch auxiliary data if needed depending on $type
         $totalStudents = User::where('role_id', 3)->count();
         $totalFaculty  = User::where('role_id', 2)->count();
 
-        return view('admin.dashboard.analytics-report', compact('type', 'reportTitle', 'totalStudents', 'totalFaculty'));
-    }
-    public function evaluations(Request $request)
-    {
-        $averageScore = 0.0;
-        $totalEvaluations = 0;
-        $totalFaculty = User::where('role_id', 2)->count();
-        $totalStudents = User::where('role_id', 3)->count();
-        
-        $evalProgress = 0;
-        if (Schema::hasTable('evaluation_submissions') && $totalStudents > 0) {
-            $evalCols = Schema::getColumnListing('evaluation_submissions');
-            $evaluatorKey = in_array('student_id', $evalCols) ? 'student_id' : (in_array('user_id', $evalCols) ? 'user_id' : null);
+        // Build query with Strand and Section filters (supporting both 'section' and 'section_id' columns)
+        $query = User::where('role_id', 3);
+        $userCols = Schema::hasTable('users') ? Schema::getColumnListing('users') : [];
 
-            $studentsSubmitted = $evaluatorKey 
-                ? DB::table('evaluation_submissions')->distinct($evaluatorKey)->count($evaluatorKey)
-                : DB::table('evaluation_submissions')->count();
-
-            $evalProgress = min(100, round(($studentsSubmitted / $totalStudents) * 100));
+        if ($request->filled('strand')) {
+            $query->where('strand', $request->strand);
         }
 
-        if (Schema::hasTable('evaluation_submissions')) {
-            $evalCols = Schema::getColumnListing('evaluation_submissions');
-            $ratingCol = in_array('overall_rating', $evalCols) ? 'overall_rating' : (in_array('rating', $evalCols) ? 'rating' : (in_array('score', $evalCols) ? 'score' : null));
-
-            $totalEvaluations = DB::table('evaluation_submissions')->count();
-
-            if ($ratingCol && $totalEvaluations > 0) {
-                $averageScore = (float) DB::table('evaluation_submissions')->avg($ratingCol);
+        if ($request->filled('section')) {
+            if (in_array('section', $userCols)) {
+                $query->where('section', $request->section);
+            } elseif (in_array('section_id', $userCols)) {
+                $query->where('section_id', $request->section);
             }
         }
 
-        // 1. Student Evaluations Query
-        $studentEvaluations = collect();
-        if (Schema::hasTable('evaluation_submissions')) {
-            $evalCols = Schema::getColumnListing('evaluation_submissions');
-            $teacherKey = in_array('teacher_id', $evalCols) ? 'teacher_id' : (in_array('user_id', $evalCols) ? 'user_id' : null);
-            $studentKey = in_array('student_id', $evalCols) ? 'student_id' : 'user_id';
+        $students = $query->latest('id')->paginate(15)->withQueryString();
 
-            $query = DB::table('evaluation_submissions');
-            if (in_array('evaluation_type', $evalCols)) {
-                $query->where('evaluation_type', 'student');
-            }
-
-            $query->leftJoin('users as teachers', 'evaluation_submissions.' . $teacherKey, '=', 'teachers.id')
-                  ->leftJoin('users as students', 'evaluation_submissions.' . $studentKey, '=', 'students.id')
-                  ->select(
-                      'evaluation_submissions.*',
-                      'teachers.first_name as teacher_first_name',
-                      'teachers.last_name as teacher_last_name',
-                      'teachers.strand as teacher_strand',
-                      'students.first_name as student_first_name',
-                      'students.last_name as student_last_name',
-                      'students.grade_level as student_grade_level',
-                      'students.track as student_track',
-                      'students.section as student_section'
-                  );
-
-            if ($request->filled('section')) {
-                $query->where('students.section', $request->section);
-            }
-
-            if ($request->filled('search')) {
-                $search = $request->search;
-                $query->where(function($q) use ($search) {
-                    $q->where('teachers.first_name', 'like', "%{$search}%")
-                      ->orWhere('teachers.last_name', 'like', "%{$search}%")
-                      ->orWhere('students.first_name', 'like', "%{$search}%")
-                      ->orWhere('students.last_name', 'like', "%{$search}%");
-                });
-            }
-
-            $studentEvaluations = $query->latest('evaluation_submissions.id')->paginate(10, ['*'], 'student_page')->withQueryString();
-        }
-
-        // 2. Peer Evaluations Query
-        $peerEvaluations = collect();
-        if (Schema::hasTable('evaluation_submissions')) {
-            $evalCols = Schema::getColumnListing('evaluation_submissions');
-            $teacherKey = in_array('teacher_id', $evalCols) ? 'teacher_id' : (in_array('user_id', $evalCols) ? 'user_id' : null);
-            $evaluatorKey = in_array('evaluator_id', $evalCols) ? 'evaluator_id' : (in_array('student_id', $evalCols) ? 'student_id' : null);
-
-            $query = DB::table('evaluation_submissions');
-            if (in_array('evaluation_type', $evalCols)) {
-                $query->where('evaluation_type', 'peer');
-            }
-
-            $query->leftJoin('users as teachers', 'evaluation_submissions.' . $teacherKey, '=', 'teachers.id');
+        // Calculate metrics for charts based on the filtered scope
+        $maleCount = User::where('role_id', 3)
+            ->when($request->filled('strand'), fn($q) => $q->where('strand', $request->strand))
+            ->when($request->filled('section'), fn($q) => in_array('section', $userCols) ? $q->where('section', $request->section) : $q->where('section_id', $request->section))
+            ->where('gender', 'Male')
+            ->count();
             
-            if ($evaluatorKey) {
-                $query->leftJoin('users as peers', 'evaluation_submissions.' . $evaluatorKey, '=', 'peers.id')
-                      ->addSelect('peers.first_name as peer_first_name', 'peers.last_name as peer_last_name');
+        $femaleCount = User::where('role_id', 3)
+            ->when($request->filled('strand'), fn($q) => $q->where('strand', $request->strand))
+            ->when($request->filled('section'), fn($q) => in_array('section', $userCols) ? $q->where('section', $request->section) : $q->where('section_id', $request->section))
+            ->where('gender', 'Female')
+            ->count();
+        
+        $sectionCol = in_array('section', $userCols) ? 'section' : (in_array('section_id', $userCols) ? 'section_id' : null);
+
+        $sectionPopulations = $sectionCol ? User::where('role_id', 3)
+            ->when($request->filled('strand'), fn($q) => $q->where('strand', $request->strand))
+            ->whereNotNull($sectionCol)
+            ->select($sectionCol, DB::raw('count(*) as total'))
+            ->groupBy($sectionCol)
+            ->pluck('total', $sectionCol)
+            ->toArray() : [];
+
+        // Robustly fetch ALL available sections from sections table or users table
+        $sections = collect();
+        if (Schema::hasTable('sections')) {
+            $secCols = Schema::getColumnListing('sections');
+            $secNameCol = null;
+            foreach (['name', 'section_name', 'title', 'section'] as $c) {
+                if (in_array($c, $secCols)) { $secNameCol = $c; break; }
             }
-
-            $query->select(
-                'evaluation_submissions.*',
-                'teachers.first_name as teacher_first_name',
-                'teachers.last_name as teacher_last_name',
-                'teachers.strand as teacher_strand'
-            );
-
-            $peerEvaluations = $query->latest('evaluation_submissions.id')->paginate(10, ['*'], 'peer_page')->withQueryString();
+            if ($secNameCol) {
+                $sections = DB::table('sections')->orderBy($secNameCol)->pluck($secNameCol);
+            } else {
+                $sections = DB::table('sections')->pluck('id');
+            }
         }
 
-        // 3. Self Evaluations Query
-        $selfEvaluations = collect();
-        if (Schema::hasTable('evaluation_submissions')) {
-            $evalCols = Schema::getColumnListing('evaluation_submissions');
-            $teacherKey = in_array('teacher_id', $evalCols) ? 'teacher_id' : (in_array('user_id', $evalCols) ? 'user_id' : null);
-
-            $query = DB::table('evaluation_submissions');
-            if (in_array('evaluation_type', $evalCols)) {
-                $query->where('evaluation_type', 'self');
-            }
-
-            if ($teacherKey) {
-                $query->leftJoin('users as teachers', 'evaluation_submissions.' . $teacherKey, '=', 'teachers.id')
-                      ->select(
-                          'evaluation_submissions.*',
-                          'teachers.first_name as teacher_first_name',
-                          'teachers.last_name as teacher_last_name',
-                          'teachers.strand as teacher_strand'
-                      );
-            }
-
-            $selfEvaluations = $query->latest('evaluation_submissions.id')->paginate(10, ['*'], 'self_page')->withQueryString();
+        if ($sections->isEmpty() && $sectionCol) {
+            $sections = User::where('role_id', 3)
+                ->whereNotNull($sectionCol)
+                ->where($sectionCol, '!=', '')
+                ->distinct()
+                ->orderBy($sectionCol)
+                ->pluck($sectionCol);
         }
 
-        $topRatedFaculty = collect();
-        $sections = User::where('role_id', 3)->whereNotNull('section')->distinct()->pluck('section');
+        // Ultimate fallback if no sections are found in database tables yet
+        if ($sections->isEmpty()) {
+            $sections = collect([1, 2, 3, 4, 'Amber', 'Crystal', 'Pearl', 'Turquoise']);
+        }
 
-        return view('admin.evaluations.index', compact(
-            'averageScore',
-            'totalEvaluations',
+        return view('admin.dashboard.analytics-report', compact(
+            'type', 
+            'reportTitle', 
+            'totalStudents', 
             'totalFaculty',
-            'evalProgress',
-            'studentEvaluations',
-            'peerEvaluations',
-            'selfEvaluations',
-            'topRatedFaculty',
+            'students',
+            'maleCount',
+            'femaleCount',
+            'sectionPopulations',
             'sections'
         ));
     }

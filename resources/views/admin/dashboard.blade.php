@@ -80,7 +80,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
 
                 <!-- 1. Total Students Enrolled (Directly links to analytics screen) -->
-                <a href="{{ route('admin.students.analytics') }}" class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-amber-300 transition w-full block text-left group">
+                <a href="{{ route('admin.analytics.report', 'students') }}" class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-amber-300 transition w-full block text-left group">
                     <div class="flex items-start justify-between">
                         <div>
                             <p class="text-[11px] font-black text-slate-500 uppercase tracking-wider">Total Students</p>
@@ -112,7 +112,8 @@
                         <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-2">
                             <div class="bg-[#8b1818] h-full rounded-full transition-all duration-500" style="width: {{ min(100, (float)($attendanceRate ?? 0)) }}%"></div>
                         </div>
-                        <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="attendanceSparkline"></canvas></div><div class="flex items-center justify-between text-xs text-slate-600 font-bold">
+                        <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="attendanceSparkline"></canvas></div>
+                        <div class="flex items-center justify-between text-xs text-slate-600 font-bold">
                             <span>Present Today</span>
                             <span class="text-[#8b1818] font-mono font-black">{{ $presentTodayCount ?? 0 }} / {{ $totalStudents ?? 0 }}</span>
                         </div>
@@ -134,7 +135,8 @@
                         <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-2">
                             <div class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: {{ min(100, (float)($evalProgress ?? 0)) }}%"></div>
                         </div>
-                        <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="evalSparkline"></canvas></div><div class="flex items-center justify-between text-xs text-slate-600 font-bold">
+                        <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="evalSparkline"></canvas></div>
+                        <div class="flex items-center justify-between text-xs text-slate-600 font-bold">
                             <span>Student Reviews</span>
                             <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
                         </div>
@@ -152,7 +154,8 @@
                             <i class="fa-solid fa-comment-sms"></i>
                         </div>
                     </div>
-                    <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="smsSparkline"></canvas></div><div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-bold">
+                    <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="smsSparkline"></canvas></div>
+                    <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-bold">
                         <span>Parent Alerts</span>
                         <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
                     </div>
@@ -198,7 +201,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-sm font-semibold text-slate-800">
-                        @forelse($recentTaps as $tap)
+                        @forelse($recentTaps ?? [] as $tap)
                             @php
                                 $trackLabel = match((int)($tap->track ?? $tap->strand ?? 0)) {
                                     1 => 'Academic Track',
@@ -685,13 +688,7 @@ function openMetricModal(type) {
 
     document.querySelectorAll('.metric-modal-section').forEach(el => el.classList.add('hidden'));
 
-    if (type === 'students') {
-        title.innerText = "Total Students Directory";
-        sub.innerText = "Directory of currently enrolled students in SIATRACK";
-        iconBox.className = "w-10 h-10 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center text-base";
-        iconBox.innerHTML = '<i class="fa-solid fa-graduation-cap"></i>';
-        document.getElementById('modalSection_students').classList.remove('hidden');
-    } else if (type === 'attendance') {
+    if (type === 'attendance') {
         title.innerText = "Attendance Analytics & Gate Logs";
         sub.innerText = "Breakdown ng mga live taps at attendance status para sa araw na ito";
         iconBox.className = "w-10 h-10 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center text-base";
@@ -722,229 +719,10 @@ function closeMetricModal() {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeMetricModal();
 });
-</script>
-<!-- METRIC MODAL POPUP SYSTEM -->
-@php
-    $modalStudents = \Illuminate\Support\Facades\DB::table('users')
-        ->where('role_id', 3)
-        ->select('first_name', 'last_name', 'id_number', 'email', 'created_at')
-        ->latest('created_at')->take(12)->get();
 
-    $modalAttendance = \Illuminate\Support\Facades\Schema::hasTable('attendance_logs')
-        ? \Illuminate\Support\Facades\DB::table('attendance_logs')
-            ->leftJoin('users', 'attendance_logs.user_id', '=', 'users.id')
-            ->select('attendance_logs.*', 'users.first_name', 'users.last_name', 'users.id_number')
-            ->whereDate('attendance_logs.created_at', now()->today())
-            ->latest('attendance_logs.created_at')->take(12)->get()
-        : collect();
-
-    $modalFaculty = \Illuminate\Support\Facades\DB::table('users')
-        ->where('role_id', 2)
-        ->select('first_name', 'last_name', 'id_number', 'email')
-        ->take(12)->get();
-@endphp
-
-<!-- Modal Backdrop & Window -->
-<div id="metricModalOverlay" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center; padding: 1rem;" onclick="if(event.target === this) closeMetricModal();">
-    <div style="background: #ffffff; border-radius: 1.5rem; width: 100%; max-width: 680px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
-        
-        <!-- Header -->
-        <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; background: #f8fafc;">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <div id="modalIconBox" style="width: 42px; height: 42px; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center;"></div>
-                <div>
-                    <h3 id="modalTitleText" style="font-size: 1rem; font-weight: 900; color: #1e293b; margin: 0;"></h3>
-                    <p id="modalSubText" style="font-size: 0.75rem; color: #94a3b8; margin: 0; margin-top: 2px;"></p>
-                </div>
-            </div>
-            <button type="button" onclick="closeMetricModal()" style="width: 32px; height: 32px; border-radius: 9999px; background: #e2e8f0; color: #64748b; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-
-        <!-- Scrollable Content -->
-        <div style="padding: 1.25rem 1.5rem; overflow-y: auto; flex: 1;">
-            
-            <!-- SECTION 1: Students -->
-            <div id="sec_students" class="metric-sec" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.75rem;">
-                    <span style="font-weight: 700; color: #64748b;">Enrolled Students (Latest)</span>
-                    <span style="font-weight: 900; color: #8b1818;">{{ count($modalStudents) }} student(s) shown</span>
-                </div>
-                <div style="border: 1px solid #f1f5f9; border-radius: 1rem; overflow: hidden;">
-                    <table style="width: 100%; text-align: left; font-size: 0.75rem; border-collapse: collapse;">
-                        <thead style="background: #f8fafc; color: #64748b; border-bottom: 1px solid #f1f5f9;">
-                            <tr>
-                                <th style="padding: 0.6rem 0.75rem;">Name</th>
-                                <th style="padding: 0.6rem 0.75rem;">LRN / ID</th>
-                                <th style="padding: 0.6rem 0.75rem;">Email</th>
-                            </tr>
-                        </thead>
-                        <tbody style="color: #334155;">
-                            @forelse($modalStudents as $st)
-                            <tr style="border-bottom: 1px solid #f8fafc;">
-                                <td style="padding: 0.6rem 0.75rem; font-weight: 800; color: #0f172a;">{{ $st->first_name }} {{ $st->last_name }}</td>
-                                <td style="padding: 0.6rem 0.75rem; font-family: monospace; color: #64748b;">{{ $st->id_number ?? 'N/A' }}</td>
-                                <td style="padding: 0.6rem 0.75rem; color: #64748b;">{{ $st->email }}</td>
-                            </tr>
-                            @empty
-                            <tr><td colspan="3" style="padding: 1rem; text-align: center; color: #94a3b8;">No enrolled students found.</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- SECTION 2: Attendance -->
-            <div id="sec_attendance" class="metric-sec" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.75rem;">
-                    <span style="font-weight: 700; color: #64748b;">Gate Taps Recorded Today</span>
-                    <span style="font-weight: 900; color: #e11d48;">{{ count($modalAttendance) }} tap(s)</span>
-                </div>
-                <div style="border: 1px solid #f1f5f9; border-radius: 1rem; overflow: hidden;">
-                    <table style="width: 100%; text-align: left; font-size: 0.75rem; border-collapse: collapse;">
-                        <thead style="background: #f8fafc; color: #64748b; border-bottom: 1px solid #f1f5f9;">
-                            <tr>
-                                <th style="padding: 0.6rem 0.75rem;">Student Name</th>
-                                <th style="padding: 0.6rem 0.75rem;">Time In</th>
-                                <th style="padding: 0.6rem 0.75rem;">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody style="color: #334155;">
-                            @forelse($modalAttendance as $at)
-                            <tr style="border-bottom: 1px solid #f8fafc;">
-                                <td style="padding: 0.6rem 0.75rem; font-weight: 800; color: #0f172a;">{{ $at->first_name ?? 'Student' }} {{ $at->last_name ?? '' }}</td>
-                                <td style="padding: 0.6rem 0.75rem; color: #64748b;">{{ \Carbon\Carbon::parse($at->created_at)->format('h:i A') }}</td>
-                                <td style="padding: 0.6rem 0.75rem;">
-                                    <span style="padding: 2px 8px; border-radius: 9999px; font-weight: 900; font-size: 10px; background: {{ ($at->status ?? '') == 'LATE' ? '#fef3c7' : '#d1fae5' }}; color: {{ ($at->status ?? '') == 'LATE' ? '#b45309' : '#047857' }};">
-                                        {{ $at->status ?? 'PRESENT' }}
-                                    </span>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr><td colspan="3" style="padding: 1.5rem; text-align: center; color: #94a3b8;">No attendance taps recorded today.</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- SECTION 3: Faculty Evaluation -->
-            <div id="sec_evaluation" class="metric-sec" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.75rem;">
-                    <span style="font-weight: 700; color: #64748b;">Faculty Members & Review Cycle</span>
-                    <span style="font-weight: 900; color: #2563eb;">{{ count($modalFaculty) }} instructors</span>
-                </div>
-                <div style="border: 1px solid #f1f5f9; border-radius: 1rem; overflow: hidden;">
-                    <table style="width: 100%; text-align: left; font-size: 0.75rem; border-collapse: collapse;">
-                        <thead style="background: #f8fafc; color: #64748b; border-bottom: 1px solid #f1f5f9;">
-                            <tr>
-                                <th style="padding: 0.6rem 0.75rem;">Instructor</th>
-                                <th style="padding: 0.6rem 0.75rem;">Faculty ID</th>
-                                <th style="padding: 0.6rem 0.75rem;">Evaluation Cycle</th>
-                            </tr>
-                        </thead>
-                        <tbody style="color: #334155;">
-                            @forelse($modalFaculty as $fa)
-                            <tr style="border-bottom: 1px solid #f8fafc;">
-                                <td style="padding: 0.6rem 0.75rem; font-weight: 800; color: #0f172a;">{{ $fa->first_name }} {{ $fa->last_name }}</td>
-                                <td style="padding: 0.6rem 0.75rem; font-family: monospace; color: #64748b;">{{ $fa->id_number ?? 'FAC-N/A' }}</td>
-                                <td style="padding: 0.6rem 0.75rem;">
-                                    <span style="padding: 2px 8px; border-radius: 9999px; font-weight: 900; font-size: 10px; background: #dbeafe; color: #1d4ed8;">ACTIVE</span>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr><td colspan="3" style="padding: 1.5rem; text-align: center; color: #94a3b8;">No faculty members found.</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- SECTION 4: SMS Alerts -->
-            <div id="sec_sms" class="metric-sec" style="display: none;">
-                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 1rem; padding: 1rem; margin-bottom: 1rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
-                        <span style="font-weight: 800; font-size: 0.75rem; color: #065f46;">Gate Kiosk SMS Gateway</span>
-                        <span style="font-size: 10px; font-weight: 900; background: #a7f3d0; color: #065f46; padding: 2px 8px; border-radius: 9999px;">ONLINE</span>
-                    </div>
-                    <p style="font-size: 0.75rem; color: #047857; margin: 0;">Automatically dispatches SMS notifications to parents whenever an NFC card is tapped at the gate kiosk.</p>
-                </div>
-                <div style="background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 1rem; padding: 1rem; font-size: 0.75rem;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-weight: 700; color: #64748b;">
-                        <span>Dispatched SMS Alerts Today:</span>
-                        <span style="font-weight: 900; color: #0f172a;">{{ $smsSentToday ?? 0 }} alerts</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-weight: 700; color: #64748b;">
-                        <span>Gateway Delivery Status:</span>
-                        <span style="font-weight: 900; color: #059669;">100% Operational</span>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Footer -->
-        <div style="padding: 0.75rem 1.5rem; border-top: 1px solid #f1f5f9; background: #f8fafc; display: flex; justify-content: flex-end;">
-            <button type="button" onclick="closeMetricModal()" style="padding: 0.5rem 1.25rem; border-radius: 0.75rem; background: #1e293b; color: white; border: none; font-size: 0.75rem; font-weight: 800; cursor: pointer;">
-                Close
-            </button>
-        </div>
-
-    </div>
-</div>
-
-<script>
-function openMetricModal(type) {
-    const overlay = document.getElementById('metricModalOverlay');
-    const title = document.getElementById('modalTitleText');
-    const sub = document.getElementById('modalSubText');
-    const iconBox = document.getElementById('modalIconBox');
-
-    document.querySelectorAll('.metric-sec').forEach(el => el.style.display = 'none');
-
-    if (type === 'students') {
-        title.innerText = "Total Students Directory";
-        sub.innerText = "Directory of currently enrolled students in SIATRACK";
-        iconBox.style.background = "#fef3c7";
-        iconBox.innerHTML = '<i class="fa-solid fa-graduation-cap" style="color: #f59e0b; font-size: 1.1rem;"></i>';
-        document.getElementById('sec_students').style.display = 'block';
-    } else if (type === 'attendance') {
-        title.innerText = "Attendance Analytics & Gate Logs";
-        sub.innerText = "Breakdown of live gate attendance logs recorded today";
-        iconBox.style.background = "#ffe4e6";
-        iconBox.innerHTML = '<i class="fa-solid fa-clipboard-check" style="color: #e11d48; font-size: 1.1rem;"></i>';
-        document.getElementById('sec_attendance').style.display = 'block';
-    } else if (type === 'evaluation') {
-        title.innerText = "Faculty Evaluation Directory";
-        sub.innerText = "List of faculty members and evaluation cycle status";
-        iconBox.style.background = "#dbeafe";
-        iconBox.innerHTML = '<i class="fa-solid fa-chalkboard-user" style="color: #2563eb; font-size: 1.1rem;"></i>';
-        document.getElementById('sec_evaluation').style.display = 'block';
-    } else if (type === 'sms') {
-        title.innerText = "Parent SMS Alerts Dispatch";
-        sub.innerText = "Status of automated SMS notifications from the gate kiosk";
-        iconBox.style.background = "#d1fae5";
-        iconBox.innerHTML = '<i class="fa-solid fa-comment-sms" style="color: #059669; font-size: 1.1rem;"></i>';
-        document.getElementById('sec_sms').style.display = 'block';
-    }
-
-    overlay.style.display = 'flex';
-}
-
-function closeMetricModal() {
-    const overlay = document.getElementById('metricModalOverlay');
-    if (overlay) overlay.style.display = 'none';
-}
-
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeMetricModal();
-});
-
-// Awtomatikong ikabit ang click listener at pointer cursor sa 4 cards
+// Awtomatikong ikabit ang click listener at pointer cursor sa natitirang 3 cards (Attendance, Evaluation, SMS)
 function bindDashboardCards() {
     const targets = [
-        { key: 'TOTAL STUDENTS', type: 'students' },
         { key: 'ATTENDANCE RATE', type: 'attendance' },
         { key: 'FACULTY EVALUATION', type: 'evaluation' },
         { key: 'SMS SENT TODAY', type: 'sms' }
