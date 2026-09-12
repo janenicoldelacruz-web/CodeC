@@ -2,8 +2,8 @@ import ctypes
 from ctypes import wintypes
 import time
 import json
-import urllib.request
-import urllib.error
+import requests  # Ginagamit na natin ang requests para malinis at walang BOM error
+import pyperclip
 
 winscard = ctypes.windll.winscard
 
@@ -39,28 +39,25 @@ def get_readers(hContext):
 
 def send_to_laravel(uid):
     try:
-        req = urllib.request.Request(
+        response = requests.post(
             LARAVEL_API_URL,
-            data=json.dumps({"card_uid": uid}).encode('utf-8'),
-            headers={"Content-Type": "application/json", "Accept": "application/json"}
+            json={"card_uid": uid},
+            headers={"Content-Type": "application/json", "Accept": "application/json"},
+            timeout=3
         )
-        with urllib.request.urlopen(req) as resp:
-            data = json.loads(resp.read().decode('utf-8'))
-            print(f"    -> [LARAVEL OK]: {data.get('message')}")
-            if 'student' in data:
-                print(f"    -> Student: {data['student']['name']} | Status: {data['student']['status']}")
-    except urllib.error.HTTPError as e:
-        try:
-            err = json.loads(e.read().decode('utf-8'))
-            print(f"    -> [LARAVEL INFO]: {err.get('message')}")
-        except Exception:
-            print(f"    -> [HTTP Error]: Code {e.code}")
-    except Exception as e:
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"    -> [LARAVEL OK]: {data.get('message', 'Card tap received')}")
+        else:
+            print(f"    -> [Server Error]: Status Code {response.status_code}")
+            
+    except requests.exceptions.RequestException as e:
         print(f"    -> [Connection Error]: {e}")
 
 def main():
     print("==================================================")
-    print("   SIATRACK - ACS ACR122U NFC Bridge (ACTIVE)     ")
+    print("        SIATRACK ACR122U Smart Bridge Online        ")
     print("==================================================")
 
     hContext = wintypes.ULONG()
@@ -75,7 +72,7 @@ def main():
 
     reader_name = readers_list[0]
     print(f"[*] Reader: {reader_name}")
-    print("[*] Ready! Itap ang NFC card sa ibabaw ng reader...\n")
+    print("[READY] Place an NFC card on the ACR122U reader...\n")
 
     last_uid = None
     last_tap_time = 0
@@ -118,7 +115,8 @@ def main():
                         last_uid = card_uid
                         last_tap_time = now
 
-                        print(f"\n[+] CARD SCANNED! UID: {card_uid}")
+                        print(f"\n[CARD TAP DETECTED] UID: {card_uid}")
+                        pyperclip.copy(card_uid)
                         send_to_laravel(card_uid)
 
             winscard.SCardDisconnect(hCard, SCARD_LEAVE_CARD)

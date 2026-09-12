@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
@@ -34,7 +33,6 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $appends = [
-        'photo_url',
         'track_name',
         'section_name',
         'gender_name',
@@ -49,12 +47,12 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
+            // Tinanggal na ang 'password' => 'hashed' para sa plain text storage
             'is_active'         => 'boolean',
             'gender'            => 'integer',
-            'grade_level'       => 'integer',
-            'track'             => 'integer',
-            'section'           => 'integer',
+            'grade_level'       => 'string',
+            'strand'            => 'string',
+            'section'           => 'string',
         ];
     }
 
@@ -78,44 +76,19 @@ class User extends Authenticatable
     /* ================= ACCESSORS & MUTATORS ================= */
 
     /**
-     * Get full public URL for the user's uploaded photo.
-     * Usage in Blade/JSON: $user->photo_url
+     * Resolve strand/track directly from admin input.
      */
-    public function getPhotoUrlAttribute(): ?string
+    public function getTrackNameAttribute(): ?string
     {
-        if ($this->photo && Storage::disk('public')->exists($this->photo)) {
-            return asset('storage/' . $this->photo);
-        }
-
-        return null;
+        return $this->strand ?? null;
     }
 
     /**
-     * Resolve numeric track into readable string.
-     * 1 = Academic Track, 2 = Technical-Professional
-     */
-    public function getTrackNameAttribute(): string
-    {
-        return match ((int)($this->track ?? $this->strand ?? 0)) {
-            1 => 'Academic Track',
-            2 => 'Technical-Professional',
-            default => 'General Track',
-        };
-    }
-
-    /**
-     * Resolve numeric section into readable string.
-     * 1 = Amber, 2 = Crystal, 3 = Pearl, 4 = Turquoise
+     * Resolve section directly from admin input.
      */
     public function getSectionNameAttribute(): ?string
     {
-        return match ((int)($this->section ?? 0)) {
-            1 => 'Amber',
-            2 => 'Crystal',
-            3 => 'Pearl',
-            4 => 'Turquoise',
-            default => $this->section ? 'Section ' . $this->section : null,
-        };
+        return $this->section ?? null;
     }
 
     /**

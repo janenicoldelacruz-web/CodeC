@@ -31,14 +31,12 @@ Route::middleware('guest')->group(function () {
     Route::get('/', [LoginController::class, 'showLoginForm'])->name('welcome');
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+    
     // Faculty Evaluation
-        Route::get('/evaluations', [AdminEvaluationController::class, 'index'])->name('evaluations');
-        
-        // ITO YUNG IDADAGDAG MO:
-        Route::post('/evaluations/toggle-status', [AdminEvaluationController::class, 'toggleStatus'])->name('evaluations.toggle');
-        
-        Route::get('/evaluations/periods', [AdminEvaluationController::class, 'periods'])->name('evaluations.periods');
-        Route::get('/evaluations/results', [AdminEvaluationController::class, 'results'])->name('evaluations.results');
+    Route::get('/evaluations', [AdminEvaluationController::class, 'index'])->name('evaluations');
+    Route::post('/evaluations/toggle-status', [AdminEvaluationController::class, 'toggleStatus'])->name('evaluations.toggle');
+    Route::get('/evaluations/periods', [AdminEvaluationController::class, 'periods'])->name('evaluations.periods');
+    Route::get('/evaluations/results', [AdminEvaluationController::class, 'results'])->name('evaluations.results');
 });
 
 /*
@@ -56,7 +54,7 @@ Route::match(['get', 'post'], '/api/nfc/store-tap', [NfcAttendanceController::cl
 */
 Route::middleware(['auth', 'verified'])->group(function () {
     
-    // Role-Based Landing Redirect (Fixed using closure)
+    // Role-Based Landing Redirect
     Route::get('/dashboard', function () {
         $user = auth()->user();
         $roleName = is_object($user->role) ? $user->role->name : $user->role;
@@ -81,32 +79,32 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         
-        // Student Status Analytics & Filtering Screen Route (Mapped to DashboardController)
+        // Student Status Analytics & Filtering Screen Route
         Route::get('/students/analytics', [DashboardController::class, 'studentAnalytics'])->name('students.analytics');
         
         // User Management
         Route::post('/profile/update', [AdminUserController::class, 'updateProfile'])->name('profile.update');
         Route::post('/users/{id}/reset-password', [AdminUserController::class, 'resetPassword'])->name('users.reset-password');
         Route::get('/users/export', [AdminUserController::class, 'export'])->name('users.export');      
-Route::get('/analytics/{type}', [AdminDashboardController::class, 'showAnalyticsReport'])->name('analytics.report');
+        Route::get('/analytics/{type}', [AdminDashboardController::class, 'showAnalyticsReport'])->name('analytics.report');
         Route::resource('users', AdminUserController::class);
 
-// NFC Management
+        // NFC Management
         Route::prefix('nfc')->name('nfc.')->group(function () {
             Route::get('/binding', [AdminNfcController::class, 'bindingIndex'])->name('binding');
             Route::post('/binding', [AdminNfcController::class, 'bindingStore'])->name('binding.store');
-            Route::delete('/binding/{id}', [AdminNfcController::class, 'bindingDestroy'])->name('binding.destroy');
+            Route::delete('/binding/{id}', [AdminNfcController::class, 'bindingDestroy'])->name('destroy');
             Route::get('/replacement', [AdminNfcController::class, 'replacementIndex'])->name('replacement');
             Route::post('/replacement', [AdminNfcController::class, 'replacementStore'])->name('replacement.store');
         });
 
-       // Academic Setup
+        // Academic Setup
         Route::get('/school-year', [AdminSchoolYearController::class, 'index'])->name('school-year');
         Route::post('/school-year/update', [AdminSchoolYearController::class, 'update'])->name('school-year.update');
         Route::post('/school-year/reset', [AdminSchoolYearController::class, 'reset'])->name('school-year.reset');
         
         // Sections, Strands, and Grade Levels Management
-Route::get('/sections', [AdminSectionController::class, 'index'])->name('sections');
+        Route::get('/sections', [AdminSectionController::class, 'index'])->name('sections');
         Route::post('/sections/store', [AdminSectionController::class, 'storeSection'])->name('sections.store');
         Route::delete('/sections/{id}', [AdminSectionController::class, 'destroySection'])->name('sections.destroy');
         
@@ -139,7 +137,7 @@ Route::get('/sections', [AdminSectionController::class, 'index'])->name('section
 
         // Audit Logs & Settings
         Route::get('/audit-logs', [AdminAuditLogController::class, 'index'])->name('audit-logs');
-        Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings');
+        Route::get('/settings', [AdminSettingController::class, 'settingsIndex'])->name('settings');
 
         Route::get('/kiosk', [NfcAttendanceController::class, 'kioskView'])->name('kiosk');
     });
@@ -176,16 +174,6 @@ Route::get('/sections', [AdminSectionController::class, 'index'])->name('section
 // Global Logout Route
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
 
-// --- DIRECT NFC CACHE ROUTES ---
-Route::match(['get', 'post'], '/api/nfc/tap', function(\Illuminate\Http\Request $request) {
-    $uid = $request->input('uid');
-    if ($uid) {
-        \Illuminate\Support\Facades\Cache::put('global_nfc_uid', $uid, now()->addSeconds(10));
-    }
-    return response()->json(['status' => 'success', 'uid' => $uid]);
-});
-
-Route::get('/api/nfc/latest-tap', function() {
-    return response()->json(['uid' => \Illuminate\Support\Facades\Cache::get('global_nfc_uid')]);
-});
-// -------------------------------
+// --- NFC POLLING ENDPOINTS (Naayos para sa Auto-Fill) ---
+Route::match(['get', 'post'], '/api/nfc/tap', [AdminNfcController::class, 'handleTap']);
+Route::get('/api/nfc/latest', [AdminNfcController::class, 'getLatestTap']);

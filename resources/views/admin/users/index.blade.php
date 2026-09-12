@@ -20,18 +20,14 @@
         <div class="flex items-center gap-3">
             <!-- Export CSV Dropdown -->
             <div class="relative">
-                <button type="button" 
-                        onclick="toggleExportMenu()" 
-                        class="inline-flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-black uppercase tracking-wider border-2 border-slate-200 shadow-2xs hover:border-slate-300 transition cursor-pointer">
+                <button type="button" onclick="toggleExportMenu()" class="inline-flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-black uppercase tracking-wider border-2 border-slate-200 shadow-2xs hover:border-slate-300 transition cursor-pointer">
                     <i class="fa-solid fa-file-csv text-emerald-600 text-base"></i> 
                     <span>Export CSV</span>
                     <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 ml-1"></i>
                 </button>
 
                 <div id="export_dropdown_menu" class="hidden absolute right-0 mt-2.5 w-72 bg-white border-2 border-slate-200 rounded-2xl shadow-2xl z-50 py-2 overflow-hidden animate-in fade-in zoom-in-95">
-                    <div class="px-4 py-2 border-b border-slate-100 text-[10px] uppercase font-black tracking-wider text-slate-400 bg-slate-50/50">
-                        Select Directory Export
-                    </div>
+                    <div class="px-4 py-2 border-b border-slate-100 text-[10px] uppercase font-black tracking-wider text-slate-400 bg-slate-50/50">Select Directory Export</div>
                     @if(Route::has('admin.users.export'))
                         <a href="{{ route('admin.users.export', ['type' => 'students']) }}" class="flex items-center gap-3 px-4 py-3 text-xs font-bold text-slate-700 hover:bg-red-50 hover:text-[#8b1818] transition">
                             <div class="w-8 h-8 rounded-xl bg-red-100 text-[#8b1818] flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-graduation-cap"></i></div>
@@ -54,9 +50,8 @@
                 </div>
             </div>
 
-            <!-- Add New User Link (Routes directly to your separate create blade view) -->
-            <a href="{{ route('admin.users.create') }}" 
-               class="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-[#8b1818] hover:bg-[#731414] text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-red-950/20 hover:shadow-xl transition-all duration-150 active:scale-[0.98] border-b-4 border-[#5e0f0f] shrink-0">
+            <!-- Add New User Link -->
+            <a href="{{ route('admin.users.create') }}" class="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-[#8b1818] hover:bg-[#731414] text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-red-950/20 hover:shadow-xl transition-all duration-150 active:scale-[0.98] border-b-4 border-[#5e0f0f] shrink-0">
                 <i class="fa-solid fa-user-plus text-sm text-amber-300"></i>
                 <span>Add New User</span>
             </a>
@@ -112,9 +107,13 @@
                             <td class="py-4 px-6 text-center"><span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Active</span></td>
                             <td class="py-3.5 px-6 text-right whitespace-nowrap">
                                 <div class="inline-flex items-center justify-end gap-1.5">
-                                    <a href="{{ route('admin.users.edit', $adminUser->id) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200"><i class="fa-solid fa-pen-to-square text-[11px] text-slate-500"></i> Edit</a>
+                                    <a href="{{ route('admin.users.edit', $adminUser->id) }}" class="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 flex items-center justify-center text-xs border border-slate-200 transition" title="Edit Admin">
+                                        <i class="fa-solid fa-pen-to-square text-xs"></i>
+                                    </a>
                                     @if(auth()->id() !== $adminUser->id)
-                                    <button type="button" onclick="openDeleteModal('{{ $adminUser->id }}', '{{ addslashes(($adminUser->first_name ?? '') . ' ' . ($adminUser->last_name ?? $adminUser->name)) }}', 'Administrator')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-[#8b1818] text-xs font-bold border border-red-200 cursor-pointer"><i class="fa-solid fa-trash text-[11px]"></i> Delete</button>
+                                    <button type="button" onclick="openDeleteModal('{{ $adminUser->id }}', '{{ addslashes(($adminUser->first_name ?? '') . ' ' . ($adminUser->last_name ?? $adminUser->name)) }}', 'Administrator')" class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-[#8b1818] flex items-center justify-center text-xs border border-red-200 cursor-pointer transition" title="Delete Admin">
+                                        <i class="fa-solid fa-trash text-xs"></i>
+                                    </button>
                                     @endif
                                 </div>
                             </td>
@@ -153,8 +152,12 @@
                             <td class="py-4 px-6 text-center"><span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Active</span></td>
                             <td class="py-3.5 px-6 text-right whitespace-nowrap">
                                 <div class="inline-flex items-center justify-end gap-1.5">
-                                    <a href="{{ route('admin.users.edit', $directorUser->id) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200"><i class="fa-solid fa-pen-to-square text-[11px] text-slate-500"></i> Edit</a>
-                                    <button type="button" onclick="openDeleteModal('{{ $directorUser->id }}', '{{ addslashes(($directorUser->first_name ?? '') . ' ' . ($directorUser->last_name ?? $directorUser->name)) }}', 'Director')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-[#8b1818] text-xs font-bold border border-red-200 cursor-pointer"><i class="fa-solid fa-trash text-[11px]"></i> Delete</button>
+                                    <a href="{{ route('admin.users.edit', $directorUser->id) }}" class="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 flex items-center justify-center text-xs border border-slate-200 transition" title="Edit Director">
+                                        <i class="fa-solid fa-pen-to-square text-xs"></i>
+                                    </a>
+                                    <button type="button" onclick="openDeleteModal('{{ $directorUser->id }}', '{{ addslashes(($directorUser->first_name ?? '') . ' ' . ($directorUser->last_name ?? $directorUser->name)) }}', 'Director')" class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-[#8b1818] flex items-center justify-center text-xs border border-red-200 cursor-pointer transition" title="Delete Director">
+                                        <i class="fa-solid fa-trash text-xs"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -181,19 +184,12 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-50/90 text-slate-700 uppercase font-black tracking-wider text-xs border-b-2 border-slate-200">
-                            <th class="py-4 px-6">Photo</th><th class="py-4 px-6">Faculty ID</th><th class="py-4 px-6">Faculty Name</th><th class="py-4 px-6 text-center">Gender</th><th class="py-4 px-6">Contact Number</th><th class="py-4 px-6 text-center">Status</th><th class="py-4 px-6 text-right">Actions</th>
+                            <th class="py-4 px-6">Faculty ID</th><th class="py-4 px-6">Faculty Name</th><th class="py-4 px-6 text-center">Gender</th><th class="py-4 px-6">Contact Number</th><th class="py-4 px-6 text-center">Status</th><th class="py-4 px-6 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-sm font-semibold text-slate-800">
                         @forelse($faculty ?? [] as $member)
                         <tr class="hover:bg-amber-50/30 transition">
-                            <td class="py-4 px-6">
-                                @if(!empty($member->photo))
-                                    <img src="{{ asset('storage/' . $member->photo) }}" class="w-10 h-10 rounded-full object-cover border border-slate-200">
-                                @else
-                                    <div class="w-10 h-10 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-xs font-black flex items-center justify-center">{{ strtoupper(substr($member->first_name ?? 'F', 0, 1)) }}</div>
-                                @endif
-                            </td>
                             <td class="py-4 px-6 font-mono font-bold text-slate-900 text-sm">{{ $member->id_number ?? 'N/A' }}</td>
                             <td class="py-4 px-6"><div class="font-extrabold text-slate-900 text-sm">{{ $member->first_name }} {{ $member->last_name }}</div><span class="text-xs text-slate-400">{{ $member->email }}</span></td>
                             <td class="py-4 px-6 text-center">{{ (int)$member->gender === 1 ? 'Male' : 'Female' }}</td>
@@ -201,13 +197,17 @@
                             <td class="py-4 px-6 text-center"><span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Active</span></td>
                             <td class="py-3.5 px-6 text-right whitespace-nowrap">
                                 <div class="inline-flex items-center justify-end gap-1.5">
-                                    <a href="{{ route('admin.users.edit', $member->id) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200"><i class="fa-solid fa-pen-to-square text-[11px] text-slate-500"></i> Edit</a>
-                                    <button type="button" onclick="openDeleteModal('{{ $member->id }}', '{{ addslashes($member->first_name . ' ' . $member->last_name) }}', 'Faculty Member')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-[#8b1818] text-xs font-bold border border-red-200 cursor-pointer"><i class="fa-solid fa-trash text-[11px]"></i> Delete</button>
+                                    <a href="{{ route('admin.users.edit', $member->id) }}" class="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 flex items-center justify-center text-xs border border-slate-200 transition" title="Edit Faculty">
+                                        <i class="fa-solid fa-pen-to-square text-xs"></i>
+                                    </a>
+                                    <button type="button" onclick="openDeleteModal('{{ $member->id }}', '{{ addslashes($member->first_name . ' ' . $member->last_name) }}', 'Faculty Member')" class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-[#8b1818] flex items-center justify-center text-xs border border-red-200 cursor-pointer transition" title="Delete Faculty">
+                                        <i class="fa-solid fa-trash text-xs"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="7" class="py-12 text-center text-slate-400 font-medium">No Faculty accounts found.</td></tr>
+                        <tr><td colspan="6" class="py-12 text-center text-slate-400 font-medium">No Faculty accounts found.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -229,34 +229,76 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-50/90 text-slate-700 uppercase font-black tracking-wider text-xs border-b-2 border-slate-200">
-                            <th class="py-4 px-6">Photo</th><th class="py-4 px-6">LRN</th><th class="py-4 px-6">Student Name</th><th class="py-4 px-6 text-center">Placement</th><th class="py-4 px-6 text-center">NFC Card</th><th class="py-4 px-6">Parent Contact</th><th class="py-4 px-6 text-center">Status</th><th class="py-4 px-6 text-right">Actions</th>
+                            <th class="py-4 px-6">LRN</th>
+                            <th class="py-4 px-6">Student Name</th>
+                            <th class="py-4 px-6 text-center">Placement</th>
+                            <th class="py-4 px-6 text-center">NFC Card</th>
+                            <th class="py-4 px-6">Parent Contact</th>
+                            <th class="py-4 px-6 text-center">Status</th>
+                            <th class="py-4 px-6 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-sm font-semibold text-slate-800">
                         @forelse($students ?? [] as $student)
                         <tr class="hover:bg-red-50/30 transition">
+                            <td class="py-4 px-6 font-mono font-bold text-slate-900 text-sm">{{ $student->id_number ?? 'Not Set' }}</td>
                             <td class="py-4 px-6">
-                                @if(!empty($student->photo))
-                                    <img src="{{ asset('storage/' . $student->photo) }}" class="w-10 h-10 rounded-full object-cover border border-slate-200">
+                                <div class="font-extrabold text-slate-900 text-sm">{{ $student->first_name }} {{ $student->last_name }}</div>
+                                <span class="text-xs text-slate-400">{{ $student->email }}</span>
+                            </td>
+                            <td class="py-4 px-6 text-center">
+                                <span class="px-2.5 py-0.5 rounded-lg text-xs font-black bg-slate-100 text-slate-800">
+                                    @if(!empty($student->grade_level) && $student->grade_level != 0)
+                                        {{ stripos($student->grade_level, 'grade') !== false ? $student->grade_level : 'Grade ' . $student->grade_level }}
+                                    @else
+                                        Not Set
+                                    @endif
+                                </span>
+                            </td>
+                            <td class="py-4 px-6 text-center font-mono font-bold text-xs">
+                                @if(optional($student->nfcCard)->tag_id)
+                                    <span class="px-2.5 py-1 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg text-[11px]">
+                                        {{ $student->nfcCard->tag_id }}
+                                    </span>
                                 @else
-                                    <div class="w-10 h-10 rounded-full bg-red-100 border border-red-200 text-[#8b1818] text-xs font-black flex items-center justify-center">{{ strtoupper(substr($student->first_name ?? 'S', 0, 1)) }}</div>
+                                    <span class="text-slate-400 text-xs">No Card</span>
                                 @endif
                             </td>
-                            <td class="py-4 px-6 font-mono font-bold text-slate-900 text-sm">{{ $student->id_number ?? 'Not Set' }}</td>
-                            <td class="py-4 px-6"><div class="font-extrabold text-slate-900 text-sm">{{ $student->first_name }} {{ $student->last_name }}</div><span class="text-xs text-slate-400">{{ $student->email }}</span></td>
-                            <td class="py-4 px-6 text-center"><span class="px-2.5 py-0.5 rounded-lg text-xs font-black bg-slate-100 text-slate-800">Grade {{ $student->grade_level ?? '--' }}</span></td>
-                            <td class="py-4 px-6 text-center font-mono font-bold text-xs">{{ optional($student->nfcCard)->tag_id ?? 'No Card' }}</td>
-                            <td class="py-4 px-6 text-slate-700 text-xs"><div class="font-extrabold text-slate-900">{{ $student->parent_phone_number ?? 'N/A' }}</div></td>
-                            <td class="py-4 px-6 text-center"><span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Active</span></td>
+                            <td class="py-4 px-6 text-slate-700 text-xs">
+                                <div class="font-extrabold text-slate-900">{{ $student->parent_phone_number ?? 'N/A' }}</div>
+                            </td>
+                            <td class="py-4 px-6 text-center">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Active
+                                </span>
+                            </td>
                             <td class="py-3.5 px-6 text-right whitespace-nowrap">
                                 <div class="inline-flex items-center justify-end gap-1.5">
-                                    <a href="{{ route('admin.users.edit', $student->id) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200"><i class="fa-solid fa-pen-to-square text-[11px] text-slate-500"></i> Edit</a>
-                                    <button type="button" onclick="openDeleteModal('{{ $student->id }}', '{{ addslashes($student->first_name . ' ' . $student->last_name) }}', 'Student')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-[#8b1818] text-xs font-bold border border-red-200 cursor-pointer"><i class="fa-solid fa-trash text-[11px]"></i> Delete</button>
+                                    <!-- NFC Bind Redirect Button (Updated to pass user_id and name automatically) -->
+                                    <a href="{{ route('admin.nfc.binding') }}?student_id={{ $student->id }}&student_name={{ urlencode($student->last_name . ', ' . $student->first_name . ' (' . ($student->id_number ?? 'No LRN') . ')') }}" 
+                                       class="w-9 h-9 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 flex items-center justify-center text-xs border border-amber-200 transition" 
+                                       title="Bind NFC Card">
+                                        <i class="fa-solid fa-wifi text-xs text-amber-700"></i>
+                                    </a>
+
+                                    <!-- Edit Route Redirect Button -->
+                                    <a href="{{ route('admin.users.edit', $student->id) }}" 
+                                       class="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 flex items-center justify-center text-xs border border-slate-200 transition" 
+                                       title="Edit Student">
+                                        <i class="fa-solid fa-pen-to-square text-xs"></i>
+                                    </a>
+
+                                    <!-- Delete Button -->
+                                    <button type="button" onclick="openDeleteModal('{{ $student->id }}', '{{ addslashes($student->first_name . ' ' . $student->last_name) }}', 'Student')" 
+                                            class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-[#8b1818] flex items-center justify-center text-xs border border-red-200 cursor-pointer transition" 
+                                            title="Delete Student">
+                                        <i class="fa-solid fa-trash text-xs"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="8" class="py-12 text-center text-slate-400 font-medium">No Student accounts found.</td></tr>
+                        <tr><td colspan="7" class="py-12 text-center text-slate-400 font-medium">No Student accounts found.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -301,6 +343,7 @@
     function toggleExportMenu() {
         document.getElementById('export_dropdown_menu').classList.toggle('hidden');
     }
+
     function openDeleteModal(id, name, role) {
         document.getElementById('delete_user_name_display').innerText = name;
         document.getElementById('delete_user_role_display').innerText = role;
@@ -308,6 +351,7 @@
         document.getElementById('delete_confirm_modal').classList.remove('hidden');
         document.getElementById('delete_confirm_modal').classList.add('flex');
     }
+
     function closeDeleteModal() {
         document.getElementById('delete_confirm_modal').classList.remove('flex');
         document.getElementById('delete_confirm_modal').classList.add('hidden');

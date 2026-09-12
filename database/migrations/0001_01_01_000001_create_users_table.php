@@ -20,9 +20,9 @@ return new class extends Migration
             $table->string('phone_number')->nullable();
             $table->string('parent_name')->nullable();
             $table->string('parent_phone_number')->nullable();
-            $table->unsignedTinyInteger('grade_level')->nullable(); // 11 = Grade 11, 12 = Grade 12
-            $table->unsignedTinyInteger('track')->nullable(); // 1 = Academic Track, 2 = Technical-Professional
-            $table->unsignedTinyInteger('section')->nullable(); // 1 = Crystal, 2 = Turquoise, 3 = Amber, 4 = Pearl
+            $table->string('grade_level', 50)->nullable();
+            $table->string('track')->nullable(); // 1 = Academic Track, 2 = Technical-Professional
+            $table->string('section', 50)->nullable(); // Pinalitan para tumanggap ng text/string names tulad ng 'AMBER'
             $table->string('password');
             $table->boolean('is_active')->default(true);
             $table->rememberToken();

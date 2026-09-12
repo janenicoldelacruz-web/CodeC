@@ -9,7 +9,6 @@ use App\Models\NfcCard;
 use App\Exports\UsersExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
@@ -113,8 +112,8 @@ class AdminUserController extends Controller
             if (in_array('name', $cols)) $userData['name'] = trim($request->first_name . ' ' . $request->last_name);
             if (in_array('email', $cols)) $userData['email'] = $request->email;
             
-            $plainPassword = $request->password;
-            $userData['password'] = Hash::make($plainPassword);
+            // Naka-plain text na password na isine-save
+            $userData['password'] = $request->password;
             
             if (in_array('role_id', $cols)) $userData['role_id'] = $roleId;
             if (in_array('role', $cols)) $userData['role'] = $roleString;
@@ -122,10 +121,11 @@ class AdminUserController extends Controller
             if (in_array('id_number', $cols)) $userData['id_number'] = $request->id_number;
             if (in_array('gender', $cols)) $userData['gender'] = $request->gender;
             if (in_array('phone_number', $cols)) $userData['phone_number'] = $request->phone_number;
-            if (in_array('grade_level', $cols)) $userData['grade_level'] = $isStudent ? $request->grade_level : null;
+            if (in_array('grade_level', $cols)) $userData['grade_level'] = $request->grade_level;
             
-            if (in_array('strand', $cols)) $userData['strand'] = $isStudent ? $request->strand : null;
-            if (in_array('section', $cols)) $userData['section'] = $isStudent ? $request->section : null;
+            if (in_array('strand', $cols)) $userData['strand'] = $request->strand;
+            if (in_array('track', $cols)) $userData['track'] = $request->strand ?? $request->track;
+            if (in_array('section', $cols)) $userData['section'] = $request->section;
             if (in_array('parent_name', $cols)) $userData['parent_name'] = $isStudent ? $request->parent_name : null;
             if (in_array('parent_phone_number', $cols)) $userData['parent_phone_number'] = $isStudent ? $request->parent_phone_number : null;
 
@@ -145,7 +145,7 @@ class AdminUserController extends Controller
         }
     }
 
-public function create()
+    public function create()
     {
         $roles = Schema::hasTable('roles') ? Role::all() : collect([
             (object)['id' => 3, 'name' => 'student'],
@@ -153,7 +153,6 @@ public function create()
             (object)['id' => 4, 'name' => 'director'],
         ]);
 
-        // Siguraduhing ito ay standard get() lang, WALANG groupBy()
         $sections = Schema::hasTable('academic_sections') ? DB::table('academic_sections')->get() : collect();
 
         $gradeLevels = $sections->pluck('grade_level')
@@ -175,7 +174,6 @@ public function create()
             (object)['id' => 4, 'name' => 'director'],
         ]);
 
-        // Siguraduhing ito ay standard get() lang, WALANG groupBy()
         $sections = Schema::hasTable('academic_sections') ? DB::table('academic_sections')->get() : collect();
 
         $gradeLevels = $sections->pluck('grade_level')
@@ -186,6 +184,7 @@ public function create()
 
         return view('admin.users.edit', compact('user', 'roles', 'sections', 'gradeLevels'));
     }
+
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
@@ -222,14 +221,24 @@ public function create()
             if (in_array('id_number', $cols)) $user->id_number = $request->id_number;
             if (in_array('gender', $cols)) $user->gender = $request->gender;
             if (in_array('phone_number', $cols)) $user->phone_number = $request->phone_number;
-            if (in_array('grade_level', $cols)) $user->grade_level = $isStudent ? $request->grade_level : null;
-            if (in_array('strand', $cols)) $user->strand = $isStudent ? $request->strand : null;
-            if (in_array('section', $cols)) $user->section = $isStudent ? $request->section : null;
-            if (in_array('parent_name', $cols)) $user->parent_name = $isStudent ? $request->parent_name : null;
-            if (in_array('parent_phone_number', $cols)) $user->parent_phone_number = $isStudent ? $request->parent_phone_number : null;
+            
+            // Academic fields (Sinusuportahan ang parehong strand at track column sa database)
+            if (in_array('grade_level', $cols)) $user->grade_level = $request->grade_level;
+            
+            if (in_array('strand', $cols)) {
+                $user->strand = $request->strand;
+            }
+            if (in_array('track', $cols)) {
+                $user->track = $request->strand ?? $request->track;
+            }
 
+            if (in_array('section', $cols)) $user->section = $request->section;
+            if (in_array('parent_name', $cols)) $user->parent_name = $request->parent_name;
+            if (in_array('parent_phone_number', $cols)) $user->parent_phone_number = $request->parent_phone_number;
+
+            // Password update (Plain text na walang Hash::make)
             if ($request->filled('password')) {
-                $user->password = Hash::make($request->password);
+                $user->password = $request->password;
             }
 
             $user->save();
