@@ -95,12 +95,15 @@ Route::get('/analytics/{type}', [AdminDashboardController::class, 'showAnalytics
         Route::get('/nfc/binding', [AdminNfcController::class, 'binding'])->name('nfc.binding');
         Route::get('/nfc/replacement', [AdminNfcController::class, 'replacement'])->name('nfc.replacement');
 
-        // Academic Setup
+       // Academic Setup
         Route::get('/school-year', [AdminSchoolYearController::class, 'index'])->name('school-year');
         Route::post('/school-year/update', [AdminSchoolYearController::class, 'update'])->name('school-year.update');
         Route::post('/school-year/reset', [AdminSchoolYearController::class, 'reset'])->name('school-year.reset');
         
-        Route::get('/sections', [AdminSectionController::class, 'index'])->name('sections');
+        // Sections, Strands, and Grade Levels Management
+Route::get('/sections', [AdminSectionController::class, 'index'])->name('sections');
+        Route::post('/sections/store', [AdminSectionController::class, 'storeSection'])->name('sections.store');
+        Route::delete('/sections/{id}', [AdminSectionController::class, 'destroySection'])->name('sections.destroy');
         
         Route::get('/schedules', [ScheduleController::class, 'index'])->name('schedules');
         Route::post('/schedules', [ScheduleController::class, 'store'])->name('schedules.store');

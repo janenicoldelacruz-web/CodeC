@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'SIATRACK')</title>
 
+    <!-- INCLUDE ALPINE.JS HERE -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/global.css') }}">
@@ -32,7 +35,6 @@ document.addEventListener("DOMContentLoaded", function() {
         const inputs = document.querySelectorAll('input');
         let nfcInput = null;
         
-        // Hanapin ang kahit anong input na may 'ACR122U' sa placeholder
         inputs.forEach(el => {
             if (el.placeholder && el.placeholder.toUpperCase().includes('ACR122U')) {
                 nfcInput = el;
@@ -46,7 +48,6 @@ document.addEventListener("DOMContentLoaded", function() {
                     if (data && data.uid && nfcInput.value !== data.uid) {
                         nfcInput.value = data.uid;
                         
-                        // Visual Feedback (Magiging green ang textbox)
                         const oldBg = nfcInput.style.backgroundColor;
                         nfcInput.style.backgroundColor = '#d1fae5';
                         nfcInput.style.borderColor = '#10b981';

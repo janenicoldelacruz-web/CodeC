@@ -101,7 +101,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
 
                 <!-- 1. Total Students Enrolled (Directly links to analytics screen) -->
-                <a href="{{ route('admin.students.analytics') ?? '#' }}" class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-amber-300 transition w-full block text-left group">
+                <a href="{{ route('admin.students.analytics') }}" class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-amber-300 transition w-full block text-left group">
                     <div class="flex items-start justify-between">
                         <div>
                             <p class="text-[11px] font-black text-slate-500 uppercase tracking-wider">Total Students</p>
@@ -133,7 +133,8 @@
                         <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-2">
                             <div class="bg-[#8b1818] h-full rounded-full transition-all duration-500" style="width: {{ min(100, (float)($attendanceRate ?? 0)) }}%"></div>
                         </div>
-                        <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="attendanceSparkline"></canvas></div><div class="flex items-center justify-between text-xs text-slate-600 font-bold">
+                        <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="attendanceSparkline"></canvas></div>
+                        <div class="flex items-center justify-between text-xs text-slate-600 font-bold">
                             <span>Present Today</span>
                             <span class="text-[#8b1818] font-mono font-black">{{ $presentTodayCount ?? 0 }} / {{ $totalStudents ?? 0 }}</span>
                         </div>
@@ -155,7 +156,8 @@
                         <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-2">
                             <div class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: {{ min(100, (float)($evalProgress ?? 0)) }}%"></div>
                         </div>
-                        <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="evalSparkline"></canvas></div><div class="flex items-center justify-between text-xs text-slate-600 font-bold">
+                        <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="evalSparkline"></canvas></div>
+                        <div class="flex items-center justify-between text-xs text-slate-600 font-bold">
                             <span>Student Reviews</span>
                             <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
                         </div>
@@ -173,7 +175,8 @@
                             <i class="fa-solid fa-comment-sms"></i>
                         </div>
                     </div>
-                    <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="smsSparkline"></canvas></div><div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-bold">
+                    <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="smsSparkline"></canvas></div>
+                    <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-bold">
                         <span>Parent Alerts</span>
                         <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
                     </div>
@@ -533,7 +536,217 @@ document.addEventListener("DOMContentLoaded", function() {
     loadCharts();
 });
 </script>
+<!-- METRIC DETAIL MODAL CONTAINER -->
+@php
+    $modalStudents = \Illuminate\Support\Facades\DB::table('users')
+        ->where('role_id', 3)
+        ->select('id', 'first_name', 'last_name', 'email', 'id_number', 'created_at')
+        ->latest('created_at')->take(8)->get();
 
+    $modalAttendance = \Illuminate\Support\Facades\Schema::hasTable('attendance_logs')
+        ? \Illuminate\Support\Facades\DB::table('attendance_logs')
+            ->leftJoin('users', 'attendance_logs.user_id', '=', 'users.id')
+            ->select('attendance_logs.*', 'users.first_name', 'users.last_name', 'users.id_number')
+            ->whereDate('attendance_logs.created_at', now()->today())
+            ->latest('attendance_logs.created_at')->take(8)->get()
+        : collect();
+
+    $modalFaculty = \Illuminate\Support\Facades\DB::table('users')
+        ->where('role_id', 2)
+        ->select('id', 'first_name', 'last_name', 'email', 'id_number')
+        ->take(8)->get();
+@endphp
+
+<div id="metricDataModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+        <!-- Modal Header -->
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+            <div class="flex items-center gap-3">
+                <div id="modalIconBox" class="w-10 h-10 rounded-2xl flex items-center justify-center text-base"></div>
+                <div>
+                    <h3 id="modalTitle" class="text-base font-black text-slate-800"></h3>
+                    <p id="modalSubtitle" class="text-xs text-slate-400 font-medium"></p>
+                </div>
+            </div>
+            <button onclick="closeMetricModal()" class="w-8 h-8 rounded-full bg-slate-200/60 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body Content -->
+        <div class="p-6 overflow-y-auto flex-1 space-y-4">
+            <!-- 1. Students Content -->
+            <div id="modalSection_students" class="metric-modal-section hidden">
+                <div class="flex items-center justify-between mb-3 text-xs">
+                    <span class="font-bold text-slate-500">Enrolled Students (Recent)</span>
+                    <span class="font-black text-[#8b1818]">{{ count($modalStudents) }} student(s) loaded</span>
+                </div>
+                <div class="border border-slate-100 rounded-2xl overflow-hidden">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
+                            <tr>
+                                <th class="p-3">Student Name</th>
+                                <th class="p-3">LRN / ID</th>
+                                <th class="p-3">Email</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-semibold text-slate-700">
+                            @forelse($modalStudents as $st)
+                            <tr class="hover:bg-slate-50/50">
+                                <td class="p-3 font-bold text-slate-800">{{ $st->first_name }} {{ $st->last_name }}</td>
+                                <td class="p-3 text-slate-500 font-mono text-[11px]">{{ $st->id_number ?? 'N/A' }}</td>
+                                <td class="p-3 text-slate-500">{{ $st->email }}</td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="3" class="p-4 text-center text-slate-400">Walang estudyanteng nakatala.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 2. Attendance Content -->
+            <div id="modalSection_attendance" class="metric-modal-section hidden">
+                <div class="flex items-center justify-between mb-3 text-xs">
+                    <span class="font-bold text-slate-500">Today's Gate Tap Records</span>
+                    <span class="font-black text-red-600">{{ count($modalAttendance) }} tap(s) today</span>
+                </div>
+                <div class="border border-slate-100 rounded-2xl overflow-hidden">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
+                            <tr>
+                                <th class="p-3">Student</th>
+                                <th class="p-3">Time In</th>
+                                <th class="p-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-semibold text-slate-700">
+                            @forelse($modalAttendance as $at)
+                            <tr class="hover:bg-slate-50/50">
+                                <td class="p-3 font-bold text-slate-800">{{ $at->first_name ?? 'Student' }} {{ $at->last_name ?? '' }}</td>
+                                <td class="p-3 text-slate-500">{{ \Carbon\Carbon::parse($at->created_at)->format('h:i A') }}</td>
+                                <td class="p-3">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black {{ ($at->status ?? '') == 'LATE' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700' }}">A.Y. {{ $activeSchoolYear ?? '2027-2028' }}</span>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="3" class="p-4 text-center text-slate-400">Walang attendance tap na naitala ngayong araw.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3. Faculty Evaluation Content -->
+            <div id="modalSection_evaluation" class="metric-modal-section hidden">
+                <div class="flex items-center justify-between mb-3 text-xs">
+                    <span class="font-bold text-slate-500">Faculty Members & Performance</span>
+                    <span class="font-black text-blue-600">{{ count($modalFaculty) }} instructors</span>
+                </div>
+                <div class="border border-slate-100 rounded-2xl overflow-hidden">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
+                            <tr>
+                                <th class="p-3">Instructor</th>
+                                <th class="p-3">School ID</th>
+                                <th class="p-3">Evaluation Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-semibold text-slate-700">
+                            @forelse($modalFaculty as $fa)
+                            <tr class="hover:bg-slate-50/50">
+                                <td class="p-3 font-bold text-slate-800">{{ $fa->first_name }} {{ $fa->last_name }}</td>
+                                <td class="p-3 text-slate-500 font-mono text-[11px]">{{ $fa->id_number ?? 'FAC-N/A' }}</td>
+                                <td class="p-3">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-700">Active Cycle</span>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="3" class="p-4 text-center text-slate-400">Walang guro na nakarehistro.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 4. SMS Alerts Content -->
+            <div id="modalSection_sms" class="metric-modal-section hidden">
+                <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-900 text-xs space-y-2">
+                    <div class="flex items-center justify-between font-bold">
+                        <span>GSM / SMS Notification Gateway</span>
+                        <span class="px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-800 text-[10px] font-black">ONLINE</span>
+                    </div>
+                    <p class="text-[11px] text-emerald-700">Awtomatikong nagpapadala ng SMS alert sa mga magulang tuwing may matatala na NFC scan sa gate kiosk.</p>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 text-xs">
+                    <div class="flex justify-between font-bold text-slate-600">
+                        <span>Dispatched Today:</span>
+                        <span class="font-black text-slate-800">{{ $smsSentToday ?? 0 }} alerts</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-slate-600">
+                        <span>Delivery Success Rate:</span>
+                        <span class="font-black text-emerald-600">100%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-4 border-t border-slate-100 bg-slate-50/60 flex justify-end">
+            <button onclick="closeMetricModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition cursor-pointer">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openMetricModal(type) {
+    const modal = document.getElementById('metricDataModal');
+    const title = document.getElementById('modalTitle');
+    const sub = document.getElementById('modalSubtitle');
+    const iconBox = document.getElementById('modalIconBox');
+
+    document.querySelectorAll('.metric-modal-section').forEach(el => el.classList.add('hidden'));
+
+    if (type === 'students') {
+        title.innerText = "Total Students Directory";
+        sub.innerText = "Directory of currently enrolled students in SIATRACK";
+        iconBox.className = "w-10 h-10 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center text-base";
+        iconBox.innerHTML = '<i class="fa-solid fa-graduation-cap"></i>';
+        document.getElementById('modalSection_students').classList.remove('hidden');
+    } else if (type === 'attendance') {
+        title.innerText = "Attendance Analytics & Gate Logs";
+        sub.innerText = "Breakdown ng mga live taps at attendance status para sa araw na ito";
+        iconBox.className = "w-10 h-10 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center text-base";
+        iconBox.innerHTML = '<i class="fa-solid fa-clipboard-check"></i>';
+        document.getElementById('modalSection_attendance').classList.remove('hidden');
+    } else if (type === 'evaluation') {
+        title.innerText = "Faculty Evaluation Summary";
+        sub.innerText = "Feedback overview at listahan ng mga guro sa academic cycle";
+        iconBox.className = "w-10 h-10 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center text-base";
+        iconBox.innerHTML = '<i class="fa-solid fa-chalkboard-user"></i>';
+        document.getElementById('modalSection_evaluation').classList.remove('hidden');
+    } else if (type === 'sms') {
+        title.innerText = "Parent SMS Alerts Dispatch";
+        sub.innerText = "Status ng automated text notifications mula sa NFC Gate System";
+        iconBox.className = "w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-base";
+        iconBox.innerHTML = '<i class="fa-solid fa-comment-sms"></i>';
+        document.getElementById('modalSection_sms').classList.remove('hidden');
+    }
+
+    modal.classList.remove('hidden');
+}
+
+function closeMetricModal() {
+    const modal = document.getElementById('metricDataModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeMetricModal();
+});
+</script>
 <!-- METRIC MODAL POPUP SYSTEM -->
 @php
     $modalStudents = \Illuminate\Support\Facades\DB::table('users')
@@ -755,7 +968,6 @@ document.addEventListener('keydown', function(e) {
 // Awtomatikong ikabit ang click listener at pointer cursor sa 4 cards
 function bindDashboardCards() {
     const targets = [
-        { key: 'TOTAL STUDENTS', type: 'students' },
         { key: 'ATTENDANCE RATE', type: 'attendance' },
         { key: 'FACULTY EVALUATION', type: 'evaluation' },
         { key: 'SMS SENT TODAY', type: 'sms' }
