@@ -6,16 +6,23 @@
 <div class="w-full min-h-screen flex flex-col bg-slate-50/70">
 
     <!-- Top Header Bar -->
+        <!-- Top Header Bar -->
     <header class="bg-white border-b-2 border-slate-200 pl-8 lg:pl-12 pr-6 lg:pr-8 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-20 shadow-xs w-full">
         <div>
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-[#8b1818] text-white flex items-center justify-center text-base shadow-xs shrink-0">
-                    <i class="fa-solid fa-table-cells-large text-amber-300"></i>
+                <div class="w-10 h-10 rounded-xl {{ auth()->user()->role_id == 4 ? 'bg-blue-600' : 'bg-[#8b1818]' }} text-white flex items-center justify-center text-base shadow-xs shrink-0">
+                    <i class="fa-solid {{ auth()->user()->role_id == 4 ? 'fa-eye text-blue-200' : 'fa-table-cells-large text-amber-300' }}"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h1 class="text-2xl font-black text-slate-900 tracking-tight">Admin Dashboard</h1>
-                        <span class="px-2.5 py-0.5 rounded-md text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 uppercase">A.Y. {{ $activeSchoolYear ?? '2027-2028' }}</span>
+                        <h1 class="text-2xl font-black text-slate-900 tracking-tight">
+                            {{ auth()->user()->role_id == 4 ? 'Super Admin Dashboard' : 'Admin Dashboard' }}
+                        </h1>
+                        @if(auth()->user()->role_id == 4)
+                            <span class="px-2.5 py-0.5 rounded-md text-[10px] font-black bg-blue-100 text-blue-800 border border-blue-300 uppercase">VIEWER MODE</span>
+                        @else
+                            <span class="px-2.5 py-0.5 rounded-md text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 uppercase">A.Y. {{ $activeSchoolYear ?? '2027-2028' }}</span>
+                        @endif
                     </div>
                     <p class="text-xs text-slate-500 font-bold mt-0.5">
                         <i class="fa-regular fa-calendar text-slate-400 mr-1"></i>
@@ -26,27 +33,41 @@
         </div>
 
         <div class="flex items-center gap-4">
-            <!-- Editable Admin Profile Button -->
+            <!-- Profile Button -->
             <button type="button" 
                     onclick="openEditProfileModal()"
-                    title="Click to edit profile"
+                    title="Click to view profile"
                     class="group flex items-center gap-3 p-1.5 pr-4 rounded-2xl hover:bg-slate-100 border-2 border-slate-200 hover:border-slate-300 transition text-left bg-white shadow-2xs cursor-pointer">
                 <div class="relative">
-                    <div class="w-10 h-10 rounded-xl bg-[#8b1818] text-white font-black text-xs flex items-center justify-center shadow-xs group-hover:scale-105 transition">
+                    <div class="w-10 h-10 rounded-xl {{ auth()->user()->role_id == 4 ? 'bg-blue-600' : 'bg-[#8b1818]' }} text-white font-black text-xs flex items-center justify-center shadow-xs group-hover:scale-105 transition">
                         {{ strtoupper(substr(auth()->user()->first_name ?? 'A', 0, 1)) }}{{ strtoupper(substr(auth()->user()->last_name ?? 'D', 0, 1)) }}
                     </div>
-                    <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-white border border-slate-200 rounded-full flex items-center justify-center text-[9px] text-slate-600 shadow-2xs group-hover:text-[#8b1818]">
+                    <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-white border border-slate-200 rounded-full flex items-center justify-center text-[9px] text-slate-600 shadow-2xs group-hover:text-slate-900">
                         <i class="fa-solid fa-pen"></i>
                     </span>
                 </div>
                 <div class="hidden sm:block">
                     <div class="flex items-center gap-1.5">
-                        <span class="text-xs font-black text-slate-900 group-hover:text-[#8b1818] transition">
+                        <span class="text-xs font-black text-slate-900 {{ auth()->user()->role_id == 4 ? 'group-hover:text-blue-600' : 'group-hover:text-[#8b1818]' }} transition">
                             {{ auth()->user()->first_name }} {{ auth()->user()->last_name }}
                         </span>
-                        <i class="fa-solid fa-pen-to-square text-[10px] text-slate-400 group-hover:text-[#8b1818] transition opacity-0 group-hover:opacity-100"></i>
+                        <i class="fa-solid fa-pen-to-square text-[10px] text-slate-400 {{ auth()->user()->role_id == 4 ? 'group-hover:text-blue-600' : 'group-hover:text-[#8b1818]' }} transition opacity-0 group-hover:opacity-100"></i>
                     </div>
-                    <span class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Administrator</span>
+                    <span class="text-[10px] font-bold {{ auth()->user()->role_id == 4 ? 'text-blue-600' : 'text-slate-400' }} block uppercase tracking-wider">
+                        {{ auth()->user()->role_id == 4 ? 'Super Admin / Auditor' : 'Administrator' }}
+                    </span>
+                </div>
+            </button>
+        </div>
+    </header>
+                        <span class="text-xs font-black text-slate-900 {{ auth()->user()->role_id == 4 ? 'group-hover:text-blue-600' : 'group-hover:text-[#8b1818]' }} transition">
+                            {{ auth()->user()->first_name }} {{ auth()->user()->last_name }}
+                        </span>
+                        <i class="fa-solid fa-pen-to-square text-[10px] text-slate-400 {{ auth()->user()->role_id == 4 ? 'group-hover:text-blue-600' : 'group-hover:text-[#8b1818]' }} transition opacity-0 group-hover:opacity-100"></i>
+                    </div>
+                    <span class="text-[10px] font-bold {{ auth()->user()->role_id == 4 ? 'text-blue-600' : 'text-slate-400' }} block uppercase tracking-wider">
+                        {{ auth()->user()->role_id == 4 ? 'Super Admin / Auditor' : 'Administrator' }}
+                    </span>
                 </div>
             </button>
         </div>
@@ -112,7 +133,8 @@
                         <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-2">
                             <div class="bg-[#8b1818] h-full rounded-full transition-all duration-500" style="width: {{ min(100, (float)($attendanceRate ?? 0)) }}%"></div>
                         </div>
-                        <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="attendanceSparkline"></canvas></div><div class="flex items-center justify-between text-xs text-slate-600 font-bold">
+                        <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="attendanceSparkline"></canvas></div>
+                        <div class="flex items-center justify-between text-xs text-slate-600 font-bold">
                             <span>Present Today</span>
                             <span class="text-[#8b1818] font-mono font-black">{{ $presentTodayCount ?? 0 }} / {{ $totalStudents ?? 0 }}</span>
                         </div>
@@ -134,7 +156,8 @@
                         <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-2">
                             <div class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: {{ min(100, (float)($evalProgress ?? 0)) }}%"></div>
                         </div>
-                        <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="evalSparkline"></canvas></div><div class="flex items-center justify-between text-xs text-slate-600 font-bold">
+                        <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="evalSparkline"></canvas></div>
+                        <div class="flex items-center justify-between text-xs text-slate-600 font-bold">
                             <span>Student Reviews</span>
                             <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
                         </div>
@@ -152,7 +175,8 @@
                             <i class="fa-solid fa-comment-sms"></i>
                         </div>
                     </div>
-                    <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="smsSparkline"></canvas></div><div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-bold">
+                    <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="smsSparkline"></canvas></div>
+                    <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-bold">
                         <span>Parent Alerts</span>
                         <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
                     </div>
@@ -198,7 +222,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-sm font-semibold text-slate-800">
-                        @forelse($recentTaps as $tap)
+                        @forelse($recentTaps ?? [] as $tap)
                             @php
                                 $trackLabel = match((int)($tap->track ?? $tap->strand ?? 0)) {
                                     1 => 'Academic Track',
@@ -944,7 +968,6 @@ document.addEventListener('keydown', function(e) {
 // Awtomatikong ikabit ang click listener at pointer cursor sa 4 cards
 function bindDashboardCards() {
     const targets = [
-        { key: 'TOTAL STUDENTS', type: 'students' },
         { key: 'ATTENDANCE RATE', type: 'attendance' },
         { key: 'FACULTY EVALUATION', type: 'evaluation' },
         { key: 'SMS SENT TODAY', type: 'sms' }

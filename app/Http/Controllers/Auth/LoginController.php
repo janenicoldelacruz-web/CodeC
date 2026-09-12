@@ -43,9 +43,11 @@ class LoginController extends Controller
 
             $request->session()->regenerate();
 
-            // Tukuyin ang role base sa role_id (1 = Admin, 2 = Faculty/Teacher, 3 = Student)
+            // Tukuyin ang role base sa role_id (1 = Admin, 2 = Faculty/Teacher, 3 = Student, 4 = Super Admin Viewer)
             $actualRole = 'student';
-            if ($user->role_id == 1 || (is_object($user->role) && strtolower($user->role->name) === 'admin') || (isset($user->role) && $user->role === 'admin')) {
+            
+            // DITO NATIN IDINAGDAG YUNG ROLE ID 4 AT SUPERADMIN_VIEWER
+            if ($user->role_id == 1 || $user->role_id == 4 || (is_object($user->role) && in_array(strtolower($user->role->name), ['admin', 'superadmin_viewer'])) || (isset($user->role) && in_array($user->role, ['admin', 'superadmin_viewer']))) {
                 $actualRole = 'admin';
             } elseif ($user->role_id == 2 || (is_object($user->role) && in_array(strtolower($user->role->name), ['teacher', 'faculty'])) || (isset($user->role) && in_array($user->role, ['teacher', 'faculty']))) {
                 $actualRole = 'teacher';
