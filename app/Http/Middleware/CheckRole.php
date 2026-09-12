@@ -38,9 +38,9 @@ class CheckRole
 
         $target = strtolower(trim($role));
 
-        // Map allowed role IDs and aliases
+        // Map allowed role IDs and aliases (IDINAGDAG NATIN YUNG 4 AT SUPERADMIN DITO)
         $targetMap = [
-            'admin'   => [1, 'admin'],
+            'admin'   => [1, 4, 'admin', 'superadmin_viewer'], 
             'teacher' => [2, 'teacher', 'faculty'],
             'faculty' => [2, 'teacher', 'faculty'],
             'student' => [3, 'student'],
@@ -56,9 +56,9 @@ class CheckRole
             return $next($request);
         }
 
-        // 4. Redirect unauthorized access to respective dashboard
+        // 4. Redirect unauthorized access to respective dashboard (ISINAMA RIN NATIN YUNG 4 DITO)
         return match ($roleId) {
-            1 => redirect()->route('admin.dashboard'),
+            1, 4 => redirect()->route('admin.dashboard'),
             2 => redirect()->route('teacher.schedules'),
             3 => redirect()->route('student.dashboard'),
             default => redirect()->route('login'),

@@ -7,7 +7,7 @@
     <div class="h-1.5 bg-gradient-to-r from-amber-400 via-amber-200 to-amber-400 w-full shrink-0"></div>
 
     <div class="flex-1 flex flex-col min-h-0">
-<!-- Brand Header & Hamburger Toggle -->
+        <!-- Brand Header & Hamburger Toggle -->
         <div class="p-4 border-b border-red-900/40 flex items-center justify-between bg-black/15 overflow-hidden">
             <div class="flex items-center gap-3 min-w-0" x-show="!collapsed" x-transition>
                 <div class="w-10 h-10 rounded-xl bg-white p-1 border-2 border-amber-300 shadow-xs flex items-center justify-center shrink-0 overflow-hidden">
@@ -33,11 +33,13 @@
                 <i class="fa-solid fa-bars text-sm"></i>
             </button>
         </div>
+        
         <!-- Navigation Links -->
         <nav class="p-3 space-y-5 overflow-y-auto flex-1 custom-scrollbar">
             
             {{-- ==================== ADMIN NAVIGATION ==================== --}}
-            @if(auth()->user()->role_id === 1)
+            <!-- IDINAGDAG NATIN YUNG ROLE ID 4 DITO PARA MAKITA NI SUPER ADMIN YUNG MENUS -->
+            @if(auth()->user()->role_id == 1 || auth()->user()->role_id == 4)
                 <div>
                     <p class="px-3 text-[10px] font-black uppercase tracking-wider text-red-200/60 mb-2" x-show="!collapsed">Management Menu</p>
                     <div class="space-y-1 text-sm font-bold">
