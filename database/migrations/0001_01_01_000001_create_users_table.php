@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
             $table->string('first_name');
             $table->string('last_name');
-            $table->string('photo')->nullable();
             $table->unsignedTinyInteger('gender')->nullable(); // 1 = Male, 2 = Female
             $table->string('email')->unique();
             $table->string('phone_number')->nullable();

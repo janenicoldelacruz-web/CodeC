@@ -58,10 +58,10 @@ class AdminUserController extends Controller
             }
         });
 
-        $students = $studentsQuery->paginate(15, ['*'], 'students_page');
-        $faculty = $facultyQuery->paginate(15, ['*'], 'faculty_page');
-        $directors = $directorsQuery->paginate(15, ['*'], 'directors_page');
-        $admins = $adminsQuery->paginate(15, ['*'], 'admins_page');
+        $students = $studentsQuery->paginate(10, ['*'], 'students_page');
+        $faculty = $facultyQuery->paginate(10, ['*'], 'faculty_page');
+        $directors = $directorsQuery->paginate(5, ['*'], 'directors_page');
+        $admins = $adminsQuery->paginate(5, ['*'], 'admins_page');
 
         $totalUsers = User::count();
         $studentCount = (clone $studentsQuery)->count();
@@ -197,86 +197,97 @@ class AdminUserController extends Controller
     }
 
     public function update(Request $request, $id)
-    {
-        $user = User::findOrFail($id);
-        $roleId = (int)$request->input('role_id', $user->role_id ?? 3);
-        $isStudent = ($roleId === 3);
+{
+    $user = User::findOrFail($id);
+    $roleId = (int)$request->input('role_id', $user->role_id ?? 3);
+    $isStudent = ($roleId === 3);
+    $isTeacher = ($roleId === 2);
+    
+    // Alamin kung ang teacher ay Adviser
+    $teacherType = $request->input('teacher_type');
+    $isAdviser = ($isTeacher && $teacherType === 'Adviser');
 
-        $rules = [
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name'  => ['required', 'string', 'max:255'],
-            'email'      => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
-        ];
+    $rules = [
+        'first_name' => ['required', 'string', 'max:255'],
+        'last_name'  => ['required', 'string', 'max:255'],
+        'email'      => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+    ];
 
-        if ($request->filled('password')) {
-            $rules['password'] = ['string', 'min:8', 'confirmed'];
-        }
-
-        $request->validate($rules);
-
-        try {
-            $cols = Schema::getColumnListing('users');
-            $roleString = match ($roleId) {
-                1 => 'admin',
-                2 => 'teacher',
-                4 => 'director',
-                default => 'student',
-            };
-
-            if (in_array('first_name', $cols)) $user->first_name = $request->first_name;
-            if (in_array('last_name', $cols)) $user->last_name = $request->last_name;
-            if (in_array('name', $cols)) $user->name = trim($request->first_name . ' ' . $request->last_name);
-            if (in_array('email', $cols)) $user->email = $request->email;
-            if (in_array('role_id', $cols)) $user->role_id = $roleId;
-            if (in_array('role', $cols)) $user->role = $roleString;
-            if (in_array('id_number', $cols)) $user->id_number = $request->id_number;
-            if (in_array('gender', $cols)) $user->gender = $request->gender;
-            if (in_array('phone_number', $cols)) $user->phone_number = $request->phone_number;
-            
-            if (in_array('grade_level', $cols)) {
-                $user->grade_level = $isStudent ? $request->grade_level : null;
-            }
-            if (in_array('strand', $cols)) {
-                $user->strand = $isStudent ? $request->strand : null;
-            }
-            if (in_array('track', $cols)) {
-                $user->track = $isStudent ? ($request->strand ?? $request->track) : null;
-            }
-            if (in_array('section', $cols)) {
-                $user->section = $isStudent ? $request->section : null;
-            }
-            if (in_array('parent_name', $cols)) {
-                $user->parent_name = $isStudent ? $request->parent_name : null;
-            }
-            if (in_array('parent_phone_number', $cols)) {
-                $user->parent_phone_number = $isStudent ? $request->parent_phone_number : null;
-            }
-
-            // Plain-text password update
-            if ($request->filled('password')) {
-                $user->password = $request->password;
-            }
-
-            $user->save();
-
-            if (Schema::hasTable('nfc_cards')) {
-                if (!$isStudent || !$request->filled('nfc_tag_id')) {
-                    NfcCard::where('user_id', $user->id)->delete();
-                } else {
-                    NfcCard::updateOrCreate(
-                        ['user_id' => $user->id],
-                        ['tag_id' => strtoupper(trim($request->nfc_tag_id))]
-                    );
-                }
-            }
-
-            return redirect()->route('admin.users.index')
-                ->with('success', "User '{$user->first_name} {$user->last_name}' updated successfully!");
-        } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['error' => 'Update Error: ' . $e->getMessage()]);
-        }
+    if ($request->filled('password')) {
+        $rules['password'] = ['string', 'min:8', 'confirmed'];
     }
 
+    $request->validate($rules);
+
+    try {
+        $cols = Schema::getColumnListing('users');
+        $roleString = match ($roleId) {
+            1 => 'admin',
+            2 => 'teacher',
+            4 => 'director',
+            default => 'student',
+        };
+
+        if (in_array('first_name', $cols)) $user->first_name = $request->first_name;
+        if (in_array('last_name', $cols)) $user->last_name = $request->last_name;
+        if (in_array('name', $cols)) $user->name = trim($request->first_name . ' ' . $request->last_name);
+        if (in_array('email', $cols)) $user->email = $request->email;
+        if (in_array('role_id', $cols)) $user->role_id = $roleId;
+        if (in_array('role', $cols)) $user->role = $roleString;
+        if (in_array('id_number', $cols)) $user->id_number = $request->id_number;
+        if (in_array('gender', $cols)) $user->gender = $request->gender;
+        if (in_array('phone_number', $cols)) $user->phone_number = $request->phone_number;
+        
+        // Grade Level: Para sa Student o kaya'y sa Teacher na Adviser
+        if (in_array('grade_level', $cols)) {
+            $user->grade_level = ($isStudent || $isAdviser) ? $request->grade_level : null;
+        }
+        
+        // Strand at Track: Para lang sa Student
+        if (in_array('strand', $cols)) {
+            $user->strand = $isStudent ? $request->strand : null;
+        }
+        if (in_array('track', $cols)) {
+            $user->track = $isStudent ? ($request->strand ?? $request->track) : null;
+        }
+        
+        // Section: Para sa Student o kaya'y sa Teacher na Adviser
+        if (in_array('section', $cols)) {
+            $user->section = ($isStudent || $isAdviser) ? $request->section : null;
+        }
+        
+        // Parent Info: Para lang sa Student
+        if (in_array('parent_name', $cols)) {
+            $user->parent_name = $isStudent ? $request->parent_name : null;
+        }
+        if (in_array('parent_phone_number', $cols)) {
+            $user->parent_phone_number = $isStudent ? $request->parent_phone_number : null;
+        }
+
+        // Plain-text password update
+        if ($request->filled('password')) {
+            $user->password = $request->password;
+        }
+
+        $user->save();
+
+        if (Schema::hasTable('nfc_cards')) {
+            if (!$isStudent || !$request->filled('nfc_tag_id')) {
+                NfcCard::where('user_id', $user->id)->delete();
+            } else {
+                NfcCard::updateOrCreate(
+                    ['user_id' => $user->id],
+                    ['tag_id' => strtoupper(trim($request->nfc_tag_id))]
+                );
+            }
+        }
+
+return redirect()->route('admin.users.edit', $user->id)
+    ->with('success', "User '{$user->first_name} {$user->last_name}' updated successfully!");
+    } catch (\Exception $e) {
+        return back()->withInput()->withErrors(['error' => 'Update Error: ' . $e->getMessage()]);
+    }
+}   
     /**
      * Update the logged-in administrator's profile from the dashboard modal.
      */

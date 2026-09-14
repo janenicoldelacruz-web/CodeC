@@ -124,6 +124,11 @@
                     </tbody>
                 </table>
             </div>
+            @if(isset($admins) && $admins->hasPages())
+                <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+                    {{ $admins->links() }}
+                </div>
+            @endif
         </div>
         @endif
 
@@ -167,6 +172,11 @@
                     </tbody>
                 </table>
             </div>
+            @if(isset($directors) && $directors->hasPages())
+                <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+                    {{ $directors->links() }}
+                </div>
+            @endif
         </div>
         @endif
 
@@ -212,6 +222,11 @@
                     </tbody>
                 </table>
             </div>
+            @if(isset($faculty) && $faculty->hasPages())
+                <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+                    {{ $faculty->links() }}
+                </div>
+            @endif
         </div>
         @endif
 
@@ -274,21 +289,18 @@
                             </td>
                             <td class="py-3.5 px-6 text-right whitespace-nowrap">
                                 <div class="inline-flex items-center justify-end gap-1.5">
-                                    <!-- NFC Bind Redirect Button (Updated to pass user_id and name automatically) -->
                                     <a href="{{ route('admin.nfc.binding') }}?student_id={{ $student->id }}&student_name={{ urlencode($student->last_name . ', ' . $student->first_name . ' (' . ($student->id_number ?? 'No LRN') . ')') }}" 
                                        class="w-9 h-9 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 flex items-center justify-center text-xs border border-amber-200 transition" 
                                        title="Bind NFC Card">
                                         <i class="fa-solid fa-wifi text-xs text-amber-700"></i>
                                     </a>
 
-                                    <!-- Edit Route Redirect Button -->
                                     <a href="{{ route('admin.users.edit', $student->id) }}" 
                                        class="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 flex items-center justify-center text-xs border border-slate-200 transition" 
                                        title="Edit Student">
                                         <i class="fa-solid fa-pen-to-square text-xs"></i>
                                     </a>
 
-                                    <!-- Delete Button -->
                                     <button type="button" onclick="openDeleteModal('{{ $student->id }}', '{{ addslashes($student->first_name . ' ' . $student->last_name) }}', 'Student')" 
                                             class="w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-[#8b1818] flex items-center justify-center text-xs border border-red-200 cursor-pointer transition" 
                                             title="Delete Student">
@@ -303,6 +315,11 @@
                     </tbody>
                 </table>
             </div>
+            @if(isset($students) && $students->hasPages())
+                <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+                    {{ $students->links() }}
+                </div>
+            @endif
         </div>
         @endif
     </main>
