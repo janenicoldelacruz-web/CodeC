@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -13,10 +14,42 @@ return new class extends Migration
     {
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique(); // e.g., 'admin', 'teacher', 'student'
+            $table->string('name')->unique();
             $table->string('description')->nullable();
             $table->timestamps();
         });
+
+        // Default System Roles (Natural Title Case)
+        DB::table('roles')->insert([
+            [
+                'id'          => 1,
+                'name'        => 'Admin',
+                'description' => 'System Administrator',
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ],
+            [
+                'id'          => 2,
+                'name'        => 'Faculty',
+                'description' => 'Academic Instructor',
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ],
+            [
+                'id'          => 3,
+                'name'        => 'Student',
+                'description' => 'Enrolled Student',
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ],
+            [
+                'id'          => 4,
+                'name'        => 'Director',
+                'description' => 'Campus / Academic Director',
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ],
+        ]);
     }
 
     /**

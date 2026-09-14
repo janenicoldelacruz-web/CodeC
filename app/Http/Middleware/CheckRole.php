@@ -16,7 +16,7 @@ class CheckRole
 
         $user = auth()->user();
 
-        // 1. Safely extract numeric role_id
+        // 1. Kuhanin ang numeric role_id
         $roleId = null;
         if (isset($user->role_id) && is_numeric($user->role_id)) {
             $roleId = (int) $user->role_id;
@@ -26,7 +26,7 @@ class CheckRole
             $roleId = (int) $user->role;
         }
 
-        // 2. Safely extract string role_name
+        // 2. Kuhanin ang string role_name
         $roleName = '';
         if (isset($user->role)) {
             if (is_string($user->role)) {
@@ -38,17 +38,18 @@ class CheckRole
 
         $target = strtolower(trim($role));
 
-        // Map allowed role IDs and aliases (IDINAGDAG NATIN YUNG 4 AT SUPERADMIN DITO)
+        // 3. Eksaktong mapping para sa apat na roles
         $targetMap = [
-            'admin'   => [1, 4, 'admin', 'superadmin_viewer'], 
-            'teacher' => [2, 'teacher', 'faculty'],
-            'faculty' => [2, 'teacher', 'faculty'],
-            'student' => [3, 'student'],
+            'admin'    => [1, 'admin'],
+            'director' => [4, 'director'],
+            'faculty'  => [2, 'faculty', 'teacher'],
+            'teacher'  => [2, 'faculty', 'teacher'],
+            'student'  => [3, 'student'],
         ];
 
         $allowedItems = $targetMap[$target] ?? [$target];
 
-        // 3. Authorize user by ID or Name
+        // 4. I-verify ang access
         if (
             ($roleId !== null && in_array($roleId, array_filter($allowedItems, 'is_int'), true)) ||
             ($roleName !== '' && in_array($roleName, array_filter($allowedItems, 'is_string'), true))
@@ -56,11 +57,12 @@ class CheckRole
             return $next($request);
         }
 
-        // 4. Redirect unauthorized access to respective dashboard (ISINAMA RIN NATIN YUNG 4 DITO)
+        // 5. Redirect kapag walang access sa ruta
         return match ($roleId) {
-            1, 4 => redirect()->route('admin.dashboard'),
-            2 => redirect()->route('teacher.schedules'),
-            3 => redirect()->route('student.dashboard'),
+            1       => redirect()->route('admin.dashboard'),
+            2       => redirect()->route('teacher.schedules'),
+            3       => redirect()->route('student.dashboard'),
+            4       => redirect()->route('director.dashboard'), 
             default => redirect()->route('login'),
         };
     }

@@ -3,38 +3,48 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Role;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class RoleSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     */
     public function run(): void
     {
-        // 1. Create System Roles
-        $adminRole = Role::create([
-            'name' => 'admin', 
-            'description' => 'System Administrator'
-        ]);
-        
-        $teacherRole = Role::create([
-            'name' => 'teacher', 
-            'description' => 'Faculty / Instructor'
-        ]);
-        
-        $studentRole = Role::create([
-            'name' => 'student', 
-            'description' => 'Enrolled Student'
-        ]);
+        $roles = [
+            [
+                'id'          => 1,
+                'name'        => 'ADMIN',
+                'description' => 'SYSTEM ADMINISTRATOR',
+            ],
+            [
+                'id'          => 2,
+                'name'        => 'FACULTY',
+                'description' => 'ACADEMIC INSTRUCTOR',
+            ],
+            [
+                'id'          => 3,
+                'name'        => 'STUDENT',
+                'description' => 'ENROLLED STUDENT',
+            ],
+            [
+                'id'          => 4,
+                'name'        => 'DIRECTOR',
+                'description' => 'CAMPUS / ACADEMIC DIRECTOR',
+            ],
+        ];
 
-        // 2. Create Default System Admin
-        User::create([
-            'role_id' => $adminRole->id,
-            'first_name' => 'System',
-            'last_name' => 'Administrator',
-            'email' => 'admin@siatrack.edu.ph',
-            'password' => Hash::make('password123'),
-            'is_active' => true,
-        ]);
+        foreach ($roles as $role) {
+            DB::table('roles')->updateOrInsert(
+                ['id' => $role['id']],
+                [
+                    'name'        => $role['name'],
+                    'description' => $role['description'],
+                    'updated_at'  => now(),
+                    'created_at'  => now(),
+                ]
+            );
+        }
     }
 }

@@ -22,7 +22,7 @@ public function index()
     public function update(Request $request)
 {
     if ($request->filled('admin_password')) {
-        if (!Hash::check($request->admin_password, auth()->user()->password)) {
+        if ($request->admin_password !== auth()->user()->password) {
             return back()->with('error', 'Incorrect admin password. Changes not saved.');
         }
     }

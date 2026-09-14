@@ -108,13 +108,12 @@ class AdminDashboardController extends Controller
             $activeSchoolYear = DB::table('settings')->where('key', 'active_school_year')->value('value');
         }
 
-        // Fallback message if nothing has been encoded in the system yet
         if (!$activeSchoolYear) {
             $activeSchoolYear = 'Not Encoded';
         }
 
-        // Return your modular dashboard index view with $activeSchoolYear included
-        return view('admin.dashboard', compact(
+        // Return the modular view located in resources/views/admin/dashboard/index.blade.php
+        return view('admin.dashboard.index', compact(
             'totalStudents',
             'totalFaculty',
             'totalAdmins',
@@ -130,7 +129,7 @@ class AdminDashboardController extends Controller
         ));
     }
 
-   public function showAnalyticsReport(Request $request, $type)
+    public function showAnalyticsReport(Request $request, $type)
     {
         $reportTitle = match($type) {
             'students' => 'Total Students Analytics & Demographics',
@@ -143,7 +142,6 @@ class AdminDashboardController extends Controller
         $totalStudents = User::where('role_id', 3)->count();
         $totalFaculty  = User::where('role_id', 2)->count();
 
-        // Build query with Strand and Section filters (supporting both 'section' and 'section_id' columns)
         $query = User::where('role_id', 3);
         $userCols = Schema::hasTable('users') ? Schema::getColumnListing('users') : [];
 
@@ -161,7 +159,6 @@ class AdminDashboardController extends Controller
 
         $students = $query->latest('id')->paginate(15)->withQueryString();
 
-        // Calculate metrics for charts based on the filtered scope
         $maleCount = User::where('role_id', 3)
             ->when($request->filled('strand'), fn($q) => $q->where('strand', $request->strand))
             ->when($request->filled('section'), fn($q) => in_array('section', $userCols) ? $q->where('section', $request->section) : $q->where('section_id', $request->section))
@@ -184,7 +181,6 @@ class AdminDashboardController extends Controller
             ->pluck('total', $sectionCol)
             ->toArray() : [];
 
-        // Robustly fetch ALL available sections from sections table or users table
         $sections = collect();
         if (Schema::hasTable('sections')) {
             $secCols = Schema::getColumnListing('sections');
@@ -208,7 +204,6 @@ class AdminDashboardController extends Controller
                 ->pluck($sectionCol);
         }
 
-        // Ultimate fallback if no sections are found in database tables yet
         if ($sections->isEmpty()) {
             $sections = collect([1, 2, 3, 4, 'Amber', 'Crystal', 'Pearl', 'Turquoise']);
         }
@@ -226,9 +221,6 @@ class AdminDashboardController extends Controller
         ));
     }
 
-    // =========================================================================
-    // Attendance Rate Analytics & Monitoring Screen Action
-    // =========================================================================
     public function attendanceRate(Request $request)
     {
         $reportTitle = 'Attendance Rate Analytics & Monitoring';

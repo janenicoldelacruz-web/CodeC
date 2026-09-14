@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -22,19 +23,64 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's profile information.
+     * Update the user's profile information and password.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(Request $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        // 1. Validation rules para sa Profile Details
+        $rules = [
+            'first_name'       => ['required', 'string', 'max:100'],
+            'last_name'        => ['required', 'string', 'max:100'],
+            'phone_number'     => ['nullable', 'string', 'max:20'],
+            'email'            => [
+                'required', 
+                'string', 
+                'email', 
+                'max:255', 
+                Rule::unique(User::class)->ignore($user->id)
+            ],
+            'current_password' => ['nullable', 'required_with:password'],
+            'password'         => ['nullable', 'min:8', 'confirmed'],
+        ];
+
+        $validated = $request->validate($rules);
+
+        // 2. Plain Text Verification para sa Current Password
+        if ($request->filled('password')) {
+            if ($user->password !== $request->current_password) {
+                return Redirect::back()->withErrors([
+                    'current_password' => 'The current password does not match our records.'
+                ])->withInput();
+            }
+
+            // Plain text password assignment
+            $user->password = $request->password;
         }
 
-        $request->user()->save();
+        // 3. I-assign ang updated fields (Natural Casing & Lowercase Email)
+        $user->first_name   = $validated['first_name'];
+        $user->last_name    = $validated['last_name'];
+        $user->email        = strtolower($validated['email']);
+        $user->phone_number = $validated['phone_number'] ?? null;
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        // I-reset ang email verification kung nabago ang email
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        // Proteksyon: Panatilihing admin ang role
+        if ($user->id === 1 || $user->role_id === 1 || ($user->role ?? '') === 'admin') {
+            $user->role_id = 1;
+            if (isset($user->role)) {
+                $user->role = 'admin';
+            }
+        }
+
+        $user->save();
+
+        return Redirect::back()->with('success', 'Profile and credentials updated successfully.');
     }
 
     /**
@@ -42,11 +88,25 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $user = $request->user();
+
+        // Proteksyon: Bawal burahin ang permanent admin account
+        if ($user->id === 1 || $user->role_id === 1 || ($user->role ?? '') === 'admin' || str_contains(strtolower($user->email), 'admin')) {
+            return Redirect::back()->withErrors([
+                'error' => 'The permanent system administrator account cannot be deleted.'
+            ]);
+        }
+
         $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
+            'password' => ['required'],
         ]);
 
-        $user = $request->user();
+        // Plain text check bago burahin
+        if ($user->password !== $request->password) {
+            return Redirect::back()->withErrors([
+                'password' => 'Incorrect password.'
+            ], 'userDeletion');
+        }
 
         Auth::logout();
 

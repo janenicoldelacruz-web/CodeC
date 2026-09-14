@@ -2,12 +2,14 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
+        // 1. Users Table
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('id_number', 50)->nullable()->unique();
@@ -21,13 +23,33 @@ return new class extends Migration
             $table->string('parent_name')->nullable();
             $table->string('parent_phone_number')->nullable();
             $table->string('grade_level', 50)->nullable();
-            $table->string('track')->nullable(); // 1 = Academic Track, 2 = Technical-Professional
-            $table->string('section', 50)->nullable(); // Pinalitan para tumanggap ng text/string names tulad ng 'AMBER'
+            $table->string('track')->nullable();
+            $table->string('section', 50)->nullable();
             $table->string('password');
             $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->timestamps();
         });
+
+        // PERMANENT ADMIN SEED (NATURAL CASING & PLAIN TEXT PASSWORD)
+        DB::table('users')->insert([
+            'id_number'           => 'ADM-2026-001',
+            'role_id'             => 1,
+            'first_name'          => 'System',
+            'last_name'           => 'Administrator',
+            'gender'              => 1,
+            'email'               => 'admin@siatrack.edu.ph',
+            'phone_number'        => '09171234567',
+            'parent_name'         => null,
+            'parent_phone_number' => null,
+            'grade_level'         => null,
+            'track'               => null,
+            'section'             => null,
+            'password'            => 'AdminPass2026!',
+            'is_active'           => true,
+            'created_at'          => now(),
+            'updated_at'          => now(),
+        ]);
 
         // 2. Password Reset Tokens
         Schema::create('password_reset_tokens', function (Blueprint $table) {
