@@ -147,9 +147,22 @@ class StudentDashboardController extends Controller
                 }
             }
 
-            // Sort by day and time
+            // Sort by day and time (Database-agnostic CASE ordering for SQLite/MySQL)
             if (Schema::hasColumn('class_schedules', 'day_of_week')) {
-                $query->orderByRaw("FIELD(class_schedules.day_of_week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Mon / Wed', 'Tue / Thu')");
+                $query->orderByRaw("
+                    CASE class_schedules.day_of_week 
+                        WHEN 'Monday' THEN 1 
+                        WHEN 'Tuesday' THEN 2 
+                        WHEN 'Wednesday' THEN 3 
+                        WHEN 'Thursday' THEN 4 
+                        WHEN 'Friday' THEN 5 
+                        WHEN 'Saturday' THEN 6 
+                        WHEN 'Sunday' THEN 7 
+                        WHEN 'Mon / Wed' THEN 8 
+                        WHEN 'Tue / Thu' THEN 9 
+                        ELSE 10 
+                    END ASC
+                ");
             }
             if (Schema::hasColumn('class_schedules', 'start_time')) {
                 $query->orderBy('class_schedules.start_time', 'asc');
