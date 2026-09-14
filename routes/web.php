@@ -31,7 +31,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/', [LoginController::class, 'showLoginForm'])->name('welcome');
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
-    
+
     // Faculty Evaluation
     Route::get('/evaluations', [AdminEvaluationController::class, 'index'])->name('evaluations');
     Route::post('/evaluations/toggle-status', [AdminEvaluationController::class, 'toggleStatus'])->name('evaluations.toggle');
@@ -81,6 +81,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         
         // Student Status Analytics & Filtering Screen Route
         Route::get('/students/analytics', [DashboardController::class, 'studentAnalytics'])->name('students.analytics');
+
+        // Dedicated Attendance Rate Analytics & Monitoring Route
+        Route::get('/analytics/attendance-rate', [AdminDashboardController::class, 'attendanceRate'])->name('attendance.rate');
         
         // User Management
         Route::post('/profile/update', [AdminUserController::class, 'updateProfile'])->name('profile.update');
@@ -174,6 +177,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Global Logout Route
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
 
-// --- NFC POLLING ENDPOINTS (Naayos para sa Auto-Fill) ---
+// --- NFC POLLING ENDPOINTS ---
 Route::match(['get', 'post'], '/api/nfc/tap', [AdminNfcController::class, 'handleTap']);
 Route::get('/api/nfc/latest', [AdminNfcController::class, 'getLatestTap']);
