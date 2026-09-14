@@ -11,19 +11,6 @@
     <!-- Main Content Container -->
     <main class="pt-10 pb-12 pl-8 lg:pl-12 pr-6 lg:pr-8 w-full space-y-8 flex-1">
 
-        <!-- Flash Notifications -->
-        @if(session('success'))
-            <div class="p-4 bg-emerald-50 border-2 border-emerald-300 text-emerald-900 text-xs font-bold rounded-2xl flex items-center justify-between shadow-xs w-full">
-                <div class="flex items-center gap-2.5">
-                    <i class="fa-solid fa-circle-check text-emerald-600 text-base shrink-0"></i>
-                    <span>{{ session('success') }}</span>
-                </div>
-                <button type="button" onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-950 text-sm cursor-pointer">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-        @endif
-
         <!-- Section 1: KPI Summary Metrics -->
         @include('admin.dashboard.partials.stats-cards')
 

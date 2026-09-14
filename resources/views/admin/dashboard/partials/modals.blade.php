@@ -32,7 +32,7 @@
             </button>
         </div>
 
-        <!-- Body (No Scrollbar, Preserved Red Focus Styles) -->
+        <!-- Body -->
         <div class="p-6 space-y-4 text-slate-800 text-xs">
             
             <!-- SECTION 1: PROFILE INFORMATION -->
@@ -83,33 +83,30 @@
                     <span class="text-[10px] font-semibold text-slate-400 italic">Leave new passwords blank to keep current</span>
                 </div>
 
-                <!-- Current Password (Nakatago by default: type="password") -->
-<div>
-    <div class="flex items-center justify-between mb-1">
-        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-            Current Password
-        </label>
-        <span class="text-[10px] font-bold text-[#590d0d] bg-red-50 border border-red-200 px-2 py-0.5 rounded-md">
-            Plain-text
-        </span>
-    </div>
-    <div class="relative flex items-center">
-        <!-- Naka-set sa type="password" para tuldok-tuldok (unseen) muna -->
-        <input type="password" id="current_password_field" name="current_password" 
-               value="{{ $currentAdminPassword }}" 
-               placeholder="Current password"
-               class="w-full px-3.5 py-2 pr-10 rounded-xl border border-slate-300 focus:border-[#590d0d] focus:ring-2 focus:ring-[#590d0d]/10 text-xs font-mono font-bold text-slate-900 bg-white outline-none transition">
-        
-        <!-- Eye Button Trigger -->
-        <button type="button" onclick="togglePasswordVisibility('current_password_field', this)" 
-                title="Toggle visibility"
-                class="absolute right-3 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer">
-            <i class="fa-solid fa-eye text-xs"></i>
-        </button>
-    </div>
-</div>
+                <!-- Current Password Input (Default: Unseen) -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                            Current Password
+                        </label>
+                        <span class="text-[10px] font-bold text-[#590d0d] bg-red-50 border border-red-200 px-2 py-0.5 rounded-md">
+                            Plain-text
+                        </span>
+                    </div>
+                    <div class="relative flex items-center">
+                        <input type="password" id="current_password_field" name="current_password" 
+                               value="{{ $currentAdminPassword }}" 
+                               placeholder="Current password"
+                               class="w-full px-3.5 py-2 pr-10 rounded-xl border border-slate-300 focus:border-[#590d0d] focus:ring-2 focus:ring-[#590d0d]/10 text-xs font-mono font-bold text-slate-900 bg-white outline-none transition">
+                        <button type="button" onclick="togglePasswordVisibility('current_password_field', this)" 
+                                title="Toggle visibility"
+                                class="absolute right-3 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer">
+                            <i class="fa-solid fa-eye text-xs"></i>
+                        </button>
+                    </div>
+                </div>
 
-                <!-- New Password Inputs with Toggle Eye -->
+                <!-- New Password Inputs -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">New Password</label>
@@ -155,6 +152,30 @@
     </form>
 </div>
 
+<!-- ================= Modal: Update Success Confirmation ================= -->
+<div id="successActionModal" 
+     class="fixed inset-0 z-50 bg-slate-950/65 hidden items-center justify-center p-4 backdrop-blur-md transition-all duration-300"
+     onclick="if(event.target === this) closeSuccessModal()">
+    
+    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col items-center text-center p-6 animate-in fade-in zoom-in-95 duration-200">
+        
+        <!-- Animated / Highlighted Check Icon -->
+        <div class="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center text-2xl mb-4 shadow-sm ring-4 ring-emerald-50/60">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+
+        <h3 class="text-base font-black text-slate-900 tracking-tight mb-1">Update Successful</h3>
+        <p id="successModalMessage" class="text-xs text-slate-500 font-medium leading-relaxed px-2 mb-6">
+            {{ session('success') ?? 'Your administrator credentials have been saved successfully.' }}
+        </p>
+
+        <button type="button" onclick="closeSuccessModal()" 
+                class="w-full py-2.5 rounded-xl bg-[#590d0d] hover:bg-[#460a0a] text-white text-xs font-bold shadow-md shadow-[#590d0d]/25 transition active:scale-[0.98] cursor-pointer">
+            Continue to Dashboard
+        </button>
+    </div>
+</div>
+
 <!-- ================= Metric Detail Modal Container ================= -->
 @php
     $modalStudents = \Illuminate\Support\Facades\DB::table('users')
@@ -195,7 +216,7 @@
             </button>
         </div>
 
-        <!-- Modal Body Content (Fitted, No Scrollbar) -->
+        <!-- Modal Body Content -->
         <div class="p-6 space-y-3.5 text-xs">
             
             <!-- 1. Students Content -->
@@ -349,6 +370,21 @@
         modal.classList.remove('flex');
     }
 
+    function openSuccessModal(message) {
+        if (message) {
+            document.getElementById('successModalMessage').innerText = message;
+        }
+        const modal = document.getElementById('successActionModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeSuccessModal() {
+        const modal = document.getElementById('successActionModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
     function togglePasswordVisibility(fieldId, btn) {
         const input = document.getElementById(fieldId);
         const icon = btn.querySelector('i');
@@ -381,4 +417,11 @@
         overlay.classList.add('hidden');
         overlay.style.display = 'none';
     }
+
+    // Auto-trigger kapag nag-redirect ang controller na may session('success')
+    @if(session('profile_success'))
+        document.addEventListener('DOMContentLoaded', function () {
+            openSuccessModal(@json(session('profile_success')));
+        });
+    @endif
 </script>

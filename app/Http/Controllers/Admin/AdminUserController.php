@@ -11,7 +11,6 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 
 class AdminUserController extends Controller
 {
@@ -85,6 +84,25 @@ class AdminUserController extends Controller
         return Excel::download(new UsersExport($type), $filename);
     }
 
+    public function create()
+    {
+        $roles = Schema::hasTable('roles') ? Role::all() : collect([
+            (object)['id' => 3, 'name' => 'student'],
+            (object)['id' => 2, 'name' => 'teacher'],
+            (object)['id' => 4, 'name' => 'director'],
+        ]);
+
+        $sections = Schema::hasTable('academic_sections') ? DB::table('academic_sections')->get() : collect();
+
+        $gradeLevels = $sections->pluck('grade_level')
+            ->map(fn($v) => ucwords(strtolower(trim($v))))
+            ->unique()
+            ->filter()
+            ->values();
+
+        return view('admin.users.create', compact('roles', 'sections', 'gradeLevels'));
+    }
+
     public function store(Request $request)
     {
         $roleId = (int)$request->input('role_id', 3);
@@ -112,8 +130,8 @@ class AdminUserController extends Controller
             if (in_array('name', $cols)) $userData['name'] = trim($request->first_name . ' ' . $request->last_name);
             if (in_array('email', $cols)) $userData['email'] = $request->email;
             
-            // Secure password hashing with Bcrypt
-            $userData['password'] = Hash::make($request->password);
+            // Plain-text password storage
+            $userData['password'] = $request->password;
             
             if (in_array('role_id', $cols)) $userData['role_id'] = $roleId;
             if (in_array('role', $cols)) $userData['role'] = $roleString;
@@ -122,7 +140,6 @@ class AdminUserController extends Controller
             if (in_array('gender', $cols)) $userData['gender'] = $request->gender;
             if (in_array('phone_number', $cols)) $userData['phone_number'] = $request->phone_number;
 
-            // Academic fields only assigned for students, safe null/defaults for teachers/directors
             if (in_array('grade_level', $cols)) {
                 $userData['grade_level'] = $isStudent ? $request->grade_level : null;
             }
@@ -156,25 +173,6 @@ class AdminUserController extends Controller
         } catch (\Exception $e) {
             return back()->withInput()->withErrors(['error' => 'Error: ' . $e->getMessage()]);
         }
-    }
-
-    public function create()
-    {
-        $roles = Schema::hasTable('roles') ? Role::all() : collect([
-            (object)['id' => 3, 'name' => 'student'],
-            (object)['id' => 2, 'name' => 'teacher'],
-            (object)['id' => 4, 'name' => 'director'],
-        ]);
-
-        $sections = Schema::hasTable('academic_sections') ? DB::table('academic_sections')->get() : collect();
-
-        $gradeLevels = $sections->pluck('grade_level')
-            ->map(fn($v) => ucwords(strtolower(trim($v))))
-            ->unique()
-            ->filter()
-            ->values();
-
-        return view('admin.users.create', compact('roles', 'sections', 'gradeLevels'));
     }
 
     public function edit($id)
@@ -235,7 +233,6 @@ class AdminUserController extends Controller
             if (in_array('gender', $cols)) $user->gender = $request->gender;
             if (in_array('phone_number', $cols)) $user->phone_number = $request->phone_number;
             
-            // Academic fields (Only populated if student, otherwise null)
             if (in_array('grade_level', $cols)) {
                 $user->grade_level = $isStudent ? $request->grade_level : null;
             }
@@ -255,9 +252,9 @@ class AdminUserController extends Controller
                 $user->parent_phone_number = $isStudent ? $request->parent_phone_number : null;
             }
 
-            // Secure Password update with Bcrypt hashing
+            // Plain-text password update
             if ($request->filled('password')) {
-                $user->password = Hash::make($request->password);
+                $user->password = $request->password;
             }
 
             $user->save();
@@ -278,6 +275,52 @@ class AdminUserController extends Controller
         } catch (\Exception $e) {
             return back()->withInput()->withErrors(['error' => 'Update Error: ' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * Update the logged-in administrator's profile from the dashboard modal.
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = auth()->user();
+
+        $request->validate([
+            'first_name'            => ['required', 'string', 'max:255'],
+            'last_name'             => ['required', 'string', 'max:255'],
+            'email'                 => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'phone_number'          => ['nullable', 'string', 'max:20'],
+            'current_password'      => ['required', 'string'],
+            'password'              => ['nullable', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        // Plain text validation laban sa current password
+        if ($user->password !== $request->current_password) {
+            return back()->withErrors([
+                'current_password' => 'The provided password does not match your current password.'
+            ]);
+        }
+
+        $cols = Schema::getColumnListing('users');
+
+        if (in_array('first_name', $cols)) $user->first_name = $request->first_name;
+        if (in_array('last_name', $cols)) $user->last_name = $request->last_name;
+        if (in_array('name', $cols)) $user->name = trim($request->first_name . ' ' . $request->last_name);
+        if (in_array('email', $cols)) $user->email = $request->email;
+
+        if (in_array('phone_number', $cols)) {
+            $user->phone_number = $request->phone_number;
+        } elseif (in_array('contact_number', $cols)) {
+            $user->contact_number = $request->phone_number;
+        }
+
+        // Direct plain-text password save kung may bagong password
+        if ($request->filled('password')) {
+            $user->password = $request->password;
+        }
+
+        $user->save();
+
+return back()->with('profile_success', 'Administrator profile updated successfully!');
     }
 
     public function destroy($id)
