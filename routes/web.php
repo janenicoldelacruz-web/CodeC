@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\AdminAnnouncementController;
 use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminSettingController;
+use App\Http\Controllers\Admin\AdminSmsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -84,6 +85,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Dedicated Attendance Rate Analytics & Monitoring Route
         Route::get('/analytics/attendance-rate', [AdminDashboardController::class, 'attendanceRate'])->name('attendance.rate');
+
+        // SMS Monitoring & Management Routes
+        Route::get('/sms-sent-today', [AdminSmsController::class, 'index'])->name('sms.sent-today');
+        Route::post('/sms/update-template', [AdminSmsController::class, 'updateTemplate'])->name('sms.update-template');
+        Route::post('/sms/{id}/retry', [AdminSmsController::class, 'retry'])->name('sms.retry');
         
         // User Management
         Route::post('/profile/update', [AdminUserController::class, 'updateProfile'])->name('profile.update');
@@ -169,7 +175,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware(['role:student'])->prefix('student')->name('student.')->group(function () {
-        Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');
+        Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
     });
 
 });
