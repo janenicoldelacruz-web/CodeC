@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('nfc_cards', function (Blueprint $table) {
             $table->id();
+            // Naka-constraint na required (hindi na nullable) dahil binubura na natin ang record kapag na-unbind
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('tag_id', 100)->unique();
             

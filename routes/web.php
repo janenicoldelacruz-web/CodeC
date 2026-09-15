@@ -1,5 +1,7 @@
 ﻿<?php
 
+use Illuminate\Support\Facades\Route;
+
 // Non-Admin Controllers
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ProfileController;
@@ -9,7 +11,7 @@ use App\Http\Controllers\StudentDashboardController;
 use App\Http\Controllers\NfcAttendanceController;
 use App\Http\Controllers\DashboardController;
 
-// Admin Controllers (Inside Admin Folder Subspace)
+// Admin & Director Controllers
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminSchoolYearController;
@@ -47,6 +49,8 @@ Route::middleware('guest')->group(function () {
 */
 Route::get('/kiosk', [NfcAttendanceController::class, 'kioskView'])->name('teacher.kiosk');
 Route::match(['get', 'post'], '/api/nfc/store-tap', [NfcAttendanceController::class, 'storeTap'])->name('api.nfc.store-tap');
+Route::match(['get', 'post'], '/api/nfc/tap', [AdminNfcController::class, 'handleTap']);
+Route::get('/api/nfc/latest', [AdminNfcController::class, 'getLatestTap']);
 
 /*
 |--------------------------------------------------------------------------
@@ -55,15 +59,17 @@ Route::match(['get', 'post'], '/api/nfc/store-tap', [NfcAttendanceController::cl
 */
 Route::middleware(['auth', 'verified'])->group(function () {
     
-    // Role-Based Landing Redirect
+    // Role-Based Landing Redirect (Naidagdag na rito ang director)
     Route::get('/dashboard', function () {
         $user = auth()->user();
         $roleName = is_object($user->role) ? $user->role->name : $user->role;
-        return match ($roleName) {
-            'admin'   => redirect()->route('admin.dashboard'),
-            'teacher' => redirect()->route('teacher.schedules'),
-            'student' => redirect()->route('student.dashboard'),
-            default   => redirect('/'),
+        
+        return match (strtolower($roleName)) {
+            'admin'    => redirect()->route('admin.dashboard'),
+            'teacher'  => redirect()->route('teacher.schedules'),
+            'student'  => redirect()->route('student.dashboard'),
+            'director' => redirect()->route('director.dashboard'),
+            default    => redirect('/'),
         };
     })->name('dashboard');
 
@@ -80,41 +86,33 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         
-        // Student Status Analytics & Filtering Screen Route
         Route::get('/students/analytics', [DashboardController::class, 'studentAnalytics'])->name('students.analytics');
-
-        // Dedicated Attendance Rate Analytics & Monitoring Route
         Route::get('/analytics/attendance-rate', [AdminDashboardController::class, 'attendanceRate'])->name('attendance.rate');
 
-        // SMS Monitoring & Management Routes
         Route::get('/sms-sent-today', [AdminSmsController::class, 'index'])->name('sms.sent-today');
         Route::post('/sms/update-template', [AdminSmsController::class, 'updateTemplate'])->name('sms.update-template');
         Route::post('/sms/{id}/retry', [AdminSmsController::class, 'retry'])->name('sms.retry');
         
-        // User Management
         Route::post('/profile/update', [AdminUserController::class, 'updateProfile'])->name('profile.update');
         Route::post('/users/{id}/reset-password', [AdminUserController::class, 'resetPassword'])->name('users.reset-password');
         Route::get('/users/export', [AdminUserController::class, 'export'])->name('users.export');      
         Route::get('/analytics/{type}', [AdminDashboardController::class, 'showAnalyticsReport'])->name('analytics.report');
         Route::resource('users', AdminUserController::class);
 
-        // NFC Management
-        Route::prefix('nfc')->name('nfc.')->group(function () {
-            Route::get('/binding', [AdminNfcController::class, 'bindingIndex'])->name('binding');
-            Route::post('/binding', [AdminNfcController::class, 'bindingStore'])->name('binding.store');
-            Route::delete('/binding/{id}', [AdminNfcController::class, 'bindingDestroy'])->name('destroy');
-            Route::get('/replacement', [AdminNfcController::class, 'replacementIndex'])->name('replacement');
-            Route::post('/replacement', [AdminNfcController::class, 'replacementStore'])->name('replacement.store');
-        });
+Route::prefix('nfc')->name('nfc.')->group(function () {
+    Route::get('/binding', [AdminNfcController::class, 'bindingIndex'])->name('binding');
+    Route::post('/binding', [AdminNfcController::class, 'bindingStore'])->name('binding.store');
+    Route::delete('/binding/{id}', [AdminNfcController::class, 'bindingDestroy'])->name('destroy');
+        
+});
 
-        // Academic Setup
         Route::get('/school-year', [AdminSchoolYearController::class, 'index'])->name('school-year');
         Route::post('/school-year/update', [AdminSchoolYearController::class, 'update'])->name('school-year.update');
         Route::post('/school-year/reset', [AdminSchoolYearController::class, 'reset'])->name('school-year.reset');
         
-        // Sections, Strands, and Grade Levels Management
         Route::get('/sections', [AdminSectionController::class, 'index'])->name('sections');
         Route::post('/sections/store', [AdminSectionController::class, 'storeSection'])->name('sections.store');
+        Route::put('/sections/{id}', [AdminSectionController::class, 'updateSection'])->name('sections.update');
         Route::delete('/sections/{id}', [AdminSectionController::class, 'destroySection'])->name('sections.destroy');
         
         Route::get('/schedules', [ScheduleController::class, 'index'])->name('schedules');
@@ -122,33 +120,40 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/schedules/clear-all', [ScheduleController::class, 'clearAll'])->name('schedules.clear-all');
         Route::delete('/schedules/{id}', [ScheduleController::class, 'destroy'])->name('schedules.destroy');
 
-        // Attendance Monitoring
         Route::get('/attendance', [AdminAttendanceController::class, 'index'])->name('attendance');
         Route::get('/attendance/live', [AdminAttendanceController::class, 'live'])->name('attendance.live');
         Route::get('/attendance/override', [AdminAttendanceController::class, 'override'])->name('attendance.override');
         Route::get('/attendance/export', [AdminAttendanceController::class, 'export'])->name('attendance.export');
 
-        // Faculty Evaluation
         Route::get('/evaluations', [AdminEvaluationController::class, 'index'])->name('evaluations');
         Route::post('/evaluations/toggle-status', [AdminEvaluationController::class, 'toggleStatus'])->name('evaluations.toggle');
         Route::get('/evaluations/periods', [AdminEvaluationController::class, 'periods'])->name('evaluations.periods');
         Route::get('/evaluations/results', [AdminEvaluationController::class, 'results'])->name('evaluations.results');
 
-        // Announcements
         Route::get('/announcements', [AdminAnnouncementController::class, 'index'])->name('announcements');
 
-        // Reports
         Route::get('/reports', [AdminReportController::class, 'index'])->name('reports');
         Route::get('/reports/attendance', [AdminReportController::class, 'attendance'])->name('reports.attendance');
         Route::get('/reports/sf2', [AdminReportController::class, 'sf2'])->name('reports.sf2');
         Route::get('/reports/evaluation', [AdminReportController::class, 'evaluation'])->name('reports.evaluation');
         Route::get('/reports/users', [AdminReportController::class, 'users'])->name('reports.users');
 
-        // Audit Logs & Settings
         Route::get('/audit-logs', [AdminAuditLogController::class, 'index'])->name('audit-logs');
         Route::get('/settings', [AdminSettingController::class, 'settingsIndex'])->name('settings');
 
         Route::get('/kiosk', [NfcAttendanceController::class, 'kioskView'])->name('kiosk');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Director Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware(['role:director'])->prefix('director')->name('director.')->group(function () {
+        // Maaari kang gumawa ng DirectorDashboardController o gumamit ng pansamantalang view/controller
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        // Idagdag dito ang mga eksklusibong ulat o tanawin para sa Director (hal. Reports, Evaluations)
+        Route::get('/reports', [AdminReportController::class, 'index'])->name('reports');
     });
 
     /*
@@ -182,7 +187,3 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 // Global Logout Route
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
-
-// --- NFC POLLING ENDPOINTS ---
-Route::match(['get', 'post'], '/api/nfc/tap', [AdminNfcController::class, 'handleTap']);
-Route::get('/api/nfc/latest', [AdminNfcController::class, 'getLatestTap']);

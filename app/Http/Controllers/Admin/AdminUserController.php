@@ -58,10 +58,10 @@ class AdminUserController extends Controller
             }
         });
 
-        $students = $studentsQuery->paginate(15, ['*'], 'students_page');
-        $faculty = $facultyQuery->paginate(15, ['*'], 'faculty_page');
-        $directors = $directorsQuery->paginate(15, ['*'], 'directors_page');
-        $admins = $adminsQuery->paginate(15, ['*'], 'admins_page');
+        $students = $studentsQuery->paginate(10, ['*'], 'students_page');
+        $faculty = $facultyQuery->paginate(10, ['*'], 'faculty_page');
+        $directors = $directorsQuery->paginate(5, ['*'], 'directors_page');
+        $admins = $adminsQuery->paginate(5, ['*'], 'admins_page');
 
         $totalUsers = User::count();
         $studentCount = (clone $studentsQuery)->count();
@@ -100,7 +100,14 @@ class AdminUserController extends Controller
             ->filter()
             ->values();
 
-        return view('admin.users.create', compact('roles', 'sections', 'gradeLevels'));
+        // Idinagdag dito para sa create form
+        $strands = $sections->pluck('strand')
+            ->map(fn($v) => strtoupper(trim($v)))
+            ->unique()
+            ->filter()
+            ->values();
+
+        return view('admin.users.create', compact('roles', 'sections', 'gradeLevels', 'strands'));
     }
 
     public function store(Request $request)
@@ -193,7 +200,14 @@ class AdminUserController extends Controller
             ->filter()
             ->values();
 
-        return view('admin.users.edit', compact('user', 'roles', 'sections', 'gradeLevels'));
+        // Idinagdag dito para makuha ang mga available strands para sa edit form
+        $strands = $sections->pluck('strand')
+            ->map(fn($v) => strtoupper(trim($v)))
+            ->unique()
+            ->filter()
+            ->values();
+
+        return view('admin.users.edit', compact('user', 'roles', 'sections', 'gradeLevels', 'strands'));
     }
 
     public function update(Request $request, $id)
@@ -201,6 +215,11 @@ class AdminUserController extends Controller
         $user = User::findOrFail($id);
         $roleId = (int)$request->input('role_id', $user->role_id ?? 3);
         $isStudent = ($roleId === 3);
+        $isTeacher = ($roleId === 2);
+        
+        // Alamin kung ang teacher ay Adviser
+        $teacherType = $request->input('teacher_type');
+        $isAdviser = ($isTeacher && $teacherType === 'Adviser');
 
         $rules = [
             'first_name' => ['required', 'string', 'max:255'],
@@ -233,18 +252,25 @@ class AdminUserController extends Controller
             if (in_array('gender', $cols)) $user->gender = $request->gender;
             if (in_array('phone_number', $cols)) $user->phone_number = $request->phone_number;
             
+            // Grade Level: Para sa Student o kaya'y sa Teacher na Adviser
             if (in_array('grade_level', $cols)) {
-                $user->grade_level = $isStudent ? $request->grade_level : null;
+                $user->grade_level = ($isStudent || $isAdviser) ? $request->grade_level : null;
             }
+            
+            // Strand at Track: Para lang sa Student
             if (in_array('strand', $cols)) {
                 $user->strand = $isStudent ? $request->strand : null;
             }
             if (in_array('track', $cols)) {
                 $user->track = $isStudent ? ($request->strand ?? $request->track) : null;
             }
+            
+            // Section: Para sa Student o kaya'y sa Teacher na Adviser
             if (in_array('section', $cols)) {
-                $user->section = $isStudent ? $request->section : null;
+                $user->section = ($isStudent || $isAdviser) ? $request->section : null;
             }
+            
+            // Parent Info: Para lang sa Student
             if (in_array('parent_name', $cols)) {
                 $user->parent_name = $isStudent ? $request->parent_name : null;
             }
@@ -270,12 +296,12 @@ class AdminUserController extends Controller
                 }
             }
 
-            return redirect()->route('admin.users.index')
+            return redirect()->route('admin.users.edit', $user->id)
                 ->with('success', "User '{$user->first_name} {$user->last_name}' updated successfully!");
         } catch (\Exception $e) {
             return back()->withInput()->withErrors(['error' => 'Update Error: ' . $e->getMessage()]);
         }
-    }
+    }   
 
     /**
      * Update the logged-in administrator's profile from the dashboard modal.
@@ -285,12 +311,12 @@ class AdminUserController extends Controller
         $user = auth()->user();
 
         $request->validate([
-            'first_name'            => ['required', 'string', 'max:255'],
-            'last_name'             => ['required', 'string', 'max:255'],
-            'email'                 => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'phone_number'          => ['nullable', 'string', 'max:20'],
-            'current_password'      => ['required', 'string'],
-            'password'              => ['nullable', 'string', 'min:8', 'confirmed'],
+            'first_name'                => ['required', 'string', 'max:255'],
+            'last_name'                 => ['required', 'string', 'max:255'],
+            'email'                     => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'phone_number'              => ['nullable', 'string', 'max:20'],
+            'current_password'          => ['required', 'string'],
+            'password'                  => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
 
         // Plain text validation laban sa current password
@@ -320,7 +346,7 @@ class AdminUserController extends Controller
 
         $user->save();
 
-return back()->with('profile_success', 'Administrator profile updated successfully!');
+        return back()->with('profile_success', 'Administrator profile updated successfully!');
     }
 
     public function destroy($id)

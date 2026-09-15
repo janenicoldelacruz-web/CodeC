@@ -62,20 +62,14 @@
         </div>
     </a>
 </div>
-                        <!-- NFC Management with Sub-items -->
-                        <div x-data="{ open: @json(request()->routeIs('admin.nfc*')) }" class="space-y-1">
-                            <button @click="open = !open" 
-                                class="w-full group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('admin.nfc*') ? 'bg-red-900/80 text-amber-300' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}">
-                                <div class="flex items-center gap-3.5">
-                                    <i class="fa-solid fa-id-card text-base {{ request()->routeIs('admin.nfc*') ? 'text-amber-300' : 'text-amber-300 group-hover:text-white' }}"></i>
-                                    <span class="text-[13px]" x-show="!collapsed">NFC Management</span>
-                                </div>
-                            </button>
-                            <div x-show="open && !collapsed" x-cloak class="pl-11 pr-2 space-y-1 py-1">
-                                <a href="{{ route('admin.nfc.binding') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">Card Registration & Binding</a>
-                                <a href="{{ route('admin.nfc.replacement') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">Lost & Replacement Cards</a>
-                            </div>
-                        </div>
+
+<!-- NFC Management -->
+<a href="{{ route('admin.nfc.binding') }}" 
+   class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.nfc*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
+   title="NFC Management">
+    <i class="fa-solid fa-id-card text-base {{ request()->routeIs('admin.nfc*') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
+    <span class="text-[13px]" x-show="!collapsed">NFC Management</span>
+</a>
                     </div>
                 </div>
 

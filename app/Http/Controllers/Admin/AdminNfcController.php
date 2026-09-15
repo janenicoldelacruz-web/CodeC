@@ -8,7 +8,6 @@ use App\Models\NfcCard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 
 class AdminNfcController extends Controller
 {
@@ -26,7 +25,7 @@ class AdminNfcController extends Controller
         return view('admin.nfc.binding', compact('users', 'boundCards'));
     }
 
-// I-save o i-bind ang NFC card sa student
+    // I-save o i-bind ang NFC card sa student
     public function bindingStore(Request $request)
     {
         $request->validate([
@@ -55,7 +54,7 @@ class AdminNfcController extends Controller
         if (Schema::hasTable('nfc_cards')) {
             NfcCard::updateOrCreate(
                 ['user_id' => $request->user_id],
-                ['tag_id' => $tagId]
+                ['tag_id' => $tagId, 'status' => 'active']
             );
 
             Cache::forget('latest_nfc_tap');
@@ -64,42 +63,41 @@ class AdminNfcController extends Controller
         return redirect()->route('admin.nfc.binding')->with('success', 'NFC card successfully bound to student!');
     }
 
-    // I-unbind o tanggalin ang NFC card
-    public function bindingDestroy($id)
+    // I-unbind ang NFC card (Lost o Replacement - Parehong magbubura / unbind)
+    public function bindingDestroy(Request $request, $id)
     {
         if (Schema::hasTable('nfc_cards')) {
-            NfcCard::where('id', $id)->delete();
+            $nfcCard = NfcCard::with('user')->find($id);
+            
+            if ($nfcCard) {
+                $reason = $request->input('unbind_reason', 'replacement');
+                $userId = $nfcCard->user_id;
+                $student = $nfcCard->user;
+                $studentName = $student ? "{$student->first_name} {$student->last_name}" : "Student";
+                $tagId = $nfcCard->tag_id;
+
+                if ($reason === 'lost') {
+                    // KUNG LOST: Direktang burahin / unbind ang card
+                    $nfcCard->delete();
+
+                    return back()->with('success', "Card UID [{$tagId}] for {$studentName} was reported LOST and successfully unlinked.");
+                } 
+                
+                if ($reason === 'replacement') {
+                    // KUNG REPLACEMENT: Burahin ang card at i-redirect sa binding page para sa bagong scan
+                    $nfcCard->delete();
+
+                    $encodedName = urlencode(($student->last_name ?? '') . ', ' . ($student->first_name ?? '') . ' (' . ($student->id_number ?? 'No ID') . ')');
+
+                    return redirect()->route('admin.nfc.binding', [
+                        'student_id' => $userId,
+                        'student_name' => $encodedName
+                    ])->with('success', "Previous card unlinked for replacement. Please scan the new card for {$studentName}.");
+                }
+            }
         }
 
-        return back()->with('success', 'NFC card successfully unbound.');
-    }
-
-    // Ipakita ang Replacement Page (Students Only - Role ID 3)
-    public function replacementIndex()
-    {
-        $users = Schema::hasTable('users') 
-            ? User::with('nfcCard')->where('role_id', 3)->orderBy('last_name')->get() 
-            : collect();
-
-        return view('admin.nfc.replacement', compact('users'));
-    }
-
-    // I-proseso ang pagpapalit ng NFC Card para sa student
-    public function replacementStore(Request $request)
-    {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'new_tag_id' => 'required|string|max:255',
-        ]);
-
-        if (Schema::hasTable('nfc_cards')) {
-            NfcCard::updateOrCreate(
-                ['user_id' => $request->user_id],
-                ['tag_id' => strtoupper(trim($request->new_tag_id))]
-            );
-        }
-
-        return back()->with('success', 'NFC card successfully replaced and updated!');
+        return back()->with('error', 'NFC card record not found.');
     }
 
     // API: Tanggapin ang NFC tap mula sa Python Bridge at i-cache ito nang pansamantala

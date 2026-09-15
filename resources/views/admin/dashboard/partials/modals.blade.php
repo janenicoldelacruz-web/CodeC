@@ -44,13 +44,13 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">First Name</label>
-                        <input type="text" name="first_name" value="{{ old('first_name', auth()->user()->first_name) }}" required placeholder="First Name"
+                        <input type="text" name="first_name" value="{{ old('first_name', auth()->user()->first_name) }}" 
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:border-[#590d0d] focus:ring-2 focus:ring-[#590d0d]/10 text-xs font-semibold text-slate-800 placeholder-slate-400 bg-white outline-none transition">
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Last Name</label>
-                        <input type="text" name="last_name" value="{{ old('last_name', auth()->user()->last_name) }}" required placeholder="Last Name"
+                        <input type="text" name="last_name" value="{{ old('last_name', auth()->user()->last_name) }}" 
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:border-[#590d0d] focus:ring-2 focus:ring-[#590d0d]/10 text-xs font-semibold text-slate-800 placeholder-slate-400 bg-white outline-none transition">
                     </div>
                 </div>
@@ -64,13 +64,13 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Contact Number</label>
-                        <input type="text" name="phone_number" value="{{ old('phone_number', auth()->user()->phone_number ?? auth()->user()->contact_number) }}" placeholder="09171234567"
+                        <input type="text" name="phone_number" value="{{ old('phone_number', auth()->user()->phone_number ?? auth()->user()->contact_number) }}" 
                                class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:border-[#590d0d] focus:ring-2 focus:ring-[#590d0d]/10 text-xs font-semibold text-slate-800 placeholder-slate-400 bg-white outline-none transition">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Institutional Email Address</label>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Email Address</label>
                     <input type="email" name="email" value="{{ old('email', auth()->user()->email) }}" required placeholder="admin@siatrack.edu.ph"
                            class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:border-[#590d0d] focus:ring-2 focus:ring-[#590d0d]/10 text-xs font-semibold text-slate-800 placeholder-slate-400 bg-white outline-none transition">
                 </div>
@@ -83,35 +83,32 @@
                     <span class="text-[10px] font-semibold text-slate-400 italic">Leave new passwords blank to keep current</span>
                 </div>
 
-                <!-- Current Password Input (Default: Unseen) -->
-                <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                            Current Password
-                        </label>
-                        <span class="text-[10px] font-bold text-[#590d0d] bg-red-50 border border-red-200 px-2 py-0.5 rounded-md">
-                            Plain-text
-                        </span>
-                    </div>
-                    <div class="relative flex items-center">
-                        <input type="password" id="current_password_field" name="current_password" 
-                               value="{{ $currentAdminPassword }}" 
-                               placeholder="Current password"
-                               class="w-full px-3.5 py-2 pr-10 rounded-xl border border-slate-300 focus:border-[#590d0d] focus:ring-2 focus:ring-[#590d0d]/10 text-xs font-mono font-bold text-slate-900 bg-white outline-none transition">
-                        <button type="button" onclick="togglePasswordVisibility('current_password_field', this)" 
-                                title="Toggle visibility"
-                                class="absolute right-3 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer">
-                            <i class="fa-solid fa-eye text-xs"></i>
-                        </button>
-                    </div>
-                </div>
+                <!-- Current Password (Read-only / View via Eye Icon) -->
+<div>
+    <div class="flex items-center justify-between mb-1">
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+            Current Password
+        </label>
+    </div>
+    <div class="relative flex items-center">
+        <input type="password" id="current_password_field" name="current_password" 
+               value="{{ $currentAdminPassword }}" 
+               readonly
+               class="w-full px-3.5 py-2 pr-10 rounded-xl border border-slate-200 bg-slate-100 text-xs font-mono font-bold text-slate-600 outline-none cursor-not-allowed">
+        <button type="button" onclick="togglePasswordVisibility('current_password_field', this)" 
+                title="Toggle visibility"
+                class="absolute right-3 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer">
+            <i class="fa-solid fa-eye text-xs"></i>
+        </button>
+    </div>
+</div>
 
                 <!-- New Password Inputs -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">New Password</label>
                         <div class="relative flex items-center">
-                            <input type="password" id="new_password_field" name="password" minlength="8" placeholder="Min. 8 characters"
+                            <input type="password" id="new_password_field" name="password" minlength="8"
                                    class="w-full px-3.5 py-2 pr-10 rounded-xl border border-slate-300 focus:border-[#590d0d] focus:ring-2 focus:ring-[#590d0d]/10 text-xs font-mono font-medium text-slate-800 placeholder-slate-400 bg-white outline-none transition">
                             <button type="button" onclick="togglePasswordVisibility('new_password_field', this)" 
                                     title="Toggle visibility"
@@ -124,7 +121,7 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Confirm New Password</label>
                         <div class="relative flex items-center">
-                            <input type="password" id="confirm_password_field" name="password_confirmation" minlength="8" placeholder="Repeat password"
+                            <input type="password" id="confirm_password_field" name="password_confirmation" minlength="8"
                                    class="w-full px-3.5 py-2 pr-10 rounded-xl border border-slate-300 focus:border-[#590d0d] focus:ring-2 focus:ring-[#590d0d]/10 text-xs font-mono font-medium text-slate-800 placeholder-slate-400 bg-white outline-none transition">
                             <button type="button" onclick="togglePasswordVisibility('confirm_password_field', this)" 
                                     title="Toggle visibility"
