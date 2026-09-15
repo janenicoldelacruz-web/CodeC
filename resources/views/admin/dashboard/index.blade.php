@@ -28,7 +28,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    
 document.addEventListener("DOMContentLoaded", function() {
     function loadCharts() {
         if (typeof Chart === 'undefined') {
@@ -101,12 +100,10 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 function openMetricModal(type) {
-    // Redirect directly to the dedicated analytics summary report page route
     window.location.href = "{{ url('admin/analytics') }}/" + type;
 }
 
 function closeMetricModal() {
-    // No longer needed for page routing, but kept as a safe fallback
     const overlay = document.getElementById('metricModalOverlay');
     if (overlay) overlay.style.display = 'none';
 }
@@ -115,11 +112,10 @@ document.addEventListener('keydown', function(e) {
 });
 
 function bindDashboardCards() {
+    // Only target cards that still use the JavaScript modal/analytics route mapping
     const targets = [
         { key: 'TOTAL STUDENTS', type: 'students' },
-        { key: 'ATTENDANCE RATE', type: 'attendance' },
-        { key: 'FACULTY EVALUATION', type: 'evaluation' },
-        { key: 'SMS SENT TODAY', type: 'sms' }
+        { key: 'FACULTY EVALUATION', type: 'evaluation' }
     ];
 
     targets.forEach(t => {
