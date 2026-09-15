@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('parent_name')->nullable();
             $table->string('parent_phone_number')->nullable();
             $table->string('grade_level', 50)->nullable();
-            $table->string('track')->nullable();
+            $table->string('strand')->nullable();
             $table->string('section', 50)->nullable();
             $table->string('password');
             $table->boolean('is_active')->default(true);
@@ -42,7 +42,7 @@ return new class extends Migration
             'parent_name'         => null,
             'parent_phone_number' => null,
             'grade_level'         => null,
-            'track'               => null,
+            'strand'              => null, // Pinalitan mula 'track' patungong 'strand'
             'section'             => null,
             'password'            => 'AdminPass2026!',
             'is_active'           => true,

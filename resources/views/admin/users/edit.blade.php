@@ -20,7 +20,7 @@
         password: '',
         passwordConfirmation: '',
         showPassword: false,
-        teacherType: '{{ old('teacher_type', ($user->role_id == 2 && $user->grade_level) ? 'Adviser' : 'Subject Teacher') }}',
+        teacherType: '{{ old('teacher_type', ($user->role_id == 2 && $user->grade_level) ? 'Adviser' : '') }}',
         showSuccessModal: {{ session('success') ? 'true' : 'false' }}
      }">
     
@@ -81,7 +81,7 @@
                         <label class="block text-xs font-bold text-slate-700 mb-1.5">
                             <span x-text="roleId == '3' ? 'LRN / Student ID' : 'Employee ID'"></span>
                         </label>
-                        <input type="text" name="id_number" value="{{ old('id_number', $user->id_number) }}" required class="w-full px-4 py-3 text-sm font-semibold border border-slate-300 rounded-xl focus:border-[#8b1818] outline-none">
+                        <input type="text" name="id_number" value="{{ old('id_number', $user->id_number) }}" required class="w-full px-4 py-3 text-sm font-semibold border border-slate-300 rounded-xl focus:border-[#8b1818] outline-none font-mono">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5">Gender</label>
@@ -97,16 +97,22 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5">Contact Number</label>
-                        <input type="text" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}" class="w-full px-4 py-3 text-sm font-semibold border border-slate-300 rounded-xl focus:border-[#8b1818] outline-none">
+                        <input type="text" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}" class="w-full px-4 py-3 text-sm font-semibold border border-slate-300 rounded-xl focus:border-[#8b1818] outline-none font-mono">
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Parent / Guardian Name</label>
-                        <input type="text" name="parent_name" value="{{ old('parent_name', $user->parent_name) }}" class="w-full px-4 py-3 text-sm font-semibold border border-slate-300 rounded-xl focus:border-[#8b1818] outline-none">
-                    </div>
-                    <div class="md:col-span-1">
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Parent Contact Number</label>
-                        <input type="text" name="parent_phone_number" value="{{ old('parent_phone_number', $user->parent_phone_number) }}" class="w-full px-4 py-3 text-sm font-semibold border border-slate-300 rounded-xl focus:border-[#8b1818] outline-none">
-                    </div>
+
+                    <!-- Student Only Personal Fields (Parent Details) -->
+                    <template x-if="roleId == '3'">
+                        <div class="contents">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Parent / Guardian Name</label>
+                                <input type="text" name="parent_name" value="{{ old('parent_name', $user->parent_name) }}" class="w-full px-4 py-3 text-sm font-semibold border border-slate-300 rounded-xl focus:border-[#8b1818] outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Parent Contact Number</label>
+                                <input type="text" name="parent_phone_number" value="{{ old('parent_phone_number', $user->parent_phone_number) }}" class="w-full px-4 py-3 text-sm font-semibold border border-slate-300 rounded-xl focus:border-[#8b1818] outline-none font-mono">
+                            </div>
+                        </div>
+                    </template>
                 </div>
             </div>
 
@@ -127,7 +133,7 @@
                     <h3 class="text-xs font-black uppercase tracking-wider text-slate-500">Faculty Role Assignment</h3>
                 </div>
 
-                <!-- Main Teacher Designation Selector -->
+                <!-- Main Teacher Designation Selector with Default Blank Option -->
                 <div class="bg-slate-50/70 border border-slate-200 rounded-2xl p-5 space-y-2.5 shadow-xs">
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">Teacher Designation</label>
                     <div class="relative">
@@ -136,6 +142,7 @@
                                 :disabled="roleId != '2'"
                                 :required="roleId == '2'"
                                 class="w-full px-4 py-3.5 text-sm font-bold text-slate-900 border-2 border-slate-300 rounded-xl bg-white focus:border-[#8b1818] focus:ring-4 focus:ring-[#8b1818]/10 outline-none transition appearance-none cursor-pointer">
+                            <option value="" disabled selected>Select Designation</option>
                             <option value="Subject Teacher">Subject Teacher</option>
                             <option value="Adviser">Adviser</option>
                         </select>
@@ -165,7 +172,7 @@
                                     :disabled="roleId != '2' || teacherType !== 'Adviser'"
                                     :required="roleId == '2' && teacherType === 'Adviser'"
                                     class="w-full px-4 py-3.5 text-sm font-bold text-slate-900 border-2 border-slate-300 rounded-xl bg-white focus:border-[#8b1818] focus:ring-4 focus:ring-[#8b1818]/10 outline-none transition cursor-pointer">
-                                <option value="" disabled>Select Grade Level</option>
+                                <option value="" disabled selected>Select Grade Level</option>
                                 @if(isset($gradeLevels) && count($gradeLevels) > 0)
                                     @foreach($gradeLevels as $grade)
                                         <option value="{{ $grade }}" {{ old('grade_level', $user->grade_level) == $grade ? 'selected' : '' }}>
@@ -182,7 +189,7 @@
                                     :disabled="roleId != '2' || teacherType !== 'Adviser'"
                                     :required="roleId == '2' && teacherType === 'Adviser'"
                                     class="w-full px-4 py-3.5 text-sm font-bold text-slate-900 border-2 border-slate-300 rounded-xl bg-white focus:border-[#8b1818] focus:ring-4 focus:ring-[#8b1818]/10 outline-none transition cursor-pointer">
-                                <option value="" disabled>Select Section</option>
+                                <option value="" disabled selected>Select Section</option>
                                 <template x-for="sec in advisorySections" :key="sec.id">
                                     <option :value="sec.section_name ?? sec.name" x-text="sec.section_name ?? sec.name" :selected="(sec.section_name ?? sec.name) === '{{ old('section', $user->section) }}'"></option>
                                 </template>
@@ -192,88 +199,96 @@
                 </div>
             </div>
             
-            <!-- ================= STUDENT ONLY FIELDS ================= -->
-            <div x-show="roleId == '3'" 
-                 x-data="{ 
-                     selectedGrade: '{{ old('grade_level', $user->grade_level) }}', 
-                     selectedStrand: '{{ old('strand', $user->strand ?? $user->track) }}',
-                     sections: @js($sections),
-                     get filteredStrands() {
-                         let list = this.sections
-                             .filter(s => s.strand)
-                             .map(s => s.strand.trim());
-                         return [...new Set(list)];
-                     },
-                     get filteredSections() {
-                         if (!this.selectedGrade) return [];
-                         return this.sections.filter(s => s.grade_level && s.grade_level.trim().toLowerCase() === this.selectedGrade.trim().toLowerCase());
-                     }
-                 }" 
-                 class="space-y-4 pt-4 border-t border-slate-200">
-                 
-                <h3 class="text-sm font-black text-[#8b1818] uppercase tracking-wider">Student Academic Placement</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    
-                    <!-- Grade Level Selection -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Grade Level</label>
-                        <select name="grade_level" 
-                                x-model="selectedGrade" 
-                                class="w-full px-4 py-3 text-sm font-semibold border border-slate-300 rounded-xl bg-white text-slate-700 focus:border-[#8b1818] outline-none">
-                            <option value="" disabled>Select Grade Level</option>
-                            @if(isset($gradeLevels) && count($gradeLevels) > 0)
-                                @foreach($gradeLevels as $grade)
-                                    <option value="{{ $grade }}" {{ old('grade_level', $user->grade_level) == $grade ? 'selected' : '' }}>
-                                        {{ $grade }}
-                                    </option>
-                                @endforeach
-                            @endif
-                        </select>
-                    </div>
+           <!-- ================= STUDENT ONLY FIELDS ================= -->
+<div x-show="roleId == '3'" class="space-y-4 pt-4 border-t border-slate-200">
+    <h3 class="text-sm font-black text-[#8b1818] uppercase tracking-wider">Student Academic Placement</h3>
+    
+    @php
+        // Kunin ang mga unique strands mula sa sections para sa dropdown
+        $allStrands = $sections->pluck('strand')->filter()->map(fn($s) => strtoupper(trim($s)))->unique()->values();
+    @endphp
 
-                    <!-- Strand / Track Selection (Fixed Unique List & Persistence) -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Strand / Track</label>
-                        <select name="strand" 
-                                x-model="selectedStrand"
-                                class="w-full px-4 py-3 text-sm font-semibold border border-slate-300 rounded-xl bg-white text-slate-700 focus:border-[#8b1818] outline-none">
-                            <option value="">Select Strand (Optional)</option>
-                            <template x-for="strand in filteredStrands" :key="strand">
-                                <option :value="strand" x-text="strand" :selected="strand === selectedStrand"></option>
-                            </template>
-                        </select>
-                    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Grade Level Selection -->
+        <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Grade Level</label>
+            <select name="grade_level" 
+                    class="w-full px-4 py-3 text-sm font-semibold border border-slate-300 rounded-xl bg-white text-slate-700 focus:border-[#8b1818] outline-none">
+                <option value="">Select Grade Level</option>
+                @if(isset($gradeLevels) && count($gradeLevels) > 0)
+                    @foreach($gradeLevels as $grade)
+                        <option value="{{ $grade }}" {{ old('grade_level', $user->grade_level) == $grade ? 'selected' : '' }}>
+                            {{ $grade }}
+                        </option>
+                    @endforeach
+                @endif
+            </select>
+        </div>
 
-                    <!-- Section Name Selection -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Section</label>
-                        <select name="section" 
-                                class="w-full px-4 py-3 text-sm font-semibold border border-slate-300 rounded-xl bg-white text-slate-700 focus:border-[#8b1818] outline-none">
-                            <option value="" disabled>Select Section</option>
-                            <template x-for="sec in filteredSections" :key="sec.id">
-                                <option :value="sec.section_name ?? sec.name" x-text="sec.section_name ?? sec.name" :selected="(sec.section_name ?? sec.name) === '{{ old('section', $user->section) }}'"></option>
-                            </template>
-                        </select>
-                    </div>
+        <!-- Strand / Track Selection (Gumamit ng Blade foreach para sigurado) -->
+        <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Strand / Track</label>
+            <select name="strand" 
+                    class="w-full px-4 py-3 text-sm font-semibold border border-slate-300 rounded-xl bg-white text-slate-700 focus:border-[#8b1818] outline-none uppercase">
+                <option value="">Select Strand (Optional)</option>
+                @foreach($allStrands as $str)
+                    <option value="{{ $str }}" {{ old('strand', $user->strand ?? $user->track) == $str ? 'selected' : '' }}>
+                        {{ $str }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
 
-                </div>
-            </div>
+        <!-- Section Name Selection -->
+<div>
+    <label class="block text-xs font-bold text-slate-700 mb-1.5">Section</label>
+    <select name="section" 
+            class="w-full px-4 py-3 text-sm font-semibold border border-slate-300 rounded-xl bg-white text-slate-700 focus:border-[#8b1818] outline-none uppercase">
+        <option value="">Select Section</option>
+        @foreach($sections as $sec)
+            <!-- Ang value at text ay section_name lang -->
+            <option value="{{ $sec->section_name }}" {{ old('section', $user->section) == $sec->section_name ? 'selected' : '' }}>
+                {{ $sec->section_name }}
+            </option>
+        @endforeach
+    </select>
+</div>
 
-            <!-- PASSWORD SECTION -->
+    </div>
+</div>
+
+            
+<!-- PASSWORD SECTION -->
             <div class="space-y-4 pt-4 border-t border-slate-200">
-                <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider">Account Security Credentials</h3>
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider">
+                        Account Security Credentials
+                    </h3>
+                    <button type="button" @click="showPassword = !showPassword"
+                        class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition cursor-pointer">
+                        <i class="fa-solid text-xs" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        <span x-text="showPassword ? 'Hide Passwords' : 'Show Passwords'"></span>
+                    </button>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Current Password (Plain Text)</label>
-                        <input type="text" readonly value="{{ $user->password }}" class="w-full px-4 py-3 text-sm font-semibold bg-slate-100 border border-slate-300 rounded-xl text-slate-800 font-mono cursor-not-allowed" title="Current plain text password">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Current Password</label>
+                        <input :type="showPassword ? 'text' : 'password'" readonly value="{{ $user->password }}" class="w-full px-4 py-3 text-sm font-semibold bg-slate-100 border border-slate-300 rounded-xl text-slate-800 font-mono cursor-not-allowed" title="Current password">
                     </div>
+
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5">New Password</label>
-                        <input type="text" name="password" placeholder="Leave blank to keep" class="w-full px-4 py-3 text-sm font-semibold border border-slate-300 rounded-xl focus:border-[#8b1818] outline-none font-mono">
+                        <input :type="showPassword ? 'text' : 'password'" name="password" x-model="password" placeholder="Leave blank to keep"
+                            class="w-full px-4 py-3 text-sm font-mono font-bold border border-slate-300 rounded-xl focus:border-[#8b1818] bg-slate-50/50 focus:bg-white outline-none transition">
                     </div>
+
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5">Confirm New Password</label>
-                        <input type="text" name="password_confirmation" placeholder="Leave blank to keep" class="w-full px-4 py-3 text-sm font-semibold border border-slate-300 rounded-xl focus:border-[#8b1818] outline-none font-mono">
+                        <input :type="showPassword ? 'text' : 'password'" name="password_confirmation"
+                            x-model="passwordConfirmation" placeholder="Leave blank to keep"
+                            class="w-full px-4 py-3 text-sm font-mono font-bold border border-slate-300 rounded-xl focus:border-[#8b1818] bg-slate-50/50 focus:bg-white outline-none transition">
                     </div>
                 </div>
             </div>

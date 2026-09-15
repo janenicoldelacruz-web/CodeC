@@ -99,13 +99,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/analytics/{type}', [AdminDashboardController::class, 'showAnalyticsReport'])->name('analytics.report');
         Route::resource('users', AdminUserController::class);
 
-        Route::prefix('nfc')->name('nfc.')->group(function () {
-            Route::get('/binding', [AdminNfcController::class, 'bindingIndex'])->name('binding');
-            Route::post('/binding', [AdminNfcController::class, 'bindingStore'])->name('binding.store');
-            Route::delete('/binding/{id}', [AdminNfcController::class, 'bindingDestroy'])->name('destroy');
-            Route::get('/replacement', [AdminNfcController::class, 'replacementIndex'])->name('replacement');
-            Route::post('/replacement', [AdminNfcController::class, 'replacementStore'])->name('replacement.store');
-        });
+Route::prefix('nfc')->name('nfc.')->group(function () {
+    Route::get('/binding', [AdminNfcController::class, 'bindingIndex'])->name('binding');
+    Route::post('/binding', [AdminNfcController::class, 'bindingStore'])->name('binding.store');
+    Route::delete('/binding/{id}', [AdminNfcController::class, 'bindingDestroy'])->name('destroy');
+        
+});
 
         Route::get('/school-year', [AdminSchoolYearController::class, 'index'])->name('school-year');
         Route::post('/school-year/update', [AdminSchoolYearController::class, 'update'])->name('school-year.update');
@@ -113,6 +112,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         
         Route::get('/sections', [AdminSectionController::class, 'index'])->name('sections');
         Route::post('/sections/store', [AdminSectionController::class, 'storeSection'])->name('sections.store');
+        Route::put('/sections/{id}', [AdminSectionController::class, 'updateSection'])->name('sections.update');
         Route::delete('/sections/{id}', [AdminSectionController::class, 'destroySection'])->name('sections.destroy');
         
         Route::get('/schedules', [ScheduleController::class, 'index'])->name('schedules');
