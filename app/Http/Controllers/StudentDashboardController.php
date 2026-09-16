@@ -114,7 +114,7 @@ class StudentDashboardController extends Controller
             // Select Columns
             $selects = [
                 'class_schedules.id',
-                'class_schedules.day_of_week as day',
+                'class_schedules.day as day',
                 'class_schedules.start_time',
                 'class_schedules.end_time',
             ];

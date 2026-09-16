@@ -141,12 +141,11 @@
                             <span id="statusLabel" class="{{ \Illuminate\Support\Facades\Cache::get('evaluations_open', false) ? 'text-emerald-700' : 'text-slate-500' }} text-xs font-black uppercase tracking-tight flex items-center gap-1.5 mt-1">
                                 <span class="w-2 h-2 rounded-full {{ \Illuminate\Support\Facades\Cache::get('evaluations_open', false) ? 'bg-emerald-500' : 'bg-slate-400' }}"></span> 
                                 {{ \Illuminate\Support\Facades\Cache::get('evaluations_open', false) ? 'ACTIVE' : 'CLOSED' }}
-                            </span> ACTIVE
                             </span>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="evalToggle" {{ \Illuminate\Support\Facades\Cache::get('evaluations_open', false) ? 'checked' : '' }} onchange="confirmToggleEval(this)" class="sr-only peer">
-                            <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:width-5 after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8b1818]"></div>
+                            <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8b1818]"></div>
                         </label>
                     </div>
 
@@ -196,7 +195,7 @@
                         <i class="fa-solid fa-chevron-right text-xs text-slate-400 group-hover:text-[#8b1818] transition"></i>
                     </button>
 
-                    <a href="{{ route('admin.attendance.export') ?? '#' }}" class="w-full py-3.5 px-5 bg-[#8b1818] hover:bg-[#731414] text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-sm transition flex items-center justify-center gap-2.5">
+                    <a href="#" class="w-full py-3.5 px-5 bg-[#8b1818] hover:bg-[#731414] text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-sm transition flex items-center justify-center gap-2.5">
                         <i class="fa-solid fa-file-arrow-down text-sm text-amber-300"></i>
                         <span>Export Full Report (CSV / PDF)</span>
                     </a>
@@ -213,9 +212,11 @@
             <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
                 <select name="section" onchange="this.form.submit()" class="py-2.5 px-3.5 text-xs font-bold rounded-xl border border-slate-300 bg-slate-50 text-slate-700 focus:bg-white focus:outline-none focus:border-[#8b1818] transition shadow-2xs cursor-pointer">
                     <option value="">All Sections</option>
-                    @foreach($sections as $sec)
-                        <option value="{{ $sec }}" {{ request('section') == $sec ? 'selected' : '' }}>Section: {{ $sec }}</option>
-                    @endforeach
+                    @if(isset($sections))
+                        @foreach($sections as $sec)
+                            <option value="{{ $sec }}" {{ request('section') == $sec ? 'selected' : '' }}>Section: {{ $sec }}</option>
+                        @endforeach
+                    @endif
                 </select>
 
                 @if(request()->hasAny(['section', 'rating_range', 'search']))
@@ -317,42 +318,6 @@
         }
     }
 
-    function switchCriteriaCategory(category) {
-        const btnMastery = document.getElementById('catMasteryBtn');
-        const btnComm = document.getElementById('catCommBtn');
-        const btnManagement = document.getElementById('catManagementBtn');
-        const btnMethodology = document.getElementById('catMethodologyBtn');
-        const btnQualities = document.getElementById('catQualitiesBtn');
-
-        const contentMastery = document.getElementById('catMasteryContent');
-        const contentComm = document.getElementById('catCommContent');
-        const contentManagement = document.getElementById('catManagementContent');
-        const contentMethodology = document.getElementById('catMethodologyContent');
-        const contentQualities = document.getElementById('catQualitiesContent');
-
-        [btnMastery, btnComm, btnManagement, btnMethodology, btnQualities].forEach(btn => {
-            btn.className = "flex-1 py-2 px-3 rounded-lg text-xs font-black uppercase tracking-wider text-slate-600 hover:text-slate-900 transition cursor-pointer";
-        });
-        [contentMastery, contentComm, contentManagement, contentMethodology, contentQualities].forEach(c => c.classList.add('hidden'));
-
-        if (category === 'mastery') {
-            btnMastery.className = "flex-1 py-2 px-3 rounded-lg text-xs font-black uppercase tracking-wider bg-white text-[#8b1818] shadow-2xs transition cursor-pointer";
-            contentMastery.classList.remove('hidden');
-        } else if (category === 'comm') {
-            btnComm.className = "flex-1 py-2 px-3 rounded-lg text-xs font-black uppercase tracking-wider bg-white text-[#8b1818] shadow-2xs transition cursor-pointer";
-            contentComm.classList.remove('hidden');
-        } else if (category === 'management') {
-            btnManagement.className = "flex-1 py-2 px-3 rounded-lg text-xs font-black uppercase tracking-wider bg-white text-[#8b1818] shadow-2xs transition cursor-pointer";
-            contentManagement.classList.remove('hidden');
-        } else if (category === 'methodology') {
-            btnMethodology.className = "flex-1 py-2 px-3 rounded-lg text-xs font-black uppercase tracking-wider bg-white text-[#8b1818] shadow-2xs transition cursor-pointer";
-            contentMethodology.classList.remove('hidden');
-        } else if (category === 'qualities') {
-            btnQualities.className = "flex-1 py-2 px-3 rounded-lg text-xs font-black uppercase tracking-wider bg-white text-[#8b1818] shadow-2xs transition cursor-pointer";
-            contentQualities.classList.remove('hidden');
-        }
-    }
-
     function openFullReportModal(teacherName, section, score, comment) {
         document.getElementById('reportTeacherName').innerText = "Report: " + teacherName;
         document.getElementById('reportMeta').innerText = "Class Section: " + section;
@@ -388,36 +353,35 @@
     }
 
     function closeEvalModal(confirmed) {
-    const modal = document.getElementById('evalModal');
-    const container = document.getElementById('modalContainer');
-    const statusLabel = document.getElementById('statusLabel');
+        const modal = document.getElementById('evalModal');
+        const container = document.getElementById('modalContainer');
+        const statusLabel = document.getElementById('statusLabel');
 
-    if (confirmed && toggleElementRef) {
-        // I-save ang state sa server via AJAX
-        fetch('/admin/evaluations/toggle-status', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({ status: pendingToggleState })
-        }).then(r => r.json()).then(data => {
-            if (data.is_open) {
-                statusLabel.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ACTIVE`;
-                statusLabel.className = "text-xs font-black text-emerald-700 uppercase tracking-tight flex items-center gap-1.5 mt-1";
-            } else {
-                statusLabel.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-400"></span> CLOSED`;
-                statusLabel.className = "text-xs font-black text-slate-500 uppercase tracking-tight flex items-center gap-1.5 mt-1";
-            }
-        });
-    } else if (toggleElementRef) {
-        toggleElementRef.checked = !pendingToggleState;
+        if (confirmed && toggleElementRef) {
+            fetch('/admin/evaluations/toggle-status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ status: pendingToggleState })
+            }).then(r => r.json()).then(data => {
+                if (data.is_open) {
+                    statusLabel.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ACTIVE';
+                    statusLabel.className = "text-xs font-black text-emerald-700 uppercase tracking-tight flex items-center gap-1.5 mt-1";
+                } else {
+                    statusLabel.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span> CLOSED';
+                    statusLabel.className = "text-xs font-black text-slate-500 uppercase tracking-tight flex items-center gap-1.5 mt-1";
+                }
+            });
+        } else if (toggleElementRef) {
+            toggleElementRef.checked = !pendingToggleState;
+        }
+
+        container.classList.remove('scale-100', 'opacity-100');
+        container.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => modal.classList.add('hidden'), 200);
     }
-
-    container.classList.remove('scale-100', 'opacity-100');
-    container.classList.add('scale-95', 'opacity-0');
-    setTimeout(() => modal.classList.add('hidden'), 200);
-}
 
     function openCriteriaModal() {
         const modal = document.getElementById('criteriaModal');

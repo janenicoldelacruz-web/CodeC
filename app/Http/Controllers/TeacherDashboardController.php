@@ -10,13 +10,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB; // Idinagdag para sa DB queries ng evaluation
 
 class TeacherDashboardController extends Controller
 {
-
-
-// SCHEDULE MATRIX METHOD (Main Landing Page)
-// SCHEDULE MATRIX METHOD (Main Landing Page)
+    // SCHEDULE MATRIX METHOD (Main Landing Page)
     public function schedule(Request $request)
     {
         $teacher = Auth::user();
@@ -102,7 +100,7 @@ class TeacherDashboardController extends Controller
         return redirect()->back()->with('success', 'Faculty profile updated successfully!');
     }
 
-public function attendance()
+    public function attendance()
     {
         $teacher = Auth::user();
         return view('teacher.attendance', compact('teacher'));
@@ -118,13 +116,10 @@ public function attendance()
     {
         $teacher = Auth::user();
 
-        // 1. Fetch the specific class schedule/subject assigned to this teacher
         $schedule = ClassSchedule::where('id', $scheduleId)
             ->where('teacher_id', $teacher->id)
             ->firstOrFail();
 
-        // 2. Fetch students enrolled in this section/strand
-        // (Adjust the query based on how your students are linked to sections/strands)
         $students = User::where('role_id', 3) // Assuming role_id 3 is student
             ->when(Schema::hasColumn('users', 'section'), function($q) use ($schedule) {
                 $q->where('section', $schedule->section);
@@ -132,5 +127,70 @@ public function attendance()
             ->get();
 
         return view('teacher.class-list', compact('teacher', 'schedule', 'students'));
+    }
+
+    // ==========================================
+    // FACULTY EVALUATION METHODS (Peer & Self)
+    // ==========================================
+
+    public function evaluationsIndex()
+    {
+        $teacher = Auth::user();
+        
+        // Kunin ang ibang guro para sa Peer Evaluation (huwag isama ang sarili)
+        $peers = User::where('role_id', 2)->where('id', '!=', $teacher->id)->get();
+
+        // Kunin ang evaluation questions para sa peer at self forms
+        $peerQuestions = Schema::hasTable('evaluation_questions') 
+            ? DB::table('evaluation_questions')->where('form_type', 'peer')->get() 
+            : collect([]);
+            
+        $selfQuestions = Schema::hasTable('evaluation_questions') 
+            ? DB::table('evaluation_questions')->where('form_type', 'self')->get() 
+            : collect([]);
+
+        return view('teacher.evaluations.index', compact('teacher', 'peers', 'peerQuestions', 'selfQuestions'));
+    }
+
+    public function storePeerEvaluation(Request $request)
+    {
+        $request->validate([
+            'evaluatee_id' => 'required|exists:users,id',
+            'ratings'      => 'required|array',
+        ]);
+
+        $scores = array_values($request->ratings);
+        $averageScore = count($scores) > 0 ? array_sum($scores) / count($scores) : 0;
+
+        DB::table('peer_evaluations')->insert([
+            'evaluator_id'  => Auth::id(),
+            'evaluatee_id'  => $request->evaluatee_id,
+            'average_score' => $averageScore,
+            'comments'      => $request->input('comments'),
+            'created_at'    => now(),
+            'updated_at'    => now(),
+        ]);
+
+        return back()->with('success', 'Peer evaluation submitted successfully!');
+    }
+
+    public function storeSelfEvaluation(Request $request)
+    {
+        $request->validate([
+            'ratings' => 'required|array',
+        ]);
+
+        $scores = array_values($request->ratings);
+        $averageScore = count($scores) > 0 ? array_sum($scores) / count($scores) : 0;
+
+        DB::table('self_evaluations')->insert([
+            'teacher_id'    => Auth::id(),
+            'average_score' => $averageScore,
+            'comments'      => $request->input('comments'),
+            'created_at'    => now(),
+            'updated_at'    => now(),
+        ]);
+
+        return back()->with('success', 'Self-evaluation submitted successfully!');
     }
 }

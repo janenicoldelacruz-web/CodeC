@@ -34,12 +34,6 @@ Route::middleware('guest')->group(function () {
     Route::get('/', [LoginController::class, 'showLoginForm'])->name('welcome');
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
-
-    // Faculty Evaluation
-    Route::get('/evaluations', [AdminEvaluationController::class, 'index'])->name('evaluations');
-    Route::post('/evaluations/toggle-status', [AdminEvaluationController::class, 'toggleStatus'])->name('evaluations.toggle');
-    Route::get('/evaluations/periods', [AdminEvaluationController::class, 'periods'])->name('evaluations.periods');
-    Route::get('/evaluations/results', [AdminEvaluationController::class, 'results'])->name('evaluations.results');
 });
 
 /*
@@ -99,6 +93,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/analytics/{type}', [AdminDashboardController::class, 'showAnalyticsReport'])->name('analytics.report');
         Route::resource('users', AdminUserController::class);
 
+        // --- Faculty Evaluation Routes (Tamang Pangalan at Prefix) ---
+        Route::get('/evaluations', [AdminEvaluationController::class, 'index'])->name('evaluations');
+        Route::get('/evaluations/periods', [AdminEvaluationController::class, 'periods'])->name('evaluations.periods');
+        Route::get('/evaluations/results', [AdminEvaluationController::class, 'results'])->name('evaluations.results');
+        Route::post('/evaluations/toggle-status', [AdminEvaluationController::class, 'toggleStatus'])->name('evaluations.toggle');
+
         Route::prefix('nfc')->name('nfc.')->group(function () {
             Route::get('/binding', [AdminNfcController::class, 'bindingIndex'])->name('binding');
             Route::post('/binding', [AdminNfcController::class, 'bindingStore'])->name('binding.store');
@@ -114,25 +114,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/sections/{id}', [AdminSectionController::class, 'updateSection'])->name('sections.update');
         Route::delete('/sections/{id}', [AdminSectionController::class, 'destroySection'])->name('sections.destroy');
         
-        // --- Nalinisan at inayos na Schedules Routes ---
-Route::prefix('schedules')->name('schedules.')->group(function () {
-    Route::get('/', [AdminScheduleController::class, 'index'])->name('index');
-    Route::get('/matrix', [AdminScheduleController::class, 'matrix'])->name('matrix'); // <-- Idagdag ito dito
-    Route::post('/', [AdminScheduleController::class, 'store'])->name('store');
-    Route::post('/import', [AdminScheduleController::class, 'import'])->name('import');
-    Route::put('/{id}', [AdminScheduleController::class, 'update'])->name('update');
-    Route::delete('/{id}', [AdminScheduleController::class, 'destroy'])->name('destroy');
-});
+        // Schedules Routes
+        Route::prefix('schedules')->name('schedules.')->group(function () {
+            Route::get('/', [AdminScheduleController::class, 'index'])->name('index');
+            Route::get('/matrix', [AdminScheduleController::class, 'matrix'])->name('matrix');
+            Route::post('/', [AdminScheduleController::class, 'store'])->name('store');
+            Route::post('/import', [AdminScheduleController::class, 'import'])->name('import');
+            Route::put('/{id}', [AdminScheduleController::class, 'update'])->name('update');
+            Route::delete('/{id}', [AdminScheduleController::class, 'destroy'])->name('destroy');
+        });
 
         Route::get('/attendance', [AdminAttendanceController::class, 'index'])->name('attendance');
         Route::get('/attendance/live', [AdminAttendanceController::class, 'live'])->name('attendance.live');
         Route::get('/attendance/override', [AdminAttendanceController::class, 'override'])->name('attendance.override');
         Route::get('/attendance/export', [AdminAttendanceController::class, 'export'])->name('attendance.export');
-
-        Route::get('/evaluations', [AdminEvaluationController::class, 'index'])->name('evaluations');
-        Route::post('/evaluations/toggle-status', [AdminEvaluationController::class, 'toggleStatus'])->name('evaluations.toggle');
-        Route::get('/evaluations/periods', [AdminEvaluationController::class, 'periods'])->name('evaluations.periods');
-        Route::get('/evaluations/results', [AdminEvaluationController::class, 'results'])->name('evaluations.results');
 
         Route::get('/announcements', [AdminAnnouncementController::class, 'index'])->name('announcements');
 
@@ -158,7 +153,7 @@ Route::prefix('schedules')->name('schedules.')->group(function () {
         Route::get('/reports', [AdminReportController::class, 'index'])->name('reports');
     });
 
-    /*
+   /*
     |--------------------------------------------------------------------------
     | Teacher / Faculty Routes
     |--------------------------------------------------------------------------
@@ -172,6 +167,11 @@ Route::prefix('schedules')->name('schedules.')->group(function () {
         Route::get('/attendance', [NfcAttendanceController::class, 'attendanceIndex'])->name('attendance');
         Route::get('/attendance/export', [NfcAttendanceController::class, 'exportCsv'])->name('attendance.export');
         
+        // --- Faculty Evaluation Portal (Peer & Self) ---
+        Route::get('/evaluations', [TeacherDashboardController::class, 'evaluationsIndex'])->name('evaluations.index');
+        Route::post('/evaluations/peer', [TeacherDashboardController::class, 'storePeerEvaluation'])->name('evaluations.peer.store');
+        Route::post('/evaluations/self', [TeacherDashboardController::class, 'storeSelfEvaluation'])->name('evaluations.self.store');
+
         Route::get('/evaluation-report', [TeacherDashboardController::class, 'evaluationReport'])->name('evaluation.report');
         Route::get('/kiosk', [NfcAttendanceController::class, 'kioskView'])->name('kiosk');
     });
