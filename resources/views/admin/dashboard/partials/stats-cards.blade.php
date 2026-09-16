@@ -23,7 +23,6 @@
             <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="studentSparkline" class="pointer-events-none"></canvas></div>
             <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-bold">
                 <span>View Analytics</span>
-                <i class="fa-solid fa-arrow-right text-amber-500 group-hover:translate-x-1 transition"></i>
             </div>
         </a>
 
@@ -45,7 +44,6 @@
                 <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="attendanceSparkline" class="pointer-events-none"></canvas></div>
                 <div class="flex items-center justify-between text-xs text-slate-600 font-bold pt-1">
                     <span class="text-[#590d0d] font-mono font-black">Present: {{ $presentTodayCount ?? 0 }} / {{ $totalStudents ?? 0 }}</span>
-                    <i class="fa-solid fa-arrow-right text-[#590d0d] group-hover:translate-x-1 transition"></i>
                 </div>
             </div>
         </a>
@@ -74,7 +72,7 @@
         </div>
 
         <!-- 4. Active SMS Dispatched Today -->
-        <a href="{{ route('admin.sms.sent-today') }}" class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-emerald-300 transition w-full block text-left group">
+        <a href="{{ route('admin.dashboard.analytics.sent-today') }}" class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-emerald-300 transition w-full block text-left group">
             <div class="flex items-start justify-between">
                 <div>
                     <p class="text-[11px] font-black text-slate-500 uppercase tracking-wider">SMS Sent Today</p>
@@ -87,7 +85,6 @@
             <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="smsSparkline" class="pointer-events-none"></canvas></div>
             <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-bold">
                 <span>Parent Alerts</span>
-                <i class="fa-solid fa-arrow-right text-emerald-600 group-hover:translate-x-1 transition"></i>
             </div>
         </a>
 

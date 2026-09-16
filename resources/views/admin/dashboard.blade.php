@@ -152,7 +152,7 @@
                 </div>
 
                 <!-- 4. Active SMS Dispatched Today (Links to SMS Sent Today Monitoring Page) -->
-                <a href="{{ route('admin.sms.sent-today') }}" class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-emerald-300 transition w-full block text-left group">
+                <a href="{{ route('admin.dashboard.analytics.sent-today') }}" class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-emerald-300 transition w-full block text-left group">
                     <div class="flex items-start justify-between">
                         <div>
                             <p class="text-[11px] font-black text-slate-500 uppercase tracking-wider">SMS Sent Today</p>

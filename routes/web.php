@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Route;
 // Non-Admin Controllers
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\TeacherDashboardController;
 use App\Http\Controllers\StudentDashboardController;
 use App\Http\Controllers\NfcAttendanceController;
@@ -17,6 +16,7 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminSchoolYearController;
 use App\Http\Controllers\Admin\AdminNfcController;
 use App\Http\Controllers\Admin\AdminSectionController;
+use App\Http\Controllers\Admin\AdminScheduleController;
 use App\Http\Controllers\Admin\AdminAttendanceController;
 use App\Http\Controllers\Admin\AdminEvaluationController;
 use App\Http\Controllers\Admin\AdminAnnouncementController;
@@ -59,7 +59,7 @@ Route::get('/api/nfc/latest', [AdminNfcController::class, 'getLatestTap']);
 */
 Route::middleware(['auth', 'verified'])->group(function () {
     
-    // Role-Based Landing Redirect (Naidagdag na rito ang director)
+    // Role-Based Landing Redirect
     Route::get('/dashboard', function () {
         $user = auth()->user();
         $roleName = is_object($user->role) ? $user->role->name : $user->role;
@@ -89,7 +89,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/students/analytics', [DashboardController::class, 'studentAnalytics'])->name('students.analytics');
         Route::get('/analytics/attendance-rate', [AdminDashboardController::class, 'attendanceRate'])->name('attendance.rate');
 
-        Route::get('/sms-sent-today', [AdminSmsController::class, 'index'])->name('sms.sent-today');
+        Route::get('/sms-sent-today', [AdminSmsController::class, 'index'])->name('dashboard.analytics.sent-today');
         Route::post('/sms/update-template', [AdminSmsController::class, 'updateTemplate'])->name('sms.update-template');
         Route::post('/sms/{id}/retry', [AdminSmsController::class, 'retry'])->name('sms.retry');
         
@@ -99,12 +99,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/analytics/{type}', [AdminDashboardController::class, 'showAnalyticsReport'])->name('analytics.report');
         Route::resource('users', AdminUserController::class);
 
-Route::prefix('nfc')->name('nfc.')->group(function () {
-    Route::get('/binding', [AdminNfcController::class, 'bindingIndex'])->name('binding');
-    Route::post('/binding', [AdminNfcController::class, 'bindingStore'])->name('binding.store');
-    Route::delete('/binding/{id}', [AdminNfcController::class, 'bindingDestroy'])->name('destroy');
-        
-});
+        Route::prefix('nfc')->name('nfc.')->group(function () {
+            Route::get('/binding', [AdminNfcController::class, 'bindingIndex'])->name('binding');
+            Route::post('/binding', [AdminNfcController::class, 'bindingStore'])->name('binding.store');
+            Route::delete('/binding/{id}', [AdminNfcController::class, 'bindingDestroy'])->name('destroy');
+        });
 
         Route::get('/school-year', [AdminSchoolYearController::class, 'index'])->name('school-year');
         Route::post('/school-year/update', [AdminSchoolYearController::class, 'update'])->name('school-year.update');
@@ -115,10 +114,15 @@ Route::prefix('nfc')->name('nfc.')->group(function () {
         Route::put('/sections/{id}', [AdminSectionController::class, 'updateSection'])->name('sections.update');
         Route::delete('/sections/{id}', [AdminSectionController::class, 'destroySection'])->name('sections.destroy');
         
-        Route::get('/schedules', [ScheduleController::class, 'index'])->name('schedules');
-        Route::post('/schedules', [ScheduleController::class, 'store'])->name('schedules.store');
-        Route::post('/schedules/clear-all', [ScheduleController::class, 'clearAll'])->name('schedules.clear-all');
-        Route::delete('/schedules/{id}', [ScheduleController::class, 'destroy'])->name('schedules.destroy');
+        // --- Nalinisan at inayos na Schedules Routes ---
+Route::prefix('schedules')->name('schedules.')->group(function () {
+    Route::get('/', [AdminScheduleController::class, 'index'])->name('index');
+    Route::get('/matrix', [AdminScheduleController::class, 'matrix'])->name('matrix'); // <-- Idagdag ito dito
+    Route::post('/', [AdminScheduleController::class, 'store'])->name('store');
+    Route::post('/import', [AdminScheduleController::class, 'import'])->name('import');
+    Route::put('/{id}', [AdminScheduleController::class, 'update'])->name('update');
+    Route::delete('/{id}', [AdminScheduleController::class, 'destroy'])->name('destroy');
+});
 
         Route::get('/attendance', [AdminAttendanceController::class, 'index'])->name('attendance');
         Route::get('/attendance/live', [AdminAttendanceController::class, 'live'])->name('attendance.live');
@@ -150,9 +154,7 @@ Route::prefix('nfc')->name('nfc.')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware(['role:director'])->prefix('director')->name('director.')->group(function () {
-        // Maaari kang gumawa ng DirectorDashboardController o gumamit ng pansamantalang view/controller
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-        // Idagdag dito ang mga eksklusibong ulat o tanawin para sa Director (hal. Reports, Evaluations)
         Route::get('/reports', [AdminReportController::class, 'index'])->name('reports');
     });
 

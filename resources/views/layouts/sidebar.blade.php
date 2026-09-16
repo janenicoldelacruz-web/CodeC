@@ -77,18 +77,20 @@
                     <p class="px-3 text-[10px] font-black uppercase tracking-wider text-red-200/60 mb-2" x-show="!collapsed">Modules & Setup</p>
                     <div class="space-y-1 text-sm font-bold">
                         <!-- Academic Setup with Sub-items -->
-                        <div x-data="{ open: @json(request()->routeIs('admin.school-year*', 'admin.sections*', 'admin.schedules*')) }" class="space-y-1">
+                        <div x-data="{ open: @json(request()->routeIs('admin.school-year*', 'admin.sections*', 'admin.schedules.index*')) }" class="space-y-1">
                             <button @click="open = !open" 
-                                class="w-full group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('admin.school-year*', 'admin.sections*', 'admin.schedules*') ? 'bg-red-900/80 text-amber-300' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}">
+                                class="w-full group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('admin.school-year*', 'admin.sections*', 'admin.schedules.index*') ? 'bg-red-900/80 text-amber-300' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}">
                                 <div class="flex items-center gap-3.5">
-                                    <i class="fa-solid fa-graduation-cap text-base {{ request()->routeIs('admin.school-year*', 'admin.sections*', 'admin.schedules*') ? 'text-amber-300' : 'text-amber-300 group-hover:text-white' }}"></i>
+                                    <i class="fa-solid fa-graduation-cap text-base {{ request()->routeIs('admin.school-year*', 'admin.sections*', 'admin.schedules.index*') ? 'text-amber-300' : 'text-amber-300 group-hover:text-white' }}"></i>
                                     <span class="text-[13px]" x-show="!collapsed">Academic Setup</span>
                                 </div>
                             </button>
                             <div x-show="open && !collapsed" x-cloak class="pl-11 pr-2 space-y-1 py-1">
-                                <a href="{{ route('admin.school-year') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">School Year & Semesters</a>
+                                <a href="{{ route('admin.school-year') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">School Year & Term</a>
                                 <a href="{{ route('admin.sections') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">Section & Class Management</a>
-                                <a href="{{ route('admin.schedules') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">Class Schedules & Rooms</a>
+<a href="{{ route('admin.schedules.index') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold {{ request()->routeIs('admin.schedules*') ? 'text-amber-300 bg-red-900/40' : 'text-red-200/80 hover:text-amber-300 hover:bg-red-900/40' }} transition">
+    Class Schedules
+</a>
                             </div>
                         </div>
 

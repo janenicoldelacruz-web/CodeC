@@ -172,7 +172,7 @@ class AdminSmsController extends Controller
         $gradeLevels = in_array('grade_level', $userCols) ? User::where('role_id', 3)->whereNotNull('grade_level')->distinct()->orderBy('grade_level')->pluck('grade_level') : collect();
         $sections = in_array('section', $userCols) ? User::where('role_id', 3)->whereNotNull('section')->distinct()->orderBy('section')->pluck('section') : collect();
 
-        return view('admin.sms.sent-today', compact(
+        return view('admin.dashboard.analytics.sent-today', compact(
             'activeSchoolYear',
             'schoolYears',
             'today',
@@ -204,7 +204,7 @@ class AdminSmsController extends Controller
             );
         }
 
-        return redirect()->route('admin.sms.sent-today')->with('success', 'Absence SMS template updated successfully.');
+        return redirect()->route('admin.dashboard.analytics.sent-today')->with('success', 'Absence SMS template updated successfully.');
     }
 
     public function retry(Request $request, $id)
