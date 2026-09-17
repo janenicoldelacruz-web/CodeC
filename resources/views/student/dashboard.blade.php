@@ -43,9 +43,9 @@
                 <span class="font-black text-sm">Dashboard</span>
             </a>
 
-            <!-- 2. Faculty Performance Evaluation -->
-            @if($evalOpen)
-                <a href="{{ Route::has('student.evaluation') ? route('student.evaluation') : '#' }}" 
+          <!-- 2. Faculty Performance Evaluation -->
+            @if($isEvaluationOpen)
+                <a href="{{ route('student.evaluations.index') }}" 
                    class="flex items-center justify-between px-4 py-3.5 text-red-100 hover:bg-white/10 hover:text-white rounded-2xl transition group">
                     <div class="flex items-center gap-3.5">
                         <i class="fa-solid fa-users-viewfinder text-base text-amber-400 group-hover:scale-110 transition-transform"></i>

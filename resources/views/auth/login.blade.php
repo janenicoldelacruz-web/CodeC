@@ -101,20 +101,20 @@
             <form method="POST" action="{{ route('login') }}" class="space-y-5" autocomplete="off">
                 @csrf
 
-                <!-- Username/Email -->
+               <!-- Username / ID Number / Email -->
                 <div>
-                    <label for="email" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Username or Email</label>
+                    <label for="username" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Username / ID Number</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                             </svg>
                         </span>
-                        <input type="text" id="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="off"
-                            placeholder="Enter username or email"
+                        <input type="text" id="username" name="username" value="{{ old('username') }}" required autofocus autocomplete="off"
+                            placeholder="Enter username, ID number, or email"
                             class="w-full h-12 pl-12 pr-4 bg-gray-50 border border-gray-200 rounded-xl text-base font-semibold text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#701010] focus:bg-white focus:ring-2 focus:ring-[#701010]/20 transition">
                     </div>
-                </div>
+                </div>  
 
                 <!-- Password -->
                 <div>

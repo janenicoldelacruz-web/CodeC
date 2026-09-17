@@ -7,11 +7,11 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Cache;
 
 class AdminEvaluationController extends Controller
 {
-
-public function index(Request $request)
+    public function index(Request $request)
     {
         $search = trim((string) $request->query('search'));
         $sectionFilter = $request->query('section');
@@ -48,6 +48,7 @@ public function index(Request $request)
             'evalProgress'
         ));
     }
+
     public function seedOfficialQuestions($type = null)
     {
         $now = now();
@@ -207,19 +208,40 @@ public function index(Request $request)
         $request->validate([
             'semester'    => 'required|string|max:100',
             'school_year' => 'required|string|max:50',
-            'status'      => 'required|in:open,closed'
+            'status'      => 'required|in:open,closed,OPEN,CLOSED'
         ]);
 
+        $statusNormalized = strtolower($request->status);
+        $isOpen = ($statusNormalized === 'open');
+
+        // I-save sa Cache para madaling makuha ng Student sidebar
+        Cache::put('evaluations_open', $isOpen);
+
         if (Schema::hasTable('academic_periods')) {
-            DB::table('academic_periods')->where('is_active', 1)->update([
+            $updateData = [
                 'semester'    => $request->semester,
                 'school_year' => $request->school_year,
-                'status'      => $request->status,
                 'updated_at'  => now()
-            ]);
+            ];
+            
+            if (Schema::hasColumn('academic_periods', 'status')) {
+                $updateData['status'] = $statusNormalized;
+            }
+
+            DB::table('academic_periods')->where('is_active', 1)->update($updateData);
         }
 
-        return back()->with('success', 'Appraisal period cycle updated successfully!');
+        return back()->with('success', 'Appraisal period cycle and evaluation status updated successfully!');
+    }
+
+    public function toggleStatus(Request $request)
+    {
+        $currentStatus = Cache::get('evaluations_open', false);
+        $newStatus = !$currentStatus;
+
+        Cache::put('evaluations_open', $newStatus);
+
+        return back()->with('success', 'Evaluation window status successfully toggled to ' . ($newStatus ? 'OPEN' : 'CLOSED') . '!');
     }
 
     public function storeQuestion(Request $request)

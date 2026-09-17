@@ -92,10 +92,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/users/export', [AdminUserController::class, 'export'])->name('users.export');      
         Route::get('/analytics/{type}', [AdminDashboardController::class, 'showAnalyticsReport'])->name('analytics.report');
         Route::resource('users', AdminUserController::class);
+    
 
-        // --- Faculty Evaluation Routes (Tamang Pangalan at Prefix) ---
+        // --- Faculty Evaluation Routes ---
         Route::get('/evaluations', [AdminEvaluationController::class, 'index'])->name('evaluations');
         Route::get('/evaluations/periods', [AdminEvaluationController::class, 'periods'])->name('evaluations.periods');
+        Route::post('/evaluations/periods/save', [AdminEvaluationController::class, 'savePeriod'])->name('evaluations.periods.save');
         Route::get('/evaluations/results', [AdminEvaluationController::class, 'results'])->name('evaluations.results');
         Route::post('/evaluations/toggle-status', [AdminEvaluationController::class, 'toggleStatus'])->name('evaluations.toggle');
 
@@ -183,6 +185,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     */
     Route::middleware(['role:student'])->prefix('student')->name('student.')->group(function () {
         Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
+
+Route::get('/attendance', [StudentDashboardController::class, 'attendance'])->name('attendance');
+
+        // --- Student Evaluation Portal Routes ---
+        Route::get('/evaluations', [StudentDashboardController::class, 'evaluationsIndex'])->name('evaluations.index');
+        Route::get('/evaluations/take/{teacherId}', [StudentDashboardController::class, 'takeEvaluation'])->name('evaluations.take');
+        Route::post('/evaluations/store', [StudentDashboardController::class, 'storeEvaluation'])->name('evaluations.store');
     });
 
 });

@@ -10,367 +10,364 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .sia-card { background: #ffffff; border: 2px solid #e2e8f0; border-radius: 24px; box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
-        .sia-card:hover { border-color: #cbd5e1; transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+        .sia-card { background: #ffffff; border: 1.5px solid #f1f5f9; border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
+        .cal-day { aspect-ratio: 1; border-radius: 12px; transition: all 0.15s ease; cursor: pointer; }
+        .cal-day:hover:not(.disabled) { transform: translateY(-2px); border-color: #f59e0b; }
+        .cal-day.active { background: #5c0d11 !important; color: #ffffff !important; border-color: #f59e0b !important; box-shadow: 0 4px 12px rgba(92, 13, 17, 0.35); }
+        .cal-day.active .cal-dot { background-color: #f59e0b !important; }
     </style>
 </head>
 <body class="bg-[#f8fafc] text-slate-800 antialiased min-h-screen flex">
 
-    <!-- REUSABLE SIDEBAR -->
+    <!-- REUSABLE MAROON SIDEBAR -->
     @include('layouts.sidebar')
 
-    <!-- MAIN CONTENT CONTAINER -->
-    <main class="flex-1 flex flex-col min-w-0 ml-72">
+    <!-- MAIN DASHBOARD CONTENT (Offset for 280px sidebar) -->
+    <div style="margin-left: 288px;" class="flex-1 min-h-screen p-8 bg-[#f8fafc]">
         
-        <!-- Top Navigation Header -->
-        <header class="bg-white/85 backdrop-blur-md border-b-2 border-slate-200/80 px-8 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 z-20 shadow-xs">
+        <!-- Header Profile Bar -->
+        <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200/60">
             <div>
                 <h1 class="text-2xl font-black text-slate-900 tracking-tight">Student Attendance Monitor</h1>
-                <p class="text-xs text-slate-500 font-bold mt-0.5">Southern Isabela Academy &bull; Real-Time NFC Tap Logs & Records</p>
+                <p class="text-xs text-slate-500 font-semibold mt-0.5">Southern Isabela Academy &bull; Real-Time NFC Tap Logs & Attendance Calendar</p>
             </div>
-            
-            <div class="flex items-center gap-4">
-                <!-- Profile Trigger Button -->
-                <button type="button" onclick="openProfileModal()" class="flex items-center gap-3 pl-4 border-l-2 border-slate-200 hover:opacity-80 transition cursor-pointer">
-                    @if(!empty($teacher->photo))
-                        <img src="{{ asset('storage/' . $teacher->photo) }}" class="w-10 h-10 rounded-2xl object-cover border-2 border-amber-300 shadow-2xs">
-                    @else
-                        <div class="w-10 h-10 rounded-2xl bg-amber-100 border border-amber-300 text-amber-900 flex items-center justify-center font-black text-xs">
-                            {{ strtoupper(substr($teacher->first_name ?? 'T', 0, 1)) }}{{ strtoupper(substr($teacher->last_name ?? 'F', 0, 1)) }}
-                        </div>
-                    @endif
-                    <div class="text-left hidden sm:block">
-                        <span class="block text-xs font-extrabold text-slate-900 leading-tight">Prof. {{ $teacher->first_name }} {{ $teacher->last_name }}</span>
-                        <span class="text-[10px] font-bold text-amber-700">Edit Faculty Profile <i class="fa-solid fa-angle-right text-[8px]"></i></span>
-                    </div>
-                </button>
-            </div>
-        </header>
-
-        <!-- Page Body Content -->
-        <div class="p-8 max-w-7xl w-full mx-auto space-y-8 flex-1">
-            
-            @if(session('success'))
-                <div class="p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-3 shadow-xs">
-                    <i class="fa-solid fa-circle-check text-emerald-600 text-base shrink-0"></i>
-                    <span>{{ session('success') }}</span>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-amber-100 border border-amber-300 flex items-center justify-center font-bold text-amber-900 text-xs">
+                    {{ substr(Auth::user()->first_name ?? 'P', 0, 1) }}{{ substr(Auth::user()->last_name ?? 'G', 0, 1) }}
                 </div>
-            @endif
-
-            <!-- 1. LIVE SUMMARY METRIC CARDS -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <!-- Present Card -->
-                <div class="sia-card p-6 flex items-center gap-5 relative overflow-hidden group">
-                    <div class="absolute right-0 top-0 translate-x-4 -translate-y-4 w-24 h-24 bg-emerald-50 rounded-full blur-xl group-hover:bg-emerald-100 transition"></div>
-                    <div class="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center text-xl font-bold shrink-0 shadow-inner">
-                        <i class="fa-solid fa-user-check"></i>
-                    </div>
-                    <div class="relative z-10">
-                        <p class="text-[10px] uppercase font-black text-slate-400 tracking-wider">Present Today</p>
-                        <h3 class="text-3xl font-black text-slate-900 mt-0.5 font-mono">0</h3>
-                        <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md mt-1 inline-block">On-Time Logging</span>
-                    </div>
+                <div>
+                    <div class="text-xs font-bold text-slate-900">{{ Auth::user()->first_name ?? 'Prof.' }} {{ Auth::user()->last_name ?? 'Teacher' }}</div>
+                    <div class="text-[10px] text-amber-700 font-semibold">Faculty Member</div>
                 </div>
-
-                <!-- Late Card -->
-                <div class="sia-card p-6 flex items-center gap-5 relative overflow-hidden group">
-                    <div class="absolute right-0 top-0 translate-x-4 -translate-y-4 w-24 h-24 bg-amber-50 rounded-full blur-xl group-hover:bg-amber-100 transition"></div>
-                    <div class="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center text-xl font-bold shrink-0 shadow-inner">
-                        <i class="fa-solid fa-clock"></i>
-                    </div>
-                    <div class="relative z-10">
-                        <p class="text-[10px] uppercase font-black text-slate-400 tracking-wider">Late Arrivals</p>
-                        <h3 class="text-3xl font-black text-slate-900 mt-0.5 font-mono">0</h3>
-                        <span class="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md mt-1 inline-block">Grace Period Passed</span>
-                    </div>
-                </div>
-
-                <!-- Total Scanned Card -->
-                <div class="sia-card p-6 flex items-center gap-5 relative overflow-hidden group">
-                    <div class="absolute right-0 top-0 translate-x-4 -translate-y-4 w-24 h-24 bg-red-50 rounded-full blur-xl group-hover:bg-red-100 transition"></div>
-                    <div class="w-14 h-14 rounded-2xl bg-red-50 border border-red-200 text-[#8b1818] flex items-center justify-center text-xl font-bold shrink-0 shadow-inner">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
-                    <div class="relative z-10">
-                        <p class="text-[10px] uppercase font-black text-slate-400 tracking-wider">Total Scanned</p>
-                        <h3 class="text-3xl font-black text-slate-900 mt-0.5 font-mono">0</h3>
-                        <span class="text-[10px] font-bold text-[#8b1818] bg-red-50 px-2 py-0.5 rounded-md mt-1 inline-block">Total Daily Taps</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- EMPHASIZED PROFESSIONAL LAUNCH NFC KIOSK BANNER -->
-            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#8b1818] via-[#6f1212] to-[#3d0808] text-white p-8 md:p-10 shadow-2xl border border-red-500/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 group">
-                <div class="absolute -right-12 -top-12 w-72 h-72 bg-red-500/10 rounded-full blur-3xl pointer-events-none transition-all duration-500 group-hover:bg-red-500/20"></div>
-                <div class="absolute -left-12 -bottom-12 w-64 h-64 bg-black/20 rounded-full blur-2xl pointer-events-none"></div>
-
-                <div class="flex items-start md:items-center gap-6 relative z-10">
-                    <div class="w-18 h-18 min-w-[4.5rem] min-h-[4.5rem] rounded-2xl bg-black/30 border border-white/15 flex items-center justify-center text-3xl text-amber-300 shadow-inner backdrop-blur-md">
-                        <i class="fa-solid fa-nfc-symbol animate-pulse"></i>
-                    </div>
-                    <div class="space-y-1.5">
-                        <div class="flex items-center gap-2">
-                            <span class="inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[10px] font-extrabold uppercase px-3 py-1 rounded-full tracking-wider">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Terminal Online
-                            </span>
-                            <span class="text-xs font-mono text-red-200/60">&bull; ACR122U Reader Ready</span>
-                        </div>
-                        <h2 class="text-2xl md:text-3xl font-black tracking-tight text-white">Live NFC Attendance Terminal</h2>
-                        <p class="text-xs md:text-sm text-red-100/75 font-medium max-w-2xl leading-relaxed">
-                            Launch the dedicated fullscreen kiosk station for automated student identification, instant audio-visual feedback, and real-time database logging.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="relative z-10 shrink-0 w-full md:w-auto flex justify-end">
-                    <a href="{{ route('teacher.kiosk') }}" 
-                       class="w-full md:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-white hover:bg-slate-50 text-[#8b1818] font-black text-xs uppercase tracking-wider shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer">
-                        <i class="fa-solid fa-laptop-code text-sm"></i>
-                        <span>Launch Kiosk Terminal</span>
-                        <i class="fa-solid fa-arrow-right text-[10px] opacity-60 ml-1"></i>
-                    </a>
-                </div>
-            </div>
-
-            <!-- FILTER & SEARCH TOOLBAR -->
-<div class="sia-card p-6">
-    <form method="GET" action="{{ route('teacher.attendance') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-        
-        <!-- Search Input -->
-        <div class="lg:col-span-2">
-            <label class="block text-xs font-black text-slate-700 mb-1">Search Student</label>
-            <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                </span>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name or ID number..."
-                       class="w-full pl-10 pr-4 py-2.5 rounded-xl border-2 border-slate-200 text-xs font-bold focus:border-[#8b1818] outline-none bg-slate-50/50">
             </div>
         </div>
 
-        <!-- Status Filter -->
-        <div>
-            <label class="block text-xs font-black text-slate-700 mb-1">Status</label>
-            <select name="status" class="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-xs font-bold focus:border-[#8b1818] outline-none bg-white">
-                <option value="">All Statuses</option>
-                <option value="ON-TIME" {{ request('status') === 'ON-TIME' ? 'selected' : '' }}>On-Time</option>
-                <option value="LATE" {{ request('status') === 'LATE' ? 'selected' : '' }}>Late</option>
-            </select>
-        </div>
-
-        <!-- Date From -->
-        <div>
-            <label class="block text-xs font-black text-slate-700 mb-1">From Date</label>
-            <input type="date" name="date_from" value="{{ $dateFrom }}"
-                   class="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-xs font-bold focus:border-[#8b1818] outline-none bg-white">
-        </div>
-
-        <!-- Date To & Action Buttons -->
-        <div>
-            <label class="block text-xs font-black text-slate-700 mb-1">To Date</label>
-            <input type="date" name="date_to" value="{{ $dateTo }}"
-                   class="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-xs font-bold focus:border-[#8b1818] outline-none bg-white">
-        </div>
-
-        <div class="lg:col-span-5 flex items-center justify-between pt-2 border-t border-slate-100 mt-2">
-            <div class="flex items-center gap-2">
-                <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#8b1818] hover:bg-[#731414] text-white text-xs font-black uppercase tracking-wider transition shadow-sm cursor-pointer flex items-center gap-2">
-                    <i class="fa-solid fa-filter text-xs"></i> Apply Filters
-                </button>
-                <a href="{{ route('teacher.attendance') }}" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-black transition">
-                    Reset
-                </a>
+        <!-- Metric Counter Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+            <div class="sia-card p-5 flex items-center justify-between border-l-4 border-l-emerald-500">
+                <div>
+                    <p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Present On Date</p>
+                    <h3 id="stat_present" class="text-3xl font-black text-slate-900 mt-1">0</h3>
+                    <span class="text-[11px] font-semibold text-emerald-600 mt-1 inline-block">On-Time & Present</span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-user-check"></i>
+                </div>
             </div>
 
-            <!-- Export CSV Button -->
-            <a href="{{ route('teacher.attendance.export', ['date_from' => $dateFrom, 'date_to' => $dateTo, 'status' => request('status'), 'search' => request('search')]) }}" 
-               class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider transition shadow-sm cursor-pointer flex items-center gap-2">
-                <i class="fa-solid fa-file-excel text-xs"></i> Export Report (CSV)
-            </a>
-        </div>
-    </form>
-</div>
+            <div class="sia-card p-5 flex items-center justify-between border-l-4 border-l-amber-500">
+                <div>
+                    <p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Late Arrivals</p>
+                    <h3 id="stat_late" class="text-3xl font-black text-slate-900 mt-1">0</h3>
+                    <span class="text-[11px] font-semibold text-amber-600 mt-1 inline-block">Tardy / Grace Period</span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+            </div>
 
-            <!-- Attendance Dashboard Section -->
-            <div class="sia-card p-6 md:p-8 space-y-6">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-100 gap-4">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-red-50 border border-red-200 text-[#8b1818] flex items-center justify-center text-base shadow-inner">
-                            <i class="fa-solid fa-clipboard-user"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-black text-slate-900 tracking-tight">Live Attendance Feed</h2>
-                            <p class="text-xs text-slate-400 font-bold mt-0.5">Real-time student tap-in feed and daily records log</p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center gap-3">
-                        <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-600">
-                            <i class="fa-solid fa-calendar-days text-slate-400"></i>
-                            <span>{{ date('F d, Y') }}</span>
-                        </div>
-                        <span class="inline-flex items-center gap-2 text-xs font-black text-[#8b1818] bg-red-50 border border-red-200 px-4 py-2 rounded-xl shadow-2xs">
-                            <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span> Active Feed
+            <div class="sia-card p-5 flex items-center justify-between border-l-4 border-l-rose-500">
+                <div>
+                    <p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Absent Students</p>
+                    <h3 id="stat_absent" class="text-3xl font-black text-slate-900 mt-1">0</h3>
+                    <span class="text-[11px] font-semibold text-rose-600 mt-1 inline-block">Unlogged / Excused</span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-user-xmark"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live NFC Kiosk Launcher Banner -->
+        <div class="rounded-3xl bg-gradient-to-r from-[#5c0d11] to-[#8b1818] p-6 text-white shadow-xl mb-8 flex flex-col md:flex-row items-center justify-between gap-6 border border-red-950/20">
+            <div class="flex items-center gap-5">
+                <div class="w-14 h-14 rounded-2xl bg-black/30 border border-white/20 flex items-center justify-center text-amber-300 text-2xl shrink-0">
+                    <i class="fa-solid fa-wifi rotate-45"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                            TERMINAL ONLINE &bull; READY
                         </span>
                     </div>
-                </div>
-
-                <!-- Placeholder / Attendance Feed Table Area -->
-                <div class="py-20 text-center">
-                    <div class="w-20 h-20 rounded-3xl bg-slate-50 border-2 border-dashed border-slate-200 text-slate-300 flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">
-                        <i class="fa-solid fa-id-card-clip"></i>
-                    </div>
-                    <h3 class="text-base font-extrabold text-slate-800">Awaiting Student NFC Taps</h3>
-                    <p class="text-xs text-slate-400 font-semibold mt-1 max-w-sm mx-auto">Launched kiosk terminal is ready. Scanned student attendance logs will appear here instantly in real-time.</p>
+                    <h3 class="text-xl font-black tracking-wide">Live NFC Attendance Terminal</h3>
+                    <p class="text-xs text-red-100/75 mt-0.5">Launch the dedicated station for tap identification and real-time database recording.</p>
                 </div>
             </div>
-
+            <a href="{{ route('teacher.kiosk') }}" class="px-6 py-3.5 bg-white text-slate-950 hover:bg-amber-300 rounded-2xl font-black text-xs uppercase tracking-wider transition shadow-lg shrink-0 flex items-center gap-2">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Launch Kiosk Terminal
+            </a>
         </div>
-    </main>
 
-    <!-- ================= EDIT FACULTY PROFILE MODAL ================= -->
-    <div id="teacher_profile_modal" class="hidden fixed inset-0 items-center justify-center p-4 sm:p-6 bg-slate-950/60 transition-all duration-200 z-50 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl border-2 border-slate-200 overflow-hidden transform transition-all p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+        <!-- Interactive Attendance Calendar & Records Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
             
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-red-100 text-[#8b1818] flex items-center justify-center text-lg">
-                        <i class="fa-solid fa-user-pen"></i>
+            <!-- Calendar Card (4 Columns) -->
+            <div class="lg:col-span-5 sia-card p-6">
+                <div class="flex items-center justify-between mb-5">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-days text-[#5c0d11] text-base"></i>
+                        <h3 id="cal_month_year" class="font-black text-slate-900 text-sm tracking-tight">September 2026</h3>
                     </div>
-                    <div>
-                        <h3 class="text-lg font-black text-slate-900 tracking-tight">Edit Faculty Profile</h3>
-                        <p class="text-xs text-slate-400 font-bold">Update your institutional registration details</p>
+                    <div class="flex items-center gap-1">
+                        <button type="button" onclick="prevMonth()" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                        </button>
+                        <button type="button" onclick="nextMonth()" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </button>
                     </div>
                 </div>
-                <button type="button" onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+
+                <!-- Calendar Week Header -->
+                <div class="grid grid-cols-7 gap-1 text-center mb-2">
+                    <span class="text-[10px] font-black text-slate-400 uppercase">Su</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase">Mo</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase">Tu</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase">We</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase">Th</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase">Fr</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase">Sa</span>
+                </div>
+
+                <!-- Calendar Days Grid (Populated dynamically) -->
+                <div id="calendar_days" class="grid grid-cols-7 gap-1.5 text-center text-xs font-bold text-slate-700">
+                    <!-- Javascript populates days here -->
+                </div>
+
+                <!-- Legend Indicator -->
+                <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-semibold">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                        <span>High Tap Log</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#5c0d11]"></span>
+                        <span>Selected Day</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-slate-200"></span>
+                        <span>Weekend / Empty</span>
+                    </div>
+                </div>
             </div>
 
-            <form action="{{ route('teacher.profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
-                @csrf
-                @method('PUT')
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-black text-slate-700 mb-1">Last Name *</label>
-                        <input type="text" name="last_name" value="{{ old('last_name', $teacher->last_name) }}" required
-                               class="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-xs font-bold focus:border-[#8b1818] outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-black text-slate-700 mb-1">First Name *</label>
-                        <input type="text" name="first_name" value="{{ old('first_name', $teacher->first_name) }}" required
-                               class="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-xs font-bold focus:border-[#8b1818] outline-none">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-black text-slate-700 mb-1">Faculty / Employee ID *</label>
-                        <input type="text" name="id_number" value="{{ old('id_number', $teacher->id_number) }}" required
-                               class="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-xs font-bold focus:border-[#8b1818] outline-none bg-slate-100 font-mono">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-black text-slate-700 mb-1">Email Address *</label>
-                        <input type="email" name="email" value="{{ old('email', $teacher->email) }}" required
-                               class="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-xs font-bold focus:border-[#8b1818] outline-none">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-black text-slate-700 mb-1">Gender *</label>
-                        <select name="gender" required class="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-xs font-bold focus:border-[#8b1818] outline-none bg-white">
-                            <option value="">Select Gender</option>
-                            <option value="1" {{ (int)$teacher->gender === 1 ? 'selected' : '' }}>Male</option>
-                            <option value="2" {{ (int)$teacher->gender === 2 ? 'selected' : '' }}>Female</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-black text-slate-700 mb-1">Contact Number</label>
-                        <input type="text" name="phone_number" value="{{ old('phone_number', $teacher->phone_number) }}" placeholder="09xxxxxxxxx"
-                               class="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-xs font-bold focus:border-[#8b1818] outline-none">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
-                    <div>
-                        <label class="block text-xs font-black text-slate-700 mb-1">Password *</label>
-                        <input type="password" name="password" placeholder="••••••••"
-                               class="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-xs font-bold focus:border-[#8b1818] outline-none">
-                        <span class="block text-[10px] text-slate-400 mt-0.5">Leave blank to keep current</span>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-black text-slate-700 mb-1">Confirm Password *</label>
-                        <input type="password" name="password_confirmation" placeholder="••••••••"
-                               class="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-xs font-bold focus:border-[#8b1818] outline-none">
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                    <div class="relative shrink-0">
-                        @if(!empty($teacher->photo))
-                            <img id="profile_preview" src="{{ asset('storage/' . $teacher->photo) }}" class="w-16 h-16 rounded-2xl object-cover border-2 border-slate-300 shadow-sm">
-                        @else
-                            <div id="profile_preview_fallback" class="w-16 h-16 rounded-2xl bg-amber-100 border border-amber-300 text-amber-900 flex items-center justify-center font-black text-xl">
-                                {{ strtoupper(substr($teacher->first_name ?? 'T', 0, 1)) }}{{ strtoupper(substr($teacher->last_name ?? 'F', 0, 1)) }}
+            <!-- Attendance Records by Date Table (7 Columns) -->
+            <div class="lg:col-span-7 sia-card p-6 flex flex-col justify-between">
+                <div>
+                    <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-900 border border-amber-200 uppercase tracking-wider">Filtered View</span>
+                                <h3 id="selected_date_label" class="font-black text-slate-900 text-base">September 17, 2026</h3>
                             </div>
-                            <img id="profile_preview" class="w-16 h-16 rounded-2xl object-cover border-2 border-slate-300 shadow-sm hidden">
-                        @endif
+                            <p class="text-xs text-slate-400 font-medium mt-0.5">Students logged under your class sections on this date</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <select id="filter_status_select" onchange="filterTableByStatus()" class="px-3 py-1.5 bg-slate-50 border border-slate-200 text-xs font-semibold rounded-xl text-slate-700 outline-none">
+                                <option value="ALL">All Statuses</option>
+                                <option value="PRESENT">Present</option>
+                                <option value="LATE">Late</option>
+                                <option value="ABSENT">Absent</option>
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-black text-slate-700 mb-1">Faculty Profile Photo</label>
-                        <input type="file" name="photo" accept="image/jpeg,image/png" onchange="previewImage(event)" 
-                               class="text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-[#8b1818] file:text-white hover:file:bg-[#731414] cursor-pointer">
-                        <span class="block text-[10px] text-slate-400 mt-1 font-medium">Optional, JPG/PNG up to 2MB</span>
+
+                    <!-- Students Status Table -->
+                    <div class="overflow-x-auto max-h-[380px] overflow-y-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead class="bg-slate-50/80 sticky top-0 border-b border-slate-200 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                <tr>
+                                    <th class="py-2.5 px-3">Student</th>
+                                    <th class="py-2.5 px-3">LRN / ID</th>
+                                    <th class="py-2.5 px-3">Section</th>
+                                    <th class="py-2.5 px-3">Time In</th>
+                                    <th class="py-2.5 px-3 text-right">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="student_attendance_body" class="divide-y divide-slate-100">
+                                <!-- Populated dynamically based on clicked calendar date -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <div class="pt-3 flex items-center justify-end gap-3">
-                    <button type="button" onclick="closeProfileModal()" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black transition cursor-pointer">
-                        Cancel
-                    </button>
-                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-[#8b1818] hover:bg-[#731414] text-white text-xs font-black uppercase tracking-wider transition shadow-md shadow-red-950/20 active:scale-[0.98] cursor-pointer">
-                        Save Changes
+                <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between text-xs text-slate-400 font-medium">
+                    <span id="showing_count_label">Loading attendance...</span>
+                    <button type="button" onclick="exportCurrentDateReport()" class="font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-excel"></i> Export Selected Date
                     </button>
                 </div>
-            </form>
+            </div>
         </div>
+
     </div>
 
-    <!-- MODAL SCRIPT -->
+    <!-- Frontend Dynamic Calendar Script -->
     <script>
-        function openProfileModal() {
-            const modal = document.getElementById('teacher_profile_modal');
-            if (modal) {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
+        let currentDate = new Date(2026, 8, 17); // Default to Sept 17, 2026
+        let selectedDay = 17;
+        let selectedMonth = 8; // 0-indexed: 8 is September
+        let selectedYear = 2026;
+
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        // Dummy database state simulation (Real students list)
+        const mockStudentList = [
+            { id: "STD-2026-001", name: "Villanueva, Mark", section: "Grade 11 - STEM", time: "07:18 AM", status: "PRESENT" },
+            { id: "STD-2026-002", name: "Reyes, Angelica", section: "Grade 12 - ABM", time: "07:22 AM", status: "PRESENT" },
+            { id: "STD-2026-003", name: "Aquino, Christian", section: "Grade 11 - TVL", time: "07:46 AM", status: "LATE" },
+            { id: "STD-2026-004", name: "Gambito, Joshua", section: "Grade 11 - STEM", time: "07:12 AM", status: "PRESENT" },
+            { id: "STD-2026-005", name: "Bautista, Sarah", section: "Grade 12 - HUMSS", time: "--:-- --", status: "ABSENT" },
+            { id: "STD-2026-006", name: "Dela Cruz, Juan", section: "Grade 11 - STEM", time: "--:-- --", status: "ABSENT" }
+        ];
+
+        function renderCalendar() {
+            const firstDay = new Date(selectedYear, selectedMonth, 1).getDay();
+            const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+
+            document.getElementById('cal_month_year').innerText = `${months[selectedMonth]} ${selectedYear}`;
+
+            const daysContainer = document.getElementById('calendar_days');
+            daysContainer.innerHTML = '';
+
+            // Empty cells before day 1
+            for (let i = 0; i < firstDay; i++) {
+                const empty = document.createElement('div');
+                empty.className = 'p-2 text-slate-300 cal-day disabled';
+                daysContainer.appendChild(empty);
+            }
+
+            // Days of the month
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dayEl = document.createElement('div');
+                const isSelected = (d === selectedDay);
+                dayEl.className = `cal-day flex flex-col items-center justify-center p-1.5 border border-slate-100 ${isSelected ? 'active' : 'bg-slate-50/50 hover:bg-slate-100'}`;
+                
+                dayEl.innerHTML = `
+                    <span class="text-xs font-bold leading-none">${d}</span>
+                    <span class="cal-dot w-1.5 h-1.5 rounded-full mt-1 ${d % 2 === 0 ? 'bg-emerald-500' : 'bg-transparent'}"></span>
+                `;
+
+                dayEl.onclick = () => selectDay(d);
+                daysContainer.appendChild(dayEl);
             }
         }
 
-        function closeProfileModal() {
-            const modal = document.getElementById('teacher_profile_modal');
-            if (modal) {
-                modal.classList.remove('flex');
-                modal.classList.add('hidden');
-            }
+        function selectDay(day) {
+            selectedDay = day;
+            renderCalendar();
+            loadAttendanceForDate(selectedYear, selectedMonth, day);
         }
 
-        function previewImage(event) {
-            const reader = new FileReader();
-            reader.onload = function() {
-                const preview = document.getElementById('profile_preview');
-                const fallback = document.getElementById('profile_preview_fallback');
-                if (preview) {
-                    preview.src = reader.result;
-                    preview.classList.remove('hidden');
+        function prevMonth() {
+            selectedMonth--;
+            if (selectedMonth < 0) {
+                selectedMonth = 11;
+                selectedYear--;
+            }
+            selectedDay = 1;
+            renderCalendar();
+            loadAttendanceForDate(selectedYear, selectedMonth, selectedDay);
+        }
+
+        function nextMonth() {
+            selectedMonth++;
+            if (selectedMonth > 11) {
+                selectedMonth = 0;
+                selectedYear++;
+            }
+            selectedDay = 1;
+            renderCalendar();
+            loadAttendanceForDate(selectedYear, selectedMonth, selectedDay);
+        }
+
+        function loadAttendanceForDate(year, month, day) {
+            const dateStr = `${months[month]} ${day}, ${year}`;
+            document.getElementById('selected_date_label').innerText = dateStr;
+
+            // Compute randomized simulation base on the day for realistic feel
+            let presentCount = 0;
+            let lateCount = 0;
+            let absentCount = 0;
+
+            const tbody = document.getElementById('student_attendance_body');
+            tbody.innerHTML = '';
+
+            // Check if weekend
+            const dayOfWeek = new Date(year, month, day).getDay();
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-8 text-center text-slate-400 font-semibold italic">
+                            <i class="fa-solid fa-mug-hot text-2xl mb-1 text-slate-300 block"></i>
+                            Weekend / No Classes Scheduled on this date.
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('stat_present').innerText = 0;
+                document.getElementById('stat_late').innerText = 0;
+                document.getElementById('stat_absent').innerText = 0;
+                document.getElementById('showing_count_label').innerText = '0 records found';
+                return;
+            }
+
+            mockStudentList.forEach((s, idx) => {
+                let status = s.status;
+                let time = s.time;
+
+                // Alternate dummy status on specific date clicks
+                if (day % 3 === 0 && idx === 1) { status = "LATE"; time = "07:38 AM"; }
+                if (day === 1 && idx === 4) { status = "PRESENT"; time = "07:15 AM"; }
+
+                if (status === 'PRESENT') presentCount++;
+                if (status === 'LATE') lateCount++;
+                if (status === 'ABSENT') absentCount++;
+
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-50 transition";
+                row.innerHTML = `
+                    <td class="py-3 px-3 font-bold text-slate-900">${s.name}</td>
+                    <td class="py-3 px-3 font-mono text-[11px] text-slate-500">${s.id}</td>
+                    <td class="py-3 px-3 text-slate-600 font-medium">${s.section}</td>
+                    <td class="py-3 px-3 font-mono font-bold ${status === 'ABSENT' ? 'text-slate-300' : 'text-slate-700'}">${time}</td>
+                    <td class="py-3 px-3 text-right">
+                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                            status === 'PRESENT' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                            (status === 'LATE' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-rose-50 text-rose-700 border border-rose-200')
+                        }">${status}</span>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            document.getElementById('stat_present').innerText = presentCount;
+            document.getElementById('stat_late').innerText = lateCount;
+            document.getElementById('stat_absent').innerText = absentCount;
+            document.getElementById('showing_count_label').innerText = `Showing ${mockStudentList.length} student records`;
+        }
+
+        function filterTableByStatus() {
+            const filterVal = document.getElementById('filter_status_select').value;
+            const rows = document.querySelectorAll('#student_attendance_body tr');
+
+            rows.forEach(r => {
+                if (filterVal === 'ALL') {
+                    r.style.display = '';
+                } else {
+                    const statusText = r.querySelector('td:last-child span')?.innerText.trim();
+                    r.style.display = (statusText === filterVal) ? '' : 'none';
                 }
-                if (fallback) fallback.classList.add('hidden');
-            }
-            if (event.target.files[0]) {
-                reader.readAsDataURL(event.target.files[0]);
-            }
+            });
         }
+
+        function exportCurrentDateReport() {
+            alert(`Exporting official CSV attendance report for ${document.getElementById('selected_date_label').innerText}...`);
+        }
+
+        // Initialize on Load
+        renderCalendar();
+        loadAttendanceForDate(selectedYear, selectedMonth, selectedDay);
     </script>
 </body>
 </html>

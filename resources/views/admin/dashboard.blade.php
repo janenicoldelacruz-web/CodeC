@@ -374,13 +374,13 @@
                     </div>
                 </div>
 
-                <!-- Email Address -->
+        <!-- Username / ID Number -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Institutional Email Address <span class="text-red-600">*</span></label>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Username / ID Number</label>
                     <div class="relative flex items-center rounded-xl border border-slate-300 focus-within:border-[#8b1818] bg-white">
-                        <span class="pl-3.5 text-slate-400 text-xs"><i class="fa-solid fa-envelope"></i></span>
-                        <input type="email" name="email" value="{{ old('email', auth()->user()->email) }}" required placeholder="admin@siatrack.edu.ph"
-                               class="w-full py-2.5 px-3 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none bg-transparent">
+                        <span class="pl-3.5 text-slate-400 text-xs"><i class="fa-solid fa-user"></i></span>
+                       <input type="text" name="email" value="{{ old('email', auth()->user()->email) }}" autocomplete="username" placeholder="Enter username or ID number"
+       class="w-full py-2.5 px-3 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none bg-transparent">
                     </div>
                 </div>
             </div>

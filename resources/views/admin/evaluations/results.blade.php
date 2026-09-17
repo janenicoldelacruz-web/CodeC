@@ -203,7 +203,7 @@
                     </div>
                     <div>
                         <h3 class="text-lg font-black text-slate-900" x-text="selectedFaculty ? selectedFaculty.name : ''"></h3>
-                        <p class="text-xs font-bold text-slate-400">Peer Evaluation Remarks & Rating Summary[cite: 1]</p>
+                        <p class="text-xs font-bold text-slate-400">Peer Evaluation Remarks & Rating Summary</p>
                     </div>
                 </div>
                 <button @click="detailModal = false" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -223,7 +223,7 @@
 
             <!-- Written Comments -->
             <div class="space-y-3">
-                <h4 class="text-xs font-black uppercase text-slate-900 tracking-wider">Qualitative Comments & Feedback[cite: 1]</h4>
+                <h4 class="text-xs font-black uppercase text-slate-900 tracking-wider">Qualitative Comments & Feedback</h4>
                 
                 <template x-if="selectedFaculty && selectedFaculty.comments && selectedFaculty.comments.length > 0">
                     <div class="space-y-2.5 max-h-60 overflow-y-auto pr-1">

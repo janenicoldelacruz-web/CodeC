@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Cache;
+use App\Models\User;
 
 class StudentDashboardController extends Controller
 {
@@ -147,7 +149,7 @@ class StudentDashboardController extends Controller
                 }
             }
 
-            // Sort by day and time (Database-agnostic CASE ordering for SQLite/MySQL)
+            // Sort by day and time
             if (Schema::hasColumn('class_schedules', 'day_of_week')) {
                 $query->orderByRaw("
                     CASE class_schedules.day_of_week 
@@ -183,16 +185,73 @@ class StudentDashboardController extends Controller
             });
         }
 
-        // 3. Faculty Evaluation Status Check
-        $isEvaluationOpen = false;
-        if (Schema::hasTable('system_settings')) {
+        // 3. Faculty Evaluation Status Check (Safe & Guarded)
+        $isEvaluationOpen = Cache::get('evaluations_open', false);
+        
+        // Check academic_periods table only if table and 'status' column actually exist
+        if (!$isEvaluationOpen && Schema::hasTable('academic_periods') && Schema::hasColumn('academic_periods', 'status')) {
+            $periodStatus = DB::table('academic_periods')->where('is_active', 1)->value('status');
+            $isEvaluationOpen = in_array(strtolower((string)$periodStatus), ['open', 'active', '1', 'true']);
+        }
+
+        if (!$isEvaluationOpen && Schema::hasTable('system_settings')) {
             $status = DB::table('system_settings')->where('key', 'evaluation_status')->value('value');
             $isEvaluationOpen = in_array(strtolower((string)$status), ['open', 'active', '1', 'true']);
-        } elseif (Schema::hasTable('settings')) {
+        } elseif (!$isEvaluationOpen && Schema::hasTable('settings')) {
             $status = DB::table('settings')->where('key', 'evaluation_status')->value('value');
             $isEvaluationOpen = in_array(strtolower((string)$status), ['open', 'active', '1', 'true']);
         }
 
         return view('student.dashboard', compact('student', 'schedules', 'isEvaluationOpen'));
+    }
+
+    // ==========================================
+    // MGA IDINAGDAG NA STUDENT EVALUATION METHODS
+    // ==========================================
+
+    public function evaluationsIndex()
+    {
+        $facultyMembers = User::where('role_id', 2)->orderBy('last_name', 'asc')->get();
+        return view('student.evaluations.index', compact('facultyMembers'));
+    }
+
+    public function takeEvaluation($teacherId)
+    {
+        $teacher = User::where('id', $teacherId)->where('role_id', 2)->firstOrFail();
+        
+        $questions = DB::table('evaluation_questions')
+            ->where('form_type', 'student')
+            ->where('is_active', 1)
+            ->orderBy('order_num', 'asc')
+            ->get();
+
+        $groupedQuestions = $questions->groupBy('category');
+
+        return view('student.evaluations.take', compact('teacher', 'groupedQuestions'));
+    }
+
+    public function storeEvaluation(Request $request)
+    {
+        $request->validate([
+            'evaluatee_id' => 'required|exists:users,id',
+            'scores'       => 'required|array',
+            'scores.*'     => 'required|integer|between:1,5',
+            'comments'     => 'nullable|string|max:1000',
+        ]);
+
+        $scores = $request->input('scores');
+        $averageScore = count($scores) > 0 ? round(array_sum($scores) / count($scores), 2) : 0;
+
+        DB::table('peer_evaluations')->insert([
+            'evaluator_id'  => auth()->id(),
+            'evaluatee_id'  => $request->evaluatee_id,
+            'average_score' => $averageScore,
+            'comments'      => $request->input('comments'),
+            'created_at'    => now(),
+            'updated_at'    => now(),
+        ]);
+
+        return redirect()->route('student.evaluations.index')
+            ->with('success', 'Faculty evaluation successfully submitted!');
     }
 }

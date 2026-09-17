@@ -16,14 +16,14 @@ class AdminUserController extends Controller
 {
     public function index(Request $request)
     {
-        $roleFilter = strtolower(trim((string)$request->query('role', 'all')));
         $search = trim((string)$request->query('search', ''));
+        $roleFilter = trim((string)$request->query('role', 'all'));
         $cols = Schema::getColumnListing('users');
 
-        $baseQuery = User::with(['role', 'nfcCard'])->latest('id');
+        $query = User::with(['role', 'nfcCard']);
 
         if (!empty($search)) {
-            $baseQuery->where(function ($q) use ($search, $cols) {
+            $query->where(function ($q) use ($search, $cols) {
                 if (in_array('first_name', $cols)) $q->where('first_name', 'like', "%{$search}%");
                 if (in_array('last_name', $cols)) $q->orWhere('last_name', 'like', "%{$search}%");
                 if (in_array('name', $cols)) $q->orWhere('name', 'like', "%{$search}%");
@@ -32,48 +32,14 @@ class AdminUserController extends Controller
             });
         }
 
-        $studentsQuery = (clone $baseQuery)->where(function ($q) use ($cols) {
-            if (in_array('role_id', $cols)) $q->where('role_id', 3);
-            if (in_array('role', $cols)) $q->orWhere('role', 'student')->orWhere('role', 'Student');
-        });
-
-        $facultyQuery = (clone $baseQuery)->where(function ($q) use ($cols) {
-            if (in_array('role_id', $cols)) $q->where('role_id', 2);
-            if (in_array('role', $cols)) {
-                $q->orWhere('role', 'teacher')->orWhere('role', 'faculty')->orWhere('role', 'Teacher')->orWhere('role', 'Faculty');
-            }
-        });
-
-        $directorsQuery = (clone $baseQuery)->where(function ($q) use ($cols) {
-            if (in_array('role_id', $cols)) $q->where('role_id', 4);
-            if (in_array('role', $cols)) {
-                $q->orWhere('role', 'director')->orWhere('role', 'Director');
-            }
-        });
-
-        $adminsQuery = (clone $baseQuery)->where(function ($q) use ($cols) {
-            if (in_array('role_id', $cols)) $q->where('role_id', 1);
-            if (in_array('role', $cols)) {
-                $q->orWhere('role', 'admin')->orWhere('role', 'Admin');
-            }
-        });
-
-        $students = $studentsQuery->paginate(10, ['*'], 'students_page');
-        $faculty = $facultyQuery->paginate(10, ['*'], 'faculty_page');
-        $directors = $directorsQuery->paginate(5, ['*'], 'directors_page');
-        $admins = $adminsQuery->paginate(5, ['*'], 'admins_page');
+        // Pagsama-samahin at i-sort alphabetically by last name at first name
+        $users = $query->orderBy('last_name', 'asc')
+                       ->orderBy('first_name', 'asc')
+                       ->paginate(15);
 
         $totalUsers = User::count();
-        $studentCount = (clone $studentsQuery)->count();
-        $teacherCount = (clone $facultyQuery)->count();
-        $directorCount = (clone $directorsQuery)->count();
-        $adminCount = (clone $adminsQuery)->count();
 
-        return view('admin.users.index', compact(
-            'students', 'faculty', 'directors', 'admins', 
-            'totalUsers', 'studentCount', 'teacherCount', 'directorCount', 'adminCount', 
-            'search', 'roleFilter'
-        ));
+        return view('admin.users.index', compact('users', 'totalUsers', 'search', 'roleFilter'));
     }
 
     public function export(Request $request)
@@ -100,7 +66,6 @@ class AdminUserController extends Controller
             ->filter()
             ->values();
 
-        // Idinagdag dito para sa create form
         $strands = $sections->pluck('strand')
             ->map(fn($v) => strtoupper(trim($v)))
             ->unique()
@@ -118,7 +83,7 @@ class AdminUserController extends Controller
         $request->validate([
             'first_name' => ['required', 'string', 'max:255'],
             'last_name'  => ['required', 'string', 'max:255'],
-            'email'      => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'email'      => ['required', 'string', 'max:255', 'unique:users,email'], 
             'password'   => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
@@ -137,7 +102,6 @@ class AdminUserController extends Controller
             if (in_array('name', $cols)) $userData['name'] = trim($request->first_name . ' ' . $request->last_name);
             if (in_array('email', $cols)) $userData['email'] = $request->email;
             
-            // Plain-text password storage
             $userData['password'] = $request->password;
             
             if (in_array('role_id', $cols)) $userData['role_id'] = $roleId;
@@ -200,7 +164,6 @@ class AdminUserController extends Controller
             ->filter()
             ->values();
 
-        // Idinagdag dito para makuha ang mga available strands para sa edit form
         $strands = $sections->pluck('strand')
             ->map(fn($v) => strtoupper(trim($v)))
             ->unique()
@@ -217,14 +180,13 @@ class AdminUserController extends Controller
         $isStudent = ($roleId === 3);
         $isTeacher = ($roleId === 2);
         
-        // Alamin kung ang teacher ay Adviser
         $teacherType = $request->input('teacher_type');
         $isAdviser = ($isTeacher && $teacherType === 'Adviser');
 
         $rules = [
             'first_name' => ['required', 'string', 'max:255'],
             'last_name'  => ['required', 'string', 'max:255'],
-            'email'      => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'email'      => ['required', 'string', 'max:255', 'unique:users,email,' . $user->id],
         ];
 
         if ($request->filled('password')) {
@@ -252,25 +214,18 @@ class AdminUserController extends Controller
             if (in_array('gender', $cols)) $user->gender = $request->gender;
             if (in_array('phone_number', $cols)) $user->phone_number = $request->phone_number;
             
-            // Grade Level: Para sa Student o kaya'y sa Teacher na Adviser
             if (in_array('grade_level', $cols)) {
                 $user->grade_level = ($isStudent || $isAdviser) ? $request->grade_level : null;
             }
-            
-            // Strand at Track: Para lang sa Student
             if (in_array('strand', $cols)) {
                 $user->strand = $isStudent ? $request->strand : null;
             }
             if (in_array('track', $cols)) {
                 $user->track = $isStudent ? ($request->strand ?? $request->track) : null;
             }
-            
-            // Section: Para sa Student o kaya'y sa Teacher na Adviser
             if (in_array('section', $cols)) {
                 $user->section = ($isStudent || $isAdviser) ? $request->section : null;
             }
-            
-            // Parent Info: Para lang sa Student
             if (in_array('parent_name', $cols)) {
                 $user->parent_name = $isStudent ? $request->parent_name : null;
             }
@@ -278,7 +233,6 @@ class AdminUserController extends Controller
                 $user->parent_phone_number = $isStudent ? $request->parent_phone_number : null;
             }
 
-            // Plain-text password update
             if ($request->filled('password')) {
                 $user->password = $request->password;
             }
@@ -303,23 +257,19 @@ class AdminUserController extends Controller
         }
     }   
 
-    /**
-     * Update the logged-in administrator's profile from the dashboard modal.
-     */
     public function updateProfile(Request $request)
     {
         $user = auth()->user();
 
         $request->validate([
-            'first_name'                => ['required', 'string', 'max:255'],
-            'last_name'                 => ['required', 'string', 'max:255'],
-            'email'                     => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'phone_number'              => ['nullable', 'string', 'max:20'],
-            'current_password'          => ['required', 'string'],
-            'password'                  => ['nullable', 'string', 'min:8', 'confirmed'],
+            'first_name'         => ['required', 'string', 'max:255'],
+            'last_name'          => ['required', 'string', 'max:255'],
+            'email'              => ['required', 'string', 'max:255', 'unique:users,email,' . $user->id],
+            'phone_number'       => ['nullable', 'string', 'max:20'],
+            'current_password'   => ['required', 'string'],
+            'password'           => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
 
-        // Plain text validation laban sa current password
         if ($user->password !== $request->current_password) {
             return back()->withErrors([
                 'current_password' => 'The provided password does not match your current password.'
@@ -339,7 +289,6 @@ class AdminUserController extends Controller
             $user->contact_number = $request->phone_number;
         }
 
-        // Direct plain-text password save kung may bagong password
         if ($request->filled('password')) {
             $user->password = $request->password;
         }

@@ -18,17 +18,21 @@ class LoginController extends Controller
     }
 
     /**
-     * Unified login handler: Email and plain-text password for all roles.
+     * Unified login handler: Username/ID Number or Email with plain-text password for all roles.
      */
     public function login(Request $request)
     {
         $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
+            'username' => ['required', 'string'],
+            'password' => ['required', 'string'],
         ]);
 
-        // 1. Hanapin ang user gamit ang lowercase email para case-insensitive
-        $user = User::whereRaw('LOWER(email) = ?', [strtolower($request->email)])->first();
+        $loginInput = trim($request->username);
+
+        // 1. Hanapin ang user gamit ang id_number (Username/ID) o email (case-insensitive)
+        $user = User::where('id_number', $loginInput)
+                    ->orWhereRaw('LOWER(email) = ?', [strtolower($loginInput)])
+                    ->first();
 
         // 2. Direct string comparison (Plain text check - iwas BcryptHasher crash)
         if ($user && $user->password === $request->password) {
@@ -36,15 +40,15 @@ class LoginController extends Controller
             // Check kung active ang account
             if (isset($user->is_active) && ! $user->is_active) {
                 return back()->withErrors([
-                    'email' => 'Your account is deactivated. Please contact the administrator.'
-                ])->onlyInput('email');
+                    'username' => 'Your account is deactivated. Please contact the administrator.'
+                ])->onlyInput('username');
             }
 
             // 3. Manu-manong i-authenticate ang session
             Auth::login($user, $request->filled('remember'));
             $request->session()->regenerate();
 
-            // Tukuyin ang role base sa role_id (1 = Admin, 2 = Faculty, 3 = Student, 4 = Director / Super Admin Viewer)
+            // Tukuyin ang role base sa role_id (1 = Admin, 2 = Faculty, 3 = Student, 4 = Super Admin Viewer)
             $actualRole = 'student';
 
             if (
@@ -71,7 +75,7 @@ class LoginController extends Controller
             // Redirect sa kani-kanilang dashboard
             return match ($actualRole) {
                 'admin'   => redirect()->route('admin.dashboard'),
-                'teacher' => redirect()->route('teacher.schedules'),
+                'teacher' => redirect()->route('teacher.attendance'), // Naka-set na sa attendance bago ang schedule
                 'student' => redirect()->route('student.dashboard'),
                 default   => redirect('/'),
             };
@@ -79,8 +83,8 @@ class LoginController extends Controller
 
         // Kapag hindi nagtugma
         return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
+            'username' => 'The provided credentials do not match our records.',
+        ])->onlyInput('username');
     }
 
     /**

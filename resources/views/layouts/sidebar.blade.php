@@ -1,4 +1,4 @@
-﻿<aside x-data="{ collapsed: false }" 
+<aside x-data="{ collapsed: false }" 
        @toggle-sidebar.window="collapsed = !collapsed"
        :class="collapsed ? 'w-20' : 'w-72'" 
        class="bg-[#590d0d] border-r border-red-950/40 flex flex-col justify-between shrink-0 h-screen fixed top-0 left-0 z-30 shadow-2xl transition-all duration-300">
@@ -173,20 +173,18 @@
                 <div>
                     <p class="px-3 text-[10px] font-black uppercase tracking-wider text-red-200/60 mb-2" x-show="!collapsed">Faculty Portal</p>
                     <div class="space-y-1 text-sm font-bold">
-                        <!-- Class Schedule -->
-                        <a href="{{ route('teacher.schedules') }}" 
-                           class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('teacher.schedules*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
-                           title="Class Schedule">
-                            <i class="fa-solid fa-calendar-days text-base {{ request()->routeIs('teacher.schedules*') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
-                            <span class="text-[13px]" x-show="!collapsed">Class Schedule</span>
-                        </a>
-
                         <!-- Attendance -->
                         <a href="{{ route('teacher.attendance') }}" 
                            class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('teacher.attendance*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
                            title="Attendance">
                             <i class="fa-solid fa-clipboard-user text-base {{ request()->routeIs('teacher.attendance*') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
                             <span class="text-[13px]" x-show="!collapsed">Attendance</span>
+                        </a>                        <!-- Class Schedule -->
+                        <a href="{{ route('teacher.schedules') }}" 
+                           class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('teacher.schedules*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
+                           title="Class Schedule">
+                            <i class="fa-solid fa-calendar-days text-base {{ request()->routeIs('teacher.schedules*') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
+                            <span class="text-[13px]" x-show="!collapsed">Class Schedule</span>
                         </a>
 
                         <!-- Faculty Evaluation (Peer & Self) -->
