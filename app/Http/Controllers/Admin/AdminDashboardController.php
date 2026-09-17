@@ -367,7 +367,7 @@ class AdminDashboardController extends Controller
         $gradeLevels = User::where('role_id', 3)->whereNotNull('grade_level')->distinct()->orderBy('grade_level')->pluck('grade_level');
         $sections = User::where('role_id', 3)->whereNotNull('section')->distinct()->orderBy('section')->pluck('section');
 
-        return view('admin.analytics.attendance-rate', compact(
+        return view('admin.dashboard.analytics.attendance-rate', compact(
             'reportTitle',
             'activeSchoolYear',
             'schoolYears',

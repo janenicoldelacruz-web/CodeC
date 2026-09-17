@@ -7,5 +7,8 @@ use Illuminate\Http\Request;
 
 class AdminSettingController extends Controller
 {
-    //
+    public function settingsIndex()
+    {
+        return view('admin.settings.index');
+    }
 }

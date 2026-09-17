@@ -7,7 +7,7 @@
         </p>
     </div>
 
-    <!-- Updated to 3 columns since SMS Sent Today has been relocated to the left sidebar -->
+    <!-- 3-column grid layout -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
 
         <!-- 1. Total Students Enrolled -->
@@ -51,7 +51,7 @@
             </div>
         </a>
 
-        <!-- 3. Faculty Evaluation Progress (Now Clickable to Monitoring Page) -->
+        <!-- 3. Faculty Evaluation Progress -->
         <a href="{{ route('admin.evaluations.monitoring') }}" class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-blue-300 transition w-full block text-left group">
             <div class="flex items-start justify-between">
                 <div>

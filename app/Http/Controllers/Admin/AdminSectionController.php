@@ -72,16 +72,14 @@ class AdminSectionController extends Controller
                 'updated_at'   => now()
             ]);
 
-            // 3. PROPAGATION SA USER MANAGEMENT: 
-            // Kung nagbago ang pangalan ng section o grade level, i-update din natin ang mga users na naka-angkla rito
+            // 3. PROPAGATION SA USER MANAGEMENT (Pinanatili ang strand, tinanggal ang track)
             if ($oldSection) {
                 \App\Models\User::where('section', $oldSection->section_name)
                     ->where('grade_level', $oldSection->grade_level)
                     ->update([
                         'grade_level' => $newGradeLevel,
                         'section'     => $newSectionName,
-                        'strand'      => $newStrand,
-                        'track'       => $newStrand // Kung ginagamit din ang track
+                        'strand'      => $newStrand
                     ]);
             }
         }

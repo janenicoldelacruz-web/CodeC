@@ -61,7 +61,7 @@ class DashboardController extends Controller
         // Live Database Distinct Sections for Dropdown Options
         $sections = User::where('role_id', 3)->whereNotNull('section')->distinct()->pluck('section')->toArray();
 
-        return view('admin.students_analytics', compact(
+        return view('admin.dashboard.analytics.total_students', compact(
             'students', 
             'maleCount', 
             'femaleCount', 
@@ -219,7 +219,7 @@ class DashboardController extends Controller
         $gradeLevels = User::where('role_id', 3)->whereNotNull('grade_level')->distinct()->orderBy('grade_level')->pluck('grade_level');
         $sections = User::where('role_id', 3)->whereNotNull('section')->distinct()->orderBy('section')->pluck('section');
 
-        return view('admin.analytics.attendance-rate', compact(
+        return view('admin.dashboard.analytics.attendance-rate', compact(
             'reportTitle',
             'activeSchoolYear',
             'schoolYears',

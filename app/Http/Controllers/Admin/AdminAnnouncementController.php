@@ -7,5 +7,5 @@ use Illuminate\Http\Request;
 
 class AdminAnnouncementController extends Controller
 {
-    //
+    // iyong mga methods dito
 }
