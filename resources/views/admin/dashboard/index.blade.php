@@ -51,9 +51,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const sparklines = [
             { id: 'studentSparkline', type: 'line', data: [0, 0, 1, 1, 1, 1, 1], border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.12)' },
-            { id: 'attendanceSparkline', type: 'line', data: [0, 0, 0, 0, 0], border: '#e11d48', bg: 'rgba(225, 29, 72, 0.12)' },
+            { id: 'attendanceSparkline', type: 'line', data: [0, 0, 0, 0, 0], border: '#590d0d', bg: 'rgba(89, 13, 13, 0.12)' },
             { id: 'evalSparkline', type: 'line', data: [0, 0, 0, 0], border: '#3b82f6', bg: 'rgba(59, 130, 246, 0.12)' },
-            { id: 'smsSparkline', type: 'bar', data: [0, 0, 0, 0, 0, 0], bg: 'rgba(16, 185, 129, 0.5)' }
+            { id: 'smsSparkline', type: 'line', data: [0, 0, 0, 0], border: '#10b981', bg: 'rgba(16, 185, 129, 0.12)' }
         ];
 
         sparklines.forEach(s => {
@@ -80,21 +80,17 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
     loadCharts();
+    bindDashboardCards();
 });
 
 function openMetricModal(type) {
-    // Redirect directly to the dedicated analytics summary report page route
     window.location.href = "{{ url('admin/analytics') }}/" + type;
 }
 
 function closeMetricModal() {
-    // No longer needed for page routing, but kept as a safe fallback
     const overlay = document.getElementById('metricModalOverlay');
     if (overlay) overlay.style.display = 'none';
 }
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeMetricModal();
-});
 
 function bindDashboardCards() {
     const targets = [
@@ -102,8 +98,7 @@ function bindDashboardCards() {
         { key: 'FACULTY EVALUATION', type: 'evaluation' }
     ];
 
-    cardTargets.forEach(t => {
-        // Unahin ang data attribute selector; kung wala, fallback sa text scanning
+    targets.forEach(t => {
         let card = document.querySelector(`[data-metric="${t.type}"]`);
 
         if (!card) {
@@ -159,6 +154,6 @@ function bindDashboardCards() {
             if (typeof closeMetricModal === 'function') closeMetricModal();
         }
     });
-});
+}
 </script>
 @endpush

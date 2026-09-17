@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminSettingController;
 use App\Http\Controllers\Admin\AdminSmsController;
+use App\Http\Controllers\Admin\FacultyEvaluationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +35,12 @@ Route::middleware('guest')->group(function () {
     Route::get('/', [LoginController::class, 'showLoginForm'])->name('welcome');
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+
+    // Faculty Evaluation
+    Route::get('/evaluations', [AdminEvaluationController::class, 'index'])->name('evaluations');
+    Route::post('/evaluations/toggle-status', [AdminEvaluationController::class, 'toggleStatus'])->name('evaluations.toggle');
+    Route::get('/evaluations/periods', [AdminEvaluationController::class, 'periods'])->name('evaluations.periods');
+    Route::get('/evaluations/results', [AdminEvaluationController::class, 'results'])->name('evaluations.results');
 });
 
 /*
@@ -41,7 +48,6 @@ Route::middleware('guest')->group(function () {
 | NFC Kiosk & Hardware Polling Endpoints
 |--------------------------------------------------------------------------
 */
-Route::get('/kiosk', [NfcAttendanceController::class, 'kioskView'])->name('teacher.kiosk');
 Route::match(['get', 'post'], '/api/nfc/store-tap', [NfcAttendanceController::class, 'storeTap'])->name('api.nfc.store-tap');
 Route::match(['get', 'post'], '/api/nfc/tap', [AdminNfcController::class, 'handleTap']);
 Route::get('/api/nfc/latest', [AdminNfcController::class, 'getLatestTap']);
@@ -83,7 +89,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/students/analytics', [DashboardController::class, 'studentAnalytics'])->name('students.analytics');
         Route::get('/analytics/attendance-rate', [AdminDashboardController::class, 'attendanceRate'])->name('attendance.rate');
 
-        Route::get('/sms-sent-today', [AdminSmsController::class, 'index'])->name('dashboard.analytics.sent-today');
+        Route::get('/sms-sent-today', [AdminSmsController::class, 'index'])->name('sms.sent-today');
         Route::post('/sms/update-template', [AdminSmsController::class, 'updateTemplate'])->name('sms.update-template');
         Route::post('/sms/{id}/retry', [AdminSmsController::class, 'retry'])->name('sms.retry');
         
@@ -131,6 +137,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/attendance/override', [AdminAttendanceController::class, 'override'])->name('attendance.override');
         Route::get('/attendance/export', [AdminAttendanceController::class, 'export'])->name('attendance.export');
 
+        // Faculty Evaluation Routes (Includes Monitoring Route)
+        Route::get('/evaluations', [AdminEvaluationController::class, 'index'])->name('evaluations');
+        Route::get('/evaluations/monitoring', [FacultyEvaluationController::class, 'monitoring'])->name('evaluations.monitoring');
+        Route::post('/evaluations/toggle-status', [AdminEvaluationController::class, 'toggleStatus'])->name('evaluations.toggle');
+        Route::get('/evaluations/periods', [AdminEvaluationController::class, 'periods'])->name('evaluations.periods');
+        Route::get('/evaluations/results', [AdminEvaluationController::class, 'results'])->name('evaluations.results');
+
         Route::get('/announcements', [AdminAnnouncementController::class, 'index'])->name('announcements');
 
         Route::get('/reports', [AdminReportController::class, 'index'])->name('reports');
@@ -155,7 +168,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/reports', [AdminReportController::class, 'index'])->name('reports');
     });
 
-   /*
+    /*
     |--------------------------------------------------------------------------
     | Teacher / Faculty Routes
     |--------------------------------------------------------------------------

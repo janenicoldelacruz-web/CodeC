@@ -24,7 +24,7 @@
                 <i class="fa-solid fa-pen-to-square text-xs"></i>
                 <span>Edit SMS Message</span>
             </button>
-            <form method="GET" action="{{ route('admin.dashboard.analytics.sent-today') }}" class="flex items-center gap-2">
+            <form method="GET" action="{{ route('admin.sms.sent-today') }}" class="flex items-center gap-2">
                 <input type="date" name="date" value="{{ $today }}" onchange="this.form.submit()" class="py-2 px-3 text-xs font-bold border-2 border-slate-200 rounded-xl bg-white focus:border-emerald-600 outline-none">
             </form>
         </div>
@@ -93,7 +93,7 @@
             </div>
         </div>
 
-        <form method="GET" action="{{ route('admin.dashboard.analytics.sent-today') }}" class="space-y-4">
+        <form method="GET" action="{{ route('admin.sms.sent-today') }}" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">School Year</label>
@@ -131,7 +131,7 @@
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-3">
-                <a href="{{ route('admin.dashboard.analytics.sent-today') }}" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold rounded-xl transition text-center">
+                <a href="{{ route('admin.sms.sent-today') }}" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold rounded-xl transition text-center">
                     Reset Filters
                 </a>
                 <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-md transition cursor-pointer flex items-center gap-2">
