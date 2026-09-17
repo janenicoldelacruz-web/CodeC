@@ -38,7 +38,6 @@
         <nav class="p-3 space-y-5 overflow-y-auto flex-1 custom-scrollbar">
             
             {{-- ==================== ADMIN NAVIGATION ==================== --}}
-            <!-- IDINAGDAG NATIN YUNG ROLE ID 4 DITO PARA MAKITA NI SUPER ADMIN YUNG MENUS -->
             @if(auth()->user()->role_id == 1 || auth()->user()->role_id == 4)
                 <div>
                     <p class="px-3 text-[10px] font-black uppercase tracking-wider text-red-200/60 mb-2" x-show="!collapsed">Management Menu</p>
@@ -48,28 +47,37 @@
                            class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.dashboard') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
                            title="Dashboard">
                             <i class="fa-solid fa-table-cells-large text-base {{ request()->routeIs('admin.dashboard') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
-                            <span class="text-[13px]" x-show="!collapsed">Dashboard</span>
+                           <span class="text-[13px]" x-show="!collapsed">Dashboard</span>
                         </a>
 
-<!-- User Management with Sub-items -->
-<div class="space-y-1">
-    <a href="{{ route('admin.users.index') }}" 
-       class="w-full group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('admin.users*') ? 'bg-red-900/80 text-amber-300' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
-       title="User Management">
-        <div class="flex items-center gap-3.5">
-            <i class="fa-solid fa-users text-base {{ request()->routeIs('admin.users*') ? 'text-amber-300' : 'text-amber-300 group-hover:text-white' }}"></i>
-            <span class="text-[13px]" x-show="!collapsed">User Management</span>
-        </div>
-    </a>
-</div>
+                        <!-- User Management with Sub-items -->
+                        <div class="space-y-1">
+                            <a href="{{ route('admin.users.index') }}" 
+                               class="w-full group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('admin.users*') ? 'bg-red-900/80 text-amber-300' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
+                               title="User Management">
+                                <div class="flex items-center gap-3.5">
+                                    <i class="fa-solid fa-users text-base {{ request()->routeIs('admin.users*') ? 'text-amber-300' : 'text-amber-300 group-hover:text-white' }}"></i>
+                                    <span class="text-[13px]" x-show="!collapsed">User Management</span>
+                                </div>
+                            </a>
+                        </div>
 
-<!-- NFC Management -->
-<a href="{{ route('admin.nfc.binding') }}" 
-   class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.nfc*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
-   title="NFC Management">
-    <i class="fa-solid fa-id-card text-base {{ request()->routeIs('admin.nfc*') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
-    <span class="text-[13px]" x-show="!collapsed">NFC Management</span>
-</a>
+                        <!-- NFC Management -->
+                        <a href="{{ route('admin.nfc.binding') }}" 
+                           class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.nfc*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
+                           title="NFC Management">
+                            <i class="fa-solid fa-id-card text-base {{ request()->routeIs('admin.nfc*') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
+                           <span class="text-[13px]" x-show="!collapsed">NFC Management</span>
+                        </a>
+
+                        <!-- SMS Sent Today (Added to Left-Side Navigation) -->
+                        <a href="{{ route('admin.sms.sent-today') }}" 
+                           class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.sms.sent-today*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
+                           title="SMS Sent Today">
+                            <i class="fa-solid fa-comment-sms text-base {{ request()->routeIs('admin.sms.sent-today*') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
+                           <span class="text-[13px]" x-show="!collapsed">SMS Sent Today</span>
+                        </a>
+
                     </div>
                 </div>
 
@@ -86,48 +94,48 @@
                                 </div>
                             </button>
                             <div x-show="open && !collapsed" x-cloak class="pl-11 pr-2 space-y-1 py-1">
-                                <a href="{{ route('admin.school-year') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">School Year & Semesters</a>
-                                <a href="{{ route('admin.sections') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">Section & Class Management</a>
-                                <a href="{{ route('admin.schedules') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">Class Schedules & Rooms</a>
+                                <a href="{{ route('admin.school-year') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold {{ request()->routeIs('admin.school-year') ? 'text-amber-300 bg-red-900/40' : 'text-red-200/80 hover:text-amber-300 hover:bg-red-900/40' }} transition">School Year & Semesters</a>
+                                <a href="{{ route('admin.sections') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold {{ request()->routeIs('admin.sections') ? 'text-amber-300 bg-red-900/40' : 'text-red-200/80 hover:text-amber-300 hover:bg-red-900/40' }} transition">Section & Class Management</a>
+                                <a href="{{ route('admin.schedules') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold {{ request()->routeIs('admin.schedules') ? 'text-amber-300 bg-red-900/40' : 'text-red-200/80 hover:text-amber-300 hover:bg-red-900/40' }} transition">Class Schedules & Rooms</a>
                             </div>
                         </div>
 
-                        <!-- Attendance Monitoring with Sub-items -->
-                        <div x-data="{ open: @json(request()->routeIs('admin.attendance*')) }" class="space-y-1">
+                        <!-- Attendance Monitoring with Sub-items (Fixed to only highlight on actual monitoring pages) -->
+                        <div x-data="{ open: @json(request()->routeIs('admin.attendance.live', 'admin.attendance.override')) }" class="space-y-1">
                             <button @click="open = !open" 
-                                class="w-full group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('admin.attendance*') ? 'bg-red-900/80 text-amber-300' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}">
+                                class="w-full group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('admin.attendance.live', 'admin.attendance.override') ? 'bg-red-900/80 text-amber-300' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}">
                                 <div class="flex items-center gap-3.5">
-                                    <i class="fa-solid fa-id-card-clip text-base {{ request()->routeIs('admin.attendance*') ? 'text-amber-300' : 'text-amber-300 group-hover:text-white' }}"></i>
+                                    <i class="fa-solid fa-id-card-clip text-base {{ request()->routeIs('admin.attendance.live', 'admin.attendance.override') ? 'text-amber-300' : 'text-amber-300 group-hover:text-white' }}"></i>
                                     <span class="text-[13px]" x-show="!collapsed">Attendance Monitoring</span>
                                 </div>
                             </button>
                             <div x-show="open && !collapsed" x-cloak class="pl-11 pr-2 space-y-1 py-1">
-                                <a href="{{ route('admin.attendance.live') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">Live Tap Feed</a>
-                                <a href="{{ route('admin.attendance.override') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">Manual Attendance Override</a>
+                                <a href="{{ route('admin.attendance.live') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold {{ request()->routeIs('admin.attendance.live') ? 'text-amber-300 bg-red-900/40' : 'text-red-200/80 hover:text-amber-300 hover:bg-red-900/40' }} transition">Live Tap Feed</a>
+                                <a href="{{ route('admin.attendance.override') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold {{ request()->routeIs('admin.attendance.override') ? 'text-amber-300 bg-red-900/40' : 'text-red-200/80 hover:text-amber-300 hover:bg-red-900/40' }} transition">Manual Attendance Override</a>
                             </div>
                         </div>
 
-                        <!-- Faculty Evaluation with Sub-items -->
-                        <div x-data="{ open: @json(request()->routeIs('admin.evaluations*')) }" class="space-y-1">
-                            <button @click="open = !open" 
-                                class="w-full group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('admin.evaluations*') ? 'bg-red-900/80 text-amber-300' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}">
-                                <div class="flex items-center gap-3.5">
-                                    <i class="fa-solid fa-star-half-stroke text-base {{ request()->routeIs('admin.evaluations*') ? 'text-amber-300' : 'text-amber-300 group-hover:text-white' }}"></i>
-                                    <span class="text-[13px]" x-show="!collapsed">Faculty Evaluation</span>
-                                </div>
-                            </button>
-                            <div x-show="open && !collapsed" x-cloak class="pl-11 pr-2 space-y-1 py-1">
-                                <a href="{{ route('admin.evaluations.periods') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">Evaluation Periods & Questions</a>
-                                <a href="{{ route('admin.evaluations.results') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">Results & Ratings Overview</a>
-                            </div>
-                        </div>
+                       <!-- Faculty Evaluation with Sub-items (Monitoring page is standalone, so it won't highlight the sidebar) -->
+<div x-data="{ open: @json(request()->routeIs('admin.evaluations.periods', 'admin.evaluations.results')) }" class="space-y-1">
+    <button @click="open = !open" 
+        class="w-full group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition duration-150 {{ request()->routeIs('admin.evaluations.periods', 'admin.evaluations.results') ? 'bg-red-900/80 text-amber-300' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}">
+        <div class="flex items-center gap-3.5">
+            <i class="fa-solid fa-star-half-stroke text-base {{ request()->routeIs('admin.evaluations.periods', 'admin.evaluations.results') ? 'text-amber-300' : 'text-amber-300 group-hover:text-white' }}"></i>
+            <span class="text-[13px]" x-show="!collapsed">Faculty Evaluation</span>
+        </div>
+    </button>
+    <div x-show="open && !collapsed" x-cloak class="pl-11 pr-2 space-y-1 py-1">
+        <a href="{{ route('admin.evaluations.periods') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold {{ request()->routeIs('admin.evaluations.periods') ? 'text-amber-300 bg-red-900/40' : 'text-red-200/80 hover:text-amber-300 hover:bg-red-900/40' }} transition">Evaluation Periods & Questions</a>
+        <a href="{{ route('admin.evaluations.results') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold {{ request()->routeIs('admin.evaluations.results') ? 'text-amber-300 bg-red-900/40' : 'text-red-200/80 hover:text-amber-300 hover:bg-red-900/40' }} transition">Results & Ratings Overview</a>
+    </div>
+</div>
 
                         <!-- Announcements -->
                         <a href="{{ route('admin.announcements') }}" 
                            class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.announcements*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
                            title="Announcements">
                             <i class="fa-solid fa-bullhorn text-base {{ request()->routeIs('admin.announcements*') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
-                            <span class="text-[13px]" x-show="!collapsed">Announcements</span>
+                           <span class="text-[13px]" x-show="!collapsed">Announcements</span>
                         </a>
 
                         <!-- Reports with Sub-items -->
@@ -140,10 +148,10 @@
                                 </div>
                             </button>
                             <div x-show="open && !collapsed" x-cloak class="pl-11 pr-2 space-y-1 py-1">
-                                <a href="{{ route('admin.reports.attendance') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">Attendance Logs</a>
-                                <a href="{{ route('admin.reports.sf2') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">SF2 (DepEd Compliant)</a>
-                                <a href="{{ route('admin.reports.evaluation') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">Faculty Evaluation Summary</a>
-                                <a href="{{ route('admin.reports.users') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold text-red-200/80 hover:text-amber-300 hover:bg-red-900/40 transition">User Master List</a>
+                                <a href="{{ route('admin.reports.attendance') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold {{ request()->routeIs('admin.reports.attendance') ? 'text-amber-300 bg-red-900/40' : 'text-red-200/80 hover:text-amber-300 hover:bg-red-900/40' }} transition">Attendance Logs</a>
+                                <a href="{{ route('admin.reports.sf2') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold {{ request()->routeIs('admin.reports.sf2') ? 'text-amber-300 bg-red-900/40' : 'text-red-200/80 hover:text-amber-300 hover:bg-red-900/40' }} transition">SF2 (DepEd Compliant)</a>
+                                <a href="{{ route('admin.reports.evaluation') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold {{ request()->routeIs('admin.reports.evaluation') ? 'text-amber-300 bg-red-900/40' : 'text-red-200/80 hover:text-amber-300 hover:bg-red-900/40' }} transition">Faculty Evaluation Summary</a>
+                                <a href="{{ route('admin.reports.users') }}" class="block py-1.5 px-3 rounded-lg text-xs font-bold {{ request()->routeIs('admin.reports.users') ? 'text-amber-300 bg-red-900/40' : 'text-red-200/80 hover:text-amber-300 hover:bg-red-900/40' }} transition">User Master List</a>
                             </div>
                         </div>
 
@@ -152,7 +160,7 @@
                            class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.audit-logs*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
                            title="System Audit Logs">
                             <i class="fa-solid fa-shield-halved text-base {{ request()->routeIs('admin.audit-logs*') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
-                            <span class="text-[13px]" x-show="!collapsed">System Audit Logs</span>
+                           <span class="text-[13px]" x-show="!collapsed">System Audit Logs</span>
                         </a>
 
                         <!-- Settings -->
@@ -160,7 +168,7 @@
                            class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.settings*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
                            title="Settings">
                             <i class="fa-solid fa-gear text-base {{ request()->routeIs('admin.settings*') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
-                            <span class="text-[13px]" x-show="!collapsed">Settings</span>
+                           <span class="text-[13px]" x-show="!collapsed">Settings</span>
                         </a>
                     </div>
                 </div>
@@ -211,7 +219,7 @@
                 <i class="fa-solid fa-right-from-bracket text-sm text-amber-300 group-hover:text-amber-950"></i>
                 <span x-show="!collapsed">Sign Out</span>
             </button>
-        </form>
+       </form>
     </div>
 
 </aside>

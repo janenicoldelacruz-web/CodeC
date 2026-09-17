@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminSettingController;
 use App\Http\Controllers\Admin\AdminSmsController;
+use App\Http\Controllers\Admin\FacultyEvaluationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,7 +36,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 
-    // Faculty Evaluation
+    // Faculty Evaluation Public / Guest Routes if any
     Route::get('/evaluations', [AdminEvaluationController::class, 'index'])->name('evaluations');
     Route::post('/evaluations/toggle-status', [AdminEvaluationController::class, 'toggleStatus'])->name('evaluations.toggle');
     Route::get('/evaluations/periods', [AdminEvaluationController::class, 'periods'])->name('evaluations.periods');
@@ -59,7 +60,7 @@ Route::get('/api/nfc/latest', [AdminNfcController::class, 'getLatestTap']);
 */
 Route::middleware(['auth', 'verified'])->group(function () {
     
-    // Role-Based Landing Redirect (Naidagdag na rito ang director)
+    // Role-Based Landing Redirect
     Route::get('/dashboard', function () {
         $user = auth()->user();
         $roleName = is_object($user->role) ? $user->role->name : $user->role;
@@ -99,12 +100,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/analytics/{type}', [AdminDashboardController::class, 'showAnalyticsReport'])->name('analytics.report');
         Route::resource('users', AdminUserController::class);
 
-Route::prefix('nfc')->name('nfc.')->group(function () {
-    Route::get('/binding', [AdminNfcController::class, 'bindingIndex'])->name('binding');
-    Route::post('/binding', [AdminNfcController::class, 'bindingStore'])->name('binding.store');
-    Route::delete('/binding/{id}', [AdminNfcController::class, 'bindingDestroy'])->name('destroy');
-        
-});
+        Route::prefix('nfc')->name('nfc.')->group(function () {
+            Route::get('/binding', [AdminNfcController::class, 'bindingIndex'])->name('binding');
+            Route::post('/binding', [AdminNfcController::class, 'bindingStore'])->name('binding.store');
+            Route::delete('/binding/{id}', [AdminNfcController::class, 'bindingDestroy'])->name('destroy');
+        });
 
         Route::get('/school-year', [AdminSchoolYearController::class, 'index'])->name('school-year');
         Route::post('/school-year/update', [AdminSchoolYearController::class, 'update'])->name('school-year.update');
@@ -125,7 +125,9 @@ Route::prefix('nfc')->name('nfc.')->group(function () {
         Route::get('/attendance/override', [AdminAttendanceController::class, 'override'])->name('attendance.override');
         Route::get('/attendance/export', [AdminAttendanceController::class, 'export'])->name('attendance.export');
 
+        // Faculty Evaluation Routes
         Route::get('/evaluations', [AdminEvaluationController::class, 'index'])->name('evaluations');
+        Route::get('/evaluations/monitoring', [FacultyEvaluationController::class, 'monitoring'])->name('evaluations.monitoring');
         Route::post('/evaluations/toggle-status', [AdminEvaluationController::class, 'toggleStatus'])->name('evaluations.toggle');
         Route::get('/evaluations/periods', [AdminEvaluationController::class, 'periods'])->name('evaluations.periods');
         Route::get('/evaluations/results', [AdminEvaluationController::class, 'results'])->name('evaluations.results');
@@ -150,9 +152,7 @@ Route::prefix('nfc')->name('nfc.')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware(['role:director'])->prefix('director')->name('director.')->group(function () {
-        // Maaari kang gumawa ng DirectorDashboardController o gumamit ng pansamantalang view/controller
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-        // Idagdag dito ang mga eksklusibong ulat o tanawin para sa Director (hal. Reports, Evaluations)
         Route::get('/reports', [AdminReportController::class, 'index'])->name('reports');
     });
 

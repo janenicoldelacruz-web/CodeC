@@ -85,9 +85,10 @@
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+            <!-- Updated grid layout to 3 columns since SMS is now in the left sidebar -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
 
-                <!-- 1. Total Students Enrolled (Directly links to analytics screen) -->
+                <!-- 1. Total Students Enrolled -->
                 <a href="{{ route('admin.students.analytics') }}" class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-amber-300 transition w-full block text-left group">
                     <div class="flex items-start justify-between">
                         <div>
@@ -98,14 +99,14 @@
                             <i class="fa-solid fa-graduation-cap"></i>
                         </div>
                     </div>
-                    <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="studentSparkline"></canvas></div>
+                    <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="studentSparkline" class="pointer-events-none"></canvas></div>
                     <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-bold">
                         <span>View Analytics & Filters</span>
                         <i class="fa-solid fa-arrow-right text-amber-500 group-hover:translate-x-1 transition"></i>
                     </div>
                 </a>
 
-                <!-- 2. Daily Attendance Rate (Links to dedicated Attendance Rate page) -->
+                <!-- 2. Daily Attendance Rate -->
                 <a href="{{ route('admin.attendance.rate') }}" class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-red-300 transition w-full block text-left group">
                     <div class="flex items-start justify-between">
                         <div>
@@ -120,7 +121,7 @@
                         <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-2">
                             <div class="bg-[#8b1818] h-full rounded-full transition-all duration-500" style="width: {{ min(100, (float)($attendanceRate ?? 0)) }}%"></div>
                         </div>
-                        <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="attendanceSparkline"></canvas></div>
+                        <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="attendanceSparkline" class="pointer-events-none"></canvas></div>
                         <div class="flex items-center justify-between text-xs text-slate-600 font-bold">
                             <span>View Detailed Analytics</span>
                             <i class="fa-solid fa-arrow-right text-[#8b1818] group-hover:translate-x-1 transition"></i>
@@ -143,31 +144,13 @@
                         <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-2">
                             <div class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: {{ min(100, (float)($evalProgress ?? 0)) }}%"></div>
                         </div>
-                        <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="evalSparkline"></canvas></div>
+                        <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="evalSparkline" class="pointer-events-none"></canvas></div>
                         <div class="flex items-center justify-between text-xs text-slate-600 font-bold">
                             <span>Student Reviews</span>
                             <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
                         </div>
                     </div>
                 </div>
-
-                <!-- 4. Active SMS Dispatched Today (Links to SMS Sent Today Monitoring Page) -->
-                <a href="{{ route('admin.sms.sent-today') }}" class="p-6 bg-white rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[155px] hover:shadow-md hover:border-emerald-300 transition w-full block text-left group">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <p class="text-[11px] font-black text-slate-500 uppercase tracking-wider">SMS Sent Today</p>
-                            <h3 class="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight mt-1">{{ number_format($activeSMS ?? 0) }}</h3>
-                        </div>
-                        <div class="w-12 h-12 rounded-2xl bg-emerald-50 border-2 border-emerald-200 text-emerald-700 flex items-center justify-center text-xl shadow-xs shrink-0 group-hover:scale-105 transition">
-                            <i class="fa-solid fa-comment-sms"></i>
-                        </div>
-                    </div>
-                    <div style="height: 26px; width: 100%; position: relative; margin: 4px 0;"><canvas id="smsSparkline"></canvas></div>
-                    <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-bold">
-                        <span>View Parent Alerts</span>
-                        <i class="fa-solid fa-arrow-right text-emerald-600 group-hover:translate-x-1 transition"></i>
-                    </div>
-                </a>
 
             </div>
         </div>
@@ -502,19 +485,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 data: {
                     labels: ['1','2','3','4'],
                     datasets: [{ data: [0, 0, 0, 0], borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.12)', borderWidth: 1.5, fill: true, tension: 0.3 }]
-                },
-                options: chartOpts
-            });
-        }
-
-        const sms = document.getElementById('smsSparkline');
-        if (sms && !sms.dataset.init) {
-            sms.dataset.init = "1";
-            new Chart(sms, {
-                type: 'bar',
-                data: {
-                    labels: ['1','2','3','4','5','6'],
-                    datasets: [{ data: [0, 0, 0, 0, 0, 0], backgroundColor: 'rgba(16, 185, 129, 0.5)', borderRadius: 2 }]
                 },
                 options: chartOpts
             });
