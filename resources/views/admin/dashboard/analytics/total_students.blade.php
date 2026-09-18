@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Student Status & Analytics - SIATRACK')
+@section('title', 'Student Management & Records - SIATRACK')
 
 @section('content')
 <div class="w-full min-h-screen flex flex-col bg-slate-50/70 p-6 lg:p-10 space-y-8">
@@ -13,8 +13,8 @@
             </a>
             <div>
                 <div class="flex items-center gap-2">
-                    <h1 class="text-xl lg:text-2xl font-black text-slate-900 tracking-tight">Student Status & Analytics</h1>
-                    <span class="px-2.5 py-0.5 rounded-md text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 uppercase">Analytics Portal</span>
+                    <h1 class="text-xl lg:text-2xl font-black text-slate-900 tracking-tight">Student Management & Records</h1>
+                    <span class="px-2.5 py-0.5 rounded-md text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 uppercase">Records Portal</span>
                 </div>
                 <p class="text-xs text-slate-500 font-bold mt-0.5">Comprehensive tracking of student demographics, section population, and dynamic filtering</p>
             </div>
@@ -90,7 +90,8 @@
                     <i class="fa-solid fa-chart-column"></i>
                 </div>
             </div>
-            <div class="relative h-60 w-full flex items-center justify-center">
+            <!-- FIXED WRAPPER HEIGHT (h-64) -->
+            <div class="relative h-64 w-full">
                 <canvas id="genderComparisonBarGraph"></canvas>
             </div>
             <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-around text-center text-xs font-extrabold">
@@ -116,7 +117,8 @@
                     <i class="fa-solid fa-chart-pie"></i>
                 </div>
             </div>
-            <div class="relative h-60 w-full flex items-center justify-center">
+            <!-- FIXED WRAPPER HEIGHT (h-64) -->
+            <div class="relative h-64 w-full">
                 <canvas id="sectionPopulationPieChart"></canvas>
             </div>
             <div class="mt-4 pt-4 border-t border-slate-100 text-center text-xs font-extrabold text-slate-600">
@@ -207,69 +209,73 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    const maleTotal = {{ $maleCount ?? 0 }};
-    const femaleTotal = {{ $femaleCount ?? 0 }};
+    const maleTotal = Number("{{ $maleCount ?? 0 }}");
+    const femaleTotal = Number("{{ $femaleCount ?? 0 }}");
 
     // 1. Gender Comparison Bar Graph
-    const ctxGenderComp = document.getElementById('genderComparisonBarGraph').getContext('2d');
-    new Chart(ctxGenderComp, {
-        type: 'bar',
-        data: {
-            labels: ['Male', 'Female'],
-            datasets: [{
-                data: [maleTotal, femaleTotal],
-                backgroundColor: ['rgba(59, 130, 246, 0.85)', 'rgba(236, 72, 153, 0.85)'],
-                borderColor: ['#2563eb', '#db2777'],
-                borderWidth: 2,
-                borderRadius: 8,
-                barThickness: 40
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, ticks: { precision: 0, font: { weight: 'bold' } }, grid: { color: '#f1f5f9' } },
-                x: { grid: { display: false }, ticks: { font: { weight: 'bold' } } }
+    const barEl = document.getElementById('genderComparisonBarGraph');
+    if (barEl) {
+        new Chart(barEl.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Male', 'Female'],
+                datasets: [{
+                    data: [maleTotal, femaleTotal],
+                    backgroundColor: ['rgba(59, 130, 246, 0.85)', 'rgba(236, 72, 153, 0.85)'],
+                    borderColor: ['#2563eb', '#db2777'],
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    barThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0, font: { weight: 'bold' } }, grid: { color: '#f1f5f9' } },
+                    x: { grid: { display: false }, ticks: { font: { weight: 'bold' } } }
+                }
             }
-        }
-    });
+        });
+    }
 
     // 2. Section Population Pie Chart
     const sectionLabels = {!! json_encode(array_keys($sectionPopulations ?? [])) !!};
     const sectionData = {!! json_encode(array_values($sectionPopulations ?? [])) !!};
 
-    const ctxSectionPie = document.getElementById('sectionPopulationPieChart').getContext('2d');
-    new Chart(ctxSectionPie, {
-        type: 'pie',
-        data: {
-            labels: sectionLabels.map(label => 'Section ' + label),
-            datasets: [{
-                data: sectionData,
-                backgroundColor: [
-                    'rgba(245, 158, 11, 0.85)',  // Amber
-                    'rgba(59, 130, 246, 0.85)',  // Blue
-                    'rgba(16, 185, 129, 0.85)',  // Emerald
-                    'rgba(236, 72, 153, 0.85)',  // Pink
-                    'rgba(139, 24, 24, 0.85)',   // Maroon (#8b1818)
-                    'rgba(99, 102, 241, 0.85)'   // Indigo
-                ],
-                borderColor: '#ffffff',
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { font: { weight: 'bold', size: 11 }, boxWidth: 12 }
+    const pieEl = document.getElementById('sectionPopulationPieChart');
+    if (pieEl) {
+        new Chart(pieEl.getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: sectionLabels.map(label => 'Section ' + label),
+                datasets: [{
+                    data: sectionData,
+                    backgroundColor: [
+                        'rgba(245, 158, 11, 0.85)',  // Amber
+                        'rgba(59, 130, 246, 0.85)',  // Blue
+                        'rgba(16, 185, 129, 0.85)',  // Emerald
+                        'rgba(236, 72, 153, 0.85)',  // Pink
+                        'rgba(139, 24, 24, 0.85)',   // Maroon (#8b1818)
+                        'rgba(99, 102, 241, 0.85)'   // Indigo
+                    ],
+                    borderColor: '#ffffff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { font: { weight: 'bold', size: 11 }, boxWidth: 12 }
+                    }
                 }
             }
-        }
-    });
+        });
+    }
 });
 </script>
 @endsection

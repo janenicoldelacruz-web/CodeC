@@ -32,14 +32,24 @@ class AdminUserController extends Controller
             });
         }
 
-        // Pagsama-samahin at i-sort alphabetically by last name at first name
+        // Sort alphabetically by last name and first name
         $users = $query->orderBy('last_name', 'asc')
                        ->orderBy('first_name', 'asc')
                        ->paginate(15);
 
         $totalUsers = User::count();
 
-        return view('admin.users.index', compact('users', 'totalUsers', 'search', 'roleFilter'));
+        // --- Gender Demographic Counts for Charts ---
+        // Adjust role_id condition if your student role ID is different (e.g., 3 = student)
+        $maleCount = User::where('role_id', 3)
+            ->where(fn($q) => $q->where('gender', 'Male')->orWhere('gender', 'male'))
+            ->count();
+
+        $femaleCount = User::where('role_id', 3)
+            ->where(fn($q) => $q->where('gender', 'Female')->orWhere('gender', 'female'))
+            ->count();
+
+        return view('admin.users.index', compact('users', 'totalUsers', 'search', 'roleFilter', 'maleCount', 'femaleCount'));
     }
 
     public function export(Request $request)

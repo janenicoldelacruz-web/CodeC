@@ -98,7 +98,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/users/export', [AdminUserController::class, 'export'])->name('users.export');      
         Route::get('/analytics/{type}', [AdminDashboardController::class, 'showAnalyticsReport'])->name('analytics.report');
         Route::resource('users', AdminUserController::class);
-    
 
         // --- Faculty Evaluation Routes ---
         Route::get('/evaluations', [AdminEvaluationController::class, 'index'])->name('evaluations');
@@ -152,7 +151,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/reports/evaluation', [AdminReportController::class, 'evaluation'])->name('reports.evaluation');
         Route::get('/reports/users', [AdminReportController::class, 'users'])->name('reports.users');
 
+        // Audit Logs Routes
         Route::get('/audit-logs', [AdminAuditLogController::class, 'index'])->name('audit-logs');
+        Route::get('/audit-logs/export', [AdminAuditLogController::class, 'export'])->name('audit-logs.export');
+
         Route::get('/settings', [AdminSettingController::class, 'settingsIndex'])->name('settings');
 
         Route::get('/kiosk', [NfcAttendanceController::class, 'kioskView'])->name('kiosk');
@@ -198,8 +200,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     */
     Route::middleware(['role:student'])->prefix('student')->name('student.')->group(function () {
         Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
-
-Route::get('/attendance', [StudentDashboardController::class, 'attendance'])->name('attendance');
+        Route::get('/attendance', [StudentDashboardController::class, 'attendance'])->name('attendance');
 
         // --- Student Evaluation Portal Routes ---
         Route::get('/evaluations', [StudentDashboardController::class, 'evaluationsIndex'])->name('evaluations.index');
