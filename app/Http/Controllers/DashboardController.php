@@ -44,14 +44,25 @@ class DashboardController extends Controller
             $query->where('section', $request->section);
         }
 
-        $students = $query->latest('id')->paginate(15);
+        $students = $query->latest('id')->paginate(15)->withQueryString();
 
-        // Live Database Demographics Counts
-        $maleCount = User::where('role_id', 3)->where('gender', 'Male')->count();
-        $femaleCount = User::where('role_id', 3)->where('gender', 'Female')->count();
+        // Live Database Demographics Counts (Case-Insensitive for Male/Female)
+        $maleCount = (clone $query)->where(function($q) {
+            $q->where('gender', 'LIKE', 'Male%')
+              ->orWhere('gender', 'LIKE', 'male%')
+              ->orWhere('gender', 'M')
+              ->orWhere('gender', 'm');
+        })->count();
 
-        // Live Database Section Populations
-        $sectionPopulations = User::where('role_id', 3)
+        $femaleCount = (clone $query)->where(function($q) {
+            $q->where('gender', 'LIKE', 'Female%')
+              ->orWhere('gender', 'LIKE', 'female%')
+              ->orWhere('gender', 'F')
+              ->orWhere('gender', 'f');
+        })->count();
+
+        // Live Database Section Populations (Respecting filters)
+        $sectionPopulations = (clone $query)
             ->whereNotNull('section')
             ->select('section', DB::raw('count(*) as total'))
             ->groupBy('section')

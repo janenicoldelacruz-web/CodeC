@@ -15,14 +15,14 @@ return new class extends Migration
             $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
             $table->string('first_name');
             $table->string('last_name');
-            $table->unsignedTinyInteger('gender')->nullable();
+            $table->string('gender', 20)->nullable(); // Changed to string to accept 'Male' or 'Female' from forms
             $table->string('email')->unique();
             $table->string('phone_number')->nullable();
             $table->string('parent_name')->nullable();
             $table->string('parent_phone_number')->nullable();
             $table->unsignedTinyInteger('grade_level')->nullable();
             $table->string('strand')->nullable();
-            $table->unsignedTinyInteger('section')->nullable();
+            $table->string('section')->nullable(); // Changed to string to support section names/numbers cleanly
             $table->string('password');
             $table->boolean('is_active')->default(true);
             $table->rememberToken();
@@ -34,7 +34,7 @@ return new class extends Migration
             'role_id'             => 1,
             'first_name'          => 'System',
             'last_name'           => 'Administrator',
-            'gender'              => 1,
+            'gender'              => 'Male', // Updated to string value
             'email'               => 'admin@siatrack.edu.ph',
             'phone_number'        => '09171234567',
             'parent_name'         => null,

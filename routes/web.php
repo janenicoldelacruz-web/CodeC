@@ -152,7 +152,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/reports/evaluation', [AdminReportController::class, 'evaluation'])->name('reports.evaluation');
         Route::get('/reports/users', [AdminReportController::class, 'users'])->name('reports.users');
 
+        // Audit Logs Routes
         Route::get('/audit-logs', [AdminAuditLogController::class, 'index'])->name('audit-logs');
+        Route::get('/audit-logs/export', [AdminAuditLogController::class, 'export'])->name('audit-logs.export');
+
         Route::get('/settings', [AdminSettingController::class, 'settingsIndex'])->name('settings');
 
         Route::get('/kiosk', [NfcAttendanceController::class, 'kioskView'])->name('kiosk');

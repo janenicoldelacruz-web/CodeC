@@ -1,4 +1,4 @@
-<aside x-data="{ collapsed: false }" 
+﻿<aside x-data="{ collapsed: false }" 
        @toggle-sidebar.window="collapsed = !collapsed"
        :class="collapsed ? 'w-20' : 'w-72'" 
        class="bg-[#590d0d] border-r border-red-950/40 flex flex-col justify-between shrink-0 h-screen fixed top-0 left-0 z-30 shadow-2xl transition-all duration-300">
@@ -116,13 +116,6 @@
                             </div>
                         </div>
 
-                        <!-- Announcements -->
-                        <a href="{{ route('admin.announcements') }}" 
-                           class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('admin.announcements*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
-                           title="Announcements">
-                            <i class="fa-solid fa-bullhorn text-base {{ request()->routeIs('admin.announcements*') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
-                           <span class="text-[13px]" x-show="!collapsed">Announcements</span>
-                        </a>
 
                         <!-- Reports with Sub-items -->
                         <div x-data="{ open: {{ request()->routeIs('admin.reports*') ? 'true' : 'false' }} }" class="space-y-1">
