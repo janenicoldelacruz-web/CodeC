@@ -115,34 +115,48 @@ class AdminEvaluationController extends Controller
                 }
             } elseif ($t === 'student') {
                 $items = [
-                    ['A. Mastery of Subject Matter', 'Discusses/Elaborates/Explains the lesson thoroughly without directly reading from books. (Ipinapaliwanag nang maayos ang aralin kahit hindi tumitingin sa mga libro.)'],
-                    ['A. Mastery of Subject Matter', 'Provides adequate and relevant examples and demonstrations to illustrate concepts and skills in the subject matter. (Nagbibigay ng sapat na halimbawa upang lalong maipaliwanag ang mga kaisipan.)'],
-                    ['A. Mastery of Subject Matter', 'Cites, relates, ties up lessons with other disciplines/subjects, when applicable. (Iniuugnay ang mga aralin sa ibang mga disiplina o asignatura kung kinakailangan.)'],
-                    ['A. Mastery of Subject Matter', 'Answers students\' questions/clarifications clearly. (Nagbibigay ng tama at malinaw na kasagutan sa mga katanungan ng mga mag-aaral.)'],
-                    ['A. Mastery of Subject Matter', 'Discusses considerable coverage of topics per session within the learning capabilities of students. (Tinatalakay ang sapat at angkop na aralin sa kakayahan ng mag-aaral.)'],
-                    ['B. Communication Skills', 'Communicates in clear, correct and coherent language that is suited to the student\'s level of understanding. (Malinaw ang pananalita at naaayon sa antas ng pagkaintindi ng isang mag-aaral.)'],
-                    ['B. Communication Skills', 'Shifts to another language/the vernacular WHEN NECESSARY for clearer communication. (Isinasalin sa Filipino o Iloco ang mga ideya KUNG KINAKAILANGAN para sa mas malinaw na paglalahad.)'],
-                    ['B. Communication Skills', 'Uses language that inspires students to listen. (Gumagamit ng lenggwaheng nakakahikayat sa mga mag-aaral.)'],
-                    ['B. Communication Skills', 'Speaks at appropriate speed and volume. (Tama ang bilis ng pagsasalita at lakas ng boses.)'],
-                    ['B. Communication Skills', 'Exhibits appropriate facial expressions and gestures and maintains eye contact with students when speaking. (Angkop ang ekspresyon ng mukha at galaw at nakatingin sa mga estudyante kapag nagsasalita.)'],
-                    ['C. Classroom Management', 'Capable of maintaining classroom discipline. (Napapanatili ang disiplina sa loob ng klase.)'],
-                    ['C. Classroom Management', 'Begins the class on time and does not dismiss before time. (Nagsisimula at natatapos sa tamang oras.)'],
-                    ['C. Classroom Management', 'Provides an environment that is pleasant and conducive to learning. (Sinisigurong maayos ang mga upuan at malinis ang silid-aralan bago simulan ang klase.)'],
-                    ['C. Classroom Management', 'Holds the attention/interest of students and is alert to respond to students\' reactions. (Napapanatili ang interes at listo sa pagtugon sa mga reaksyon ng mga mag-aaral.)'],
-                    ['C. Classroom Management', 'Encourages student participation and interaction. (Hinihikayat ang bawat mag-aaral na makibahagi sa talakayan.)'],
-                    ['D. Teaching Methodology', 'Uses appropriate teaching strategies, aids, devices and/or technology to support instruction. (Gumagamit ng mga makabagong pamamaraan sa pagtuturo.)'],
-                    ['D. Teaching Methodology', 'Asks relevant questions that bring about judgment and critical thinking and distributes them fairly. (Nagbibigay ng mga katanungang humihikayat ng kritikal na pag-iisip ng mga mag-aaral.)'],
-                    ['D. Teaching Methodology', 'Relates lessons to current situations and integrates values. (Iniuugnay ang leksyon sa mga praktikal na pangyayari.)'],
-                    ['D. Teaching Methodology', 'Gives at least three quizzes every grading period, written assignments, and recitations. (Nagbibigay ng tatlo o higit pang pagsasanay sa bawat kwarter.)'],
-                    ['D. Teaching Methodology', 'Recognizes student classroom participation. (Nagbibigay ng pagkakataong makibahagi ang bawat isa.)'],
-                    ['E. Teacher Professional & Personal Qualities', 'Always present for class in his/her prescribed school uniform. (Palaging naka-uniporme.)'],
-                    ['E. Teacher Professional & Personal Qualities', 'Respectable and dignified in his/her actions and words. (Respetado dahil sa kanyang mga salita at gawa.)'],
-                    ['E. Teacher Professional & Personal Qualities', 'Observes professional ethics in dealing with his/her students. (Pinapanatili ang dangal ng propesyon sa pakikisalamuha sa mga mag-aaral.)'],
-                    ['E. Teacher Professional & Personal Qualities', 'Makes himself/herself available and ready for student consultation. (May oras para sa konsultasyon sa labas ng silid-aralan.)'],
-                    ['E. Teacher Professional & Personal Qualities', 'Treats students fairly. (Patas ang turing sa bawat mag-aaral.)']
+                    ['A. Mastery of Subject Matter', 'Discusses/Elaborates/Explains the lesson thoroughly without directly reading from books.'],
+                    ['A. Mastery of Subject Matter', 'Provides adequate and relevant examples and demonstrations to illustrate concepts and skills.'],
+                    ['A. Mastery of Subject Matter', 'Cites, relates, ties up lessons with other disciplines/subjects, when applicable.'],
+                    ['A. Mastery of Subject Matter', 'Answers students\' questions/clarifications clearly.'],
+                    ['A. Mastery of Subject Matter', 'Discusses considerable coverage of topics per session within learning capabilities.'],
+                    ['B. Communication Skills', 'Communicates in clear, correct and coherent language suited to student level.'],
+                    ['B. Communication Skills', 'Shifts to vernacular WHEN NECESSARY for clearer communication.'],
+                    ['B. Communication Skills', 'Uses language that inspires students to listen.'],
+                    ['B. Communication Skills', 'Speaks at appropriate speed and volume.'],
+                    ['B. Communication Skills', 'Exhibits appropriate facial expressions, gestures, and eye contact.'],
+                    ['C. Classroom Management', 'Capable of maintaining classroom discipline.'],
+                    ['C. Classroom Management', 'Begins the class on time and does not dismiss before time.'],
+                    ['C. Classroom Management', 'Provides an environment pleasant and conducive to learning.'],
+                    ['C. Classroom Management', 'Holds the attention/interest of students and responds to reactions.'],
+                    ['C. Classroom Management', 'Encourages student participation and interaction.'],
+                    ['D. Teaching Methodology', 'Uses appropriate teaching strategies, aids, devices and/or technology.'],
+                    ['D. Teaching Methodology', 'Asks relevant questions that bring about critical thinking.'],
+                    ['D. Teaching Methodology', 'Relates lessons to current situations and integrates values.'],
+                    ['D. Teaching Methodology', 'Gives quizzes, written assignments, and recitations regularly.'],
+                    ['D. Teaching Methodology', 'Recognizes student classroom participation.'],
+                    ['E. Teacher Professional & Personal Qualities', 'Always present for class in prescribed school uniform.'],
+                    ['E. Teacher Professional & Personal Qualities', 'Respectable and dignified in actions and words.'],
+                    ['E. Teacher Professional & Personal Qualities', 'Observes professional ethics in dealing with students.'],
+                    ['E. Teacher Professional & Personal Qualities', 'Makes himself/herself available for student consultation.'],
+                    ['E. Teacher Professional & Personal Qualities', 'Treats students fairly.']
                 ];
                 foreach ($items as $i => $item) {
                     $records[] = ['form_type' => 'student', 'category' => $item[0], 'question' => $item[1], 'order_num' => $i + 1, 'is_active' => 1, 'created_at' => $now, 'updated_at' => $now];
+                }
+            } elseif ($t === 'self') {
+                $items = [
+                    ['I. Teaching Performance & Delivery', 'I regularly reflect on my teaching effectiveness and instructional outcomes.'],
+                    ['I. Teaching Performance & Delivery', 'I design lesson plans that clearly target learning competencies and student needs.'],
+                    ['I. Teaching Performance & Delivery', 'I employ interactive teaching methods and relevant educational technology.'],
+                    ['II. Professional Growth & Development', 'I actively engage in professional development activities, seminars, and training.'],
+                    ['II. Professional Growth & Development', 'I continuously update my knowledge and skills in my field of specialization.'],
+                    ['III. Professional Conduct & Ethics', 'I consistently adhere to institutional policies, core values, and ethical standards.'],
+                    ['III. Professional Conduct & Ethics', 'I maintain positive, collaborative, and professional rapport with peers and superiors.'],
+                    ['III. Professional Conduct & Ethics', 'I demonstrate punctuality, accountability, and dedication to institutional duties.']
+                ];
+                foreach ($items as $i => $item) {
+                    $records[] = ['form_type' => 'self', 'category' => $item[0], 'question' => $item[1], 'order_num' => $i + 1, 'is_active' => 1, 'created_at' => $now, 'updated_at' => $now];
                 }
             }
 
@@ -191,6 +205,7 @@ class AdminEvaluationController extends Controller
             'principal' => DB::table('evaluation_questions')->where('form_type', 'principal')->count(),
             'peer'      => DB::table('evaluation_questions')->where('form_type', 'peer')->count(),
             'student'   => DB::table('evaluation_questions')->where('form_type', 'student')->count(),
+            'self'      => DB::table('evaluation_questions')->where('form_type', 'self')->count(),
         ];
 
         return view('admin.evaluations.periods', compact('activePeriod', 'allQuestions', 'groupedQuestions', 'selectedType', 'counts'));
@@ -214,7 +229,6 @@ class AdminEvaluationController extends Controller
         $statusNormalized = strtolower($request->status);
         $isOpen = ($statusNormalized === 'open');
 
-        // I-save sa Cache para madaling makuha ng Student sidebar
         Cache::put('evaluations_open', $isOpen);
 
         if (Schema::hasTable('academic_periods')) {

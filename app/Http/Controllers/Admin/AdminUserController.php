@@ -298,15 +298,22 @@ class AdminUserController extends Controller
         return back()->with('profile_success', 'Administrator profile updated successfully!');
     }
 
-    public function destroy($id)
+   public function destroy($id)
     {
+        // Proteksyon laban sa pag-delete ng sariling account
+        if (auth()->id() == (int)$id) {
+            return redirect()->route('admin.users.index')->with('error', 'You cannot delete your own active administrator account.');
+        }
+
         $user = User::findOrFail($id);
         $name = "{$user->first_name} {$user->last_name}";
+        
         if (Schema::hasTable('nfc_cards')) {
             NfcCard::where('user_id', $user->id)->delete();
         }
+        
         $user->delete();
 
-        return redirect()->route('admin.users.index')->with('success', "User '{$name}' deleted successfully!");
+        return redirect()->route('admin.users.index')->with('success', "User '{$name}' successfully removed!");
     }
 }

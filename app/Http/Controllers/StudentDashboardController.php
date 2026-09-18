@@ -16,12 +16,12 @@ class StudentDashboardController extends Controller
 
         // 1. Retrieve Registration Details from users / students / academic_sections
         $gradeLevel = null;
-        $strand     = null;
+        $strand    = null;
         $section    = null;
 
         // Check columns directly in the users record
         $gradeLevel = $user->grade_level ?? $user->grade ?? $user->year_level ?? null;
-        $strand     = $user->strand ?? $user->track ?? $user->course ?? $user->program ?? null;
+        $strand    = $user->strand ?? $user->track ?? $user->course ?? $user->program ?? null;
         $section    = $user->section ?? $user->section_name ?? null;
 
         // Check separate students / student_profiles table if it exists
@@ -33,7 +33,7 @@ class StudentDashboardController extends Controller
 
             if ($studentProfile) {
                 $gradeLevel = $gradeLevel ?? $studentProfile->grade_level ?? $studentProfile->grade ?? $studentProfile->year_level ?? null;
-                $strand     = $strand ?? $studentProfile->strand ?? $studentProfile->track ?? $studentProfile->course ?? null;
+                $strand    = $strand ?? $studentProfile->strand ?? $studentProfile->track ?? $studentProfile->course ?? null;
                 $section    = $section ?? $studentProfile->section ?? $studentProfile->section_name ?? null;
                 if (!empty($studentProfile->section_id) && empty($user->section_id)) {
                     $user->section_id = $studentProfile->section_id;
@@ -47,7 +47,7 @@ class StudentDashboardController extends Controller
             if ($sectionRow) {
                 $section    = $section ?? $sectionRow->name ?? $sectionRow->section_name ?? $sectionRow->section ?? null;
                 $gradeLevel = $gradeLevel ?? $sectionRow->grade_level ?? $sectionRow->grade ?? $sectionRow->year_level ?? null;
-                $strand     = $strand ?? $sectionRow->strand ?? $sectionRow->track ?? null;
+                $strand    = $strand ?? $sectionRow->strand ?? $sectionRow->track ?? null;
             }
         }
 
@@ -206,17 +206,35 @@ class StudentDashboardController extends Controller
     }
 
     // ==========================================
-    // MGA IDINAGDAG NA STUDENT EVALUATION METHODS
+    // STUDENT EVALUATION METHODS (WITH DUPLICATE CHECK)
     // ==========================================
 
     public function evaluationsIndex()
     {
         $facultyMembers = User::where('role_id', 2)->orderBy('last_name', 'asc')->get();
-        return view('student.evaluations.index', compact('facultyMembers'));
+        
+        // Kunin ang mga IDs ng guro na nasagutan na ng kasalukuyang estudyante
+        $evaluatedTeacherIds = DB::table('peer_evaluations')
+            ->where('evaluator_id', auth()->id())
+            ->pluck('evaluatee_id')
+            ->toArray();
+
+        return view('student.evaluations.index', compact('facultyMembers', 'evaluatedTeacherIds'));
     }
 
     public function takeEvaluation($teacherId)
     {
+        // Proteksyon: Kung tapos na i-evaluate, i-redirect pabalik na may kasamang mensahe
+        $alreadyEvaluated = DB::table('peer_evaluations')
+            ->where('evaluator_id', auth()->id())
+            ->where('evaluatee_id', $teacherId)
+            ->exists();
+
+        if ($alreadyEvaluated) {
+            return redirect()->route('student.evaluations.index')
+                ->with('error', 'You have already evaluated this instructor.');
+        }
+
         $teacher = User::where('id', $teacherId)->where('role_id', 2)->firstOrFail();
         
         $questions = DB::table('evaluation_questions')
@@ -238,6 +256,17 @@ class StudentDashboardController extends Controller
             'scores.*'     => 'required|integer|between:1,5',
             'comments'     => 'nullable|string|max:1000',
         ]);
+
+        // Double check kung naka-evaluate na para maiwasan ang double submit
+        $alreadyEvaluated = DB::table('peer_evaluations')
+            ->where('evaluator_id', auth()->id())
+            ->where('evaluatee_id', $request->evaluatee_id)
+            ->exists();
+
+        if ($alreadyEvaluated) {
+            return redirect()->route('student.evaluations.index')
+                ->with('error', 'You have already submitted an evaluation for this instructor.');
+        }
 
         $scores = $request->input('scores');
         $averageScore = count($scores) > 0 ? round(array_sum($scores) / count($scores), 2) : 0;

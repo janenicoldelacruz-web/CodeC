@@ -18,7 +18,7 @@ class LoginController extends Controller
     }
 
     /**
-     * Unified login handler: Username/ID Number or Email with plain-text password for all roles.
+     * Unified login handler: ID Number or Email with plain-text password for all roles.
      */
     public function login(Request $request)
     {
@@ -29,12 +29,12 @@ class LoginController extends Controller
 
         $loginInput = trim($request->username);
 
-        // 1. Hanapin ang user gamit ang id_number (Username/ID) o email (case-insensitive)
+        // Hanapin ang user gamit ang id_number o email (case-insensitive)
         $user = User::where('id_number', $loginInput)
                     ->orWhereRaw('LOWER(email) = ?', [strtolower($loginInput)])
                     ->first();
 
-        // 2. Direct string comparison (Plain text check - iwas BcryptHasher crash)
+        // Direct string comparison para sa plain-text password
         if ($user && $user->password === $request->password) {
 
             // Check kung active ang account
@@ -44,7 +44,7 @@ class LoginController extends Controller
                 ])->onlyInput('username');
             }
 
-            // 3. Manu-manong i-authenticate ang session
+            // Manu-manong i-authenticate ang session
             Auth::login($user, $request->filled('remember'));
             $request->session()->regenerate();
 
@@ -75,7 +75,7 @@ class LoginController extends Controller
             // Redirect sa kani-kanilang dashboard
             return match ($actualRole) {
                 'admin'   => redirect()->route('admin.dashboard'),
-                'teacher' => redirect()->route('teacher.attendance'), // Naka-set na sa attendance bago ang schedule
+                'teacher' => redirect()->route('teacher.attendance'),
                 'student' => redirect()->route('student.dashboard'),
                 default   => redirect('/'),
             };

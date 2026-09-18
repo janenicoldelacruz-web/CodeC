@@ -18,6 +18,20 @@
         </div>
     </div>
 
+    @if(session('success'))
+        <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-2xl flex items-center gap-3">
+            <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+            <span>{{ session('success') }}</span>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold rounded-2xl flex items-center gap-3">
+            <i class="fa-solid fa-triangle-exclamation text-rose-600 text-base"></i>
+            <span>{{ session('error') }}</span>
+        </div>
+    @endif
+
     <!-- Single Main Container -->
     <div class="bg-white rounded-3xl border-2 border-slate-200 shadow-xs overflow-hidden">
         
@@ -80,10 +94,24 @@
                             <td class="py-4 px-6 text-slate-600">
                                 {{ $user->email ?? 'No email provided' }}
                             </td>
-                            <td class="py-4 px-6 text-right space-x-2">
-                                <a href="{{ route('admin.users.edit', $user->id) }}" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 inline-flex items-center justify-center transition">
-                                    <i class="fa-solid fa-pen text-xs"></i>
-                                </a>
+                            <td class="py-4 px-6 text-right">
+                                <div class="inline-flex items-center justify-end gap-2">
+                                    <!-- Edit Button -->
+                                    <a href="{{ route('admin.users.edit', $user->id) }}" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 inline-flex items-center justify-center transition" title="Edit User">
+                                        <i class="fa-solid fa-pen text-xs"></i>
+                                    </a>
+
+                                    <!-- Remove / Delete Button (Huwag ipakita kung sarili mong account) -->
+                                    @if(auth()->id() !== $user->id)
+                                        <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to remove this user?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="w-8 h-8 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 inline-flex items-center justify-center transition" title="Remove User">
+                                                <i class="fa-solid fa-trash text-xs"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty

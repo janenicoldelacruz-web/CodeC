@@ -59,7 +59,44 @@ class TeacherDashboardController extends Controller
         $schedules = $mySchedules; // Alias in case the view loops through $schedules
         return view('teacher.schedules', compact('teacher', 'mySchedules', 'schedules', 'search'));
     }
+// MAIN DASHBOARD METHOD (Real Data Only)
+    public function index()
+    {
+        $teacher = Auth::user();
 
+        // 1. Bilangin ang kabuuang klase na hawak ng teacher
+        $totalClasses = 0;
+        $todaysClasses = collect([]);
+        
+        if (Schema::hasTable('class_schedules')) {
+            $schedCols = Schema::getColumnListing('class_schedules');
+            $teacherCol = in_array('teacher_id', $schedCols) ? 'teacher_id' : (in_array('user_id', $schedCols) ? 'user_id' : null);
+            
+            if ($teacherCol) {
+                $totalClasses = ClassSchedule::where($teacherCol, $teacher->id)->count();
+                
+                // Kunin ang mga klase ngayong araw kung may 'day' column
+                if (in_array('day', $schedCols)) {
+                    $today = now()->format('l'); // Halimbawa: 'Monday'
+                    
+                    // Tinanggal natin ang orderBy('time_start') para hindi mag-error
+                    $todaysClasses = ClassSchedule::where($teacherCol, $teacher->id)
+                                        ->where('day', $today)
+                                        ->get();
+                } else {
+                    // Fallback kung walang 'day' column, kunin na lang lahat ng klase
+                    $todaysClasses = ClassSchedule::where($teacherCol, $teacher->id)->take(5)->get();
+                }
+            }
+        }
+
+        // 2. Bilangin ang kabuuang enrolled students sa system (role_id = 3)
+        $totalStudents = Schema::hasTable('users') 
+            ? User::where('role_id', 3)->count() 
+            : 0;
+
+        return view('teacher.dashboard', compact('teacher', 'totalClasses', 'totalStudents', 'todaysClasses'));
+    }
     // PROFILE UPDATE METHOD (Handles the Edit Faculty Profile modal)
     public function updateProfile(Request $request)
     {
@@ -100,6 +137,74 @@ class TeacherDashboardController extends Controller
         return redirect()->back()->with('success', 'Faculty profile updated successfully!');
     }
 
+    // SCHOOL YEAR & SECTIONS METHOD (Real Data Only)
+    public function schoolYears()
+    {
+        $teacher = Auth::user();
+
+        // Kukunin lang ang totoong data mula sa database
+        $schoolYears = Schema::hasTable('school_years') 
+            ? DB::table('school_years')->orderBy('start_date', 'desc')->get() 
+            : collect([]); 
+
+        $sections = Schema::hasTable('sections') 
+            ? DB::table('sections')->orderBy('name', 'asc')->get() 
+            : collect([]);
+
+        return view('teacher.school-years', compact('teacher', 'schoolYears', 'sections'));
+    }
+
+    // STUDENT DIRECTORY METHOD (Real Data Only)
+    public function students()
+    {
+        $teacher = Auth::user();
+
+        // Kukunin ang mga estudyante (role_id = 3) mula sa database
+        $students = Schema::hasTable('users') 
+            ? User::where('role_id', 3)->orderBy('last_name', 'asc')->get() 
+            : collect([]);
+
+        return view('teacher.students', compact('teacher', 'students'));
+    }
+// MESSAGE INBOX METHOD (Real Data Only)
+    public function messages()
+    {
+        $teacher = Auth::user();
+
+        $messages = collect([]);
+
+        // I-check kung may 'messages' table sa database para iwas error
+        if (Schema::hasTable('messages')) {
+            $messages = DB::table('messages')
+                // I-join natin sa users table para makuha ang pangalan ng nag-send
+                ->leftJoin('users as senders', 'messages.sender_id', '=', 'senders.id')
+                ->where('messages.receiver_id', $teacher->id)
+                ->select('messages.*', 'senders.first_name', 'senders.last_name')
+                ->orderBy('messages.created_at', 'desc')
+                ->get();
+        }
+
+        return view('teacher.messages', compact('teacher', 'messages'));
+    }
+    // REPORT DASHBOARD METHOD (Real Data Only)
+    public function reports()
+    {
+        $teacher = Auth::user();
+
+        // Kukunin ang mga klase na hawak ng teacher bilang basehan ng mga reports
+        $myClasses = collect([]);
+        if (Schema::hasTable('class_schedules')) {
+            $schedCols = Schema::getColumnListing('class_schedules');
+            $teacherCol = in_array('teacher_id', $schedCols) ? 'teacher_id' : (in_array('user_id', $schedCols) ? 'user_id' : null);
+            
+            if ($teacherCol) {
+                // Kunin lang ang mga klase ng naka-login na teacher
+                $myClasses = ClassSchedule::where($teacherCol, $teacher->id)->get();
+            }
+        }
+
+        return view('teacher.reports', compact('teacher', 'myClasses'));
+    }
     public function attendance()
     {
         $teacher = Auth::user();

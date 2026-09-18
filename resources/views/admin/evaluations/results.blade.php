@@ -78,16 +78,16 @@
             <div class="bg-white border-2 border-slate-200 rounded-3xl p-6 sm:p-7 shadow-xs flex flex-col justify-between space-y-4">
                 <div>
                     <h3 class="text-base font-black text-slate-900">Rating Distribution</h3>
-                    <p class="text-xs text-slate-500 font-bold">Faculty categorization based on mean score[cite: 1, 3]</p>
+                    <p class="text-xs text-slate-500 font-bold">Faculty categorization based on mean score</p>
                 </div>
                 <div class="relative w-full h-56 flex items-center justify-center">
                     <canvas id="distributionChart"></canvas>
                 </div>
                 <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-[11px] font-bold">
                     <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span> Outstanding ({{ $distributionValues[0] }})</span>
-                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#3b82f6]"></span> Very Satisfactory ({{ $distributionValues[1] }})[cite: 3]</span>
-                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#f59e0b]"></span> Satisfactory ({{ $distributionValues[2] }})[cite: 3]</span>
-                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#ef4444]"></span> Needs Imp. ({{ $distributionValues[3] }})[cite: 3]</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#3b82f6]"></span> Very Satisfactory ({{ $distributionValues[1] }})</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#f59e0b]"></span> Satisfactory ({{ $distributionValues[2] }})</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#ef4444]"></span> Needs Imp. ({{ $distributionValues[3] }})</span>
                 </div>
             </div>
 

@@ -36,7 +36,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 
-    // Faculty Evaluation
+    // Faculty Evaluation public overview if needed
     Route::get('/evaluations', [AdminEvaluationController::class, 'index'])->name('evaluations');
     Route::post('/evaluations/toggle-status', [AdminEvaluationController::class, 'toggleStatus'])->name('evaluations.toggle');
     Route::get('/evaluations/periods', [AdminEvaluationController::class, 'periods'])->name('evaluations.periods');
@@ -98,14 +98,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/users/export', [AdminUserController::class, 'export'])->name('users.export');      
         Route::get('/analytics/{type}', [AdminDashboardController::class, 'showAnalyticsReport'])->name('analytics.report');
         Route::resource('users', AdminUserController::class);
-    
 
-        // --- Faculty Evaluation Routes ---
+        // --- Faculty Evaluation Routes (Admin & Questions Management) ---
         Route::get('/evaluations', [AdminEvaluationController::class, 'index'])->name('evaluations');
+        Route::get('/evaluations/monitoring', [FacultyEvaluationController::class, 'monitoring'])->name('evaluations.monitoring');
         Route::get('/evaluations/periods', [AdminEvaluationController::class, 'periods'])->name('evaluations.periods');
         Route::post('/evaluations/periods/save', [AdminEvaluationController::class, 'savePeriod'])->name('evaluations.periods.save');
         Route::get('/evaluations/results', [AdminEvaluationController::class, 'results'])->name('evaluations.results');
         Route::post('/evaluations/toggle-status', [AdminEvaluationController::class, 'toggleStatus'])->name('evaluations.toggle');
+
+        // Questions CRUD & Reset Routes (Sinangkapan ng parehong GET at POST para maiwasan ang 404)
+        Route::post('/evaluations/questions', [AdminEvaluationController::class, 'storeQuestion'])->name('evaluations.questions.store');
+        Route::put('/evaluations/questions/{id}', [AdminEvaluationController::class, 'updateQuestion'])->name('evaluations.questions.update');
+        Route::delete('/evaluations/questions/{id}', [AdminEvaluationController::class, 'destroyQuestion'])->name('evaluations.questions.destroy');
+        Route::match(['get', 'post'], '/evaluations/questions/reset', [AdminEvaluationController::class, 'resetQuestions'])->name('evaluations.questions.reset');
+        Route::match(['get', 'post'], '/evaluations/periods/reset', [AdminEvaluationController::class, 'resetQuestions'])->name('evaluations.periods.reset');
 
         Route::prefix('nfc')->name('nfc.')->group(function () {
             Route::get('/binding', [AdminNfcController::class, 'bindingIndex'])->name('binding');
@@ -137,13 +144,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/attendance/override', [AdminAttendanceController::class, 'override'])->name('attendance.override');
         Route::get('/attendance/export', [AdminAttendanceController::class, 'export'])->name('attendance.export');
 
-        // Faculty Evaluation Routes (Includes Monitoring Route)
-        Route::get('/evaluations', [AdminEvaluationController::class, 'index'])->name('evaluations');
-        Route::get('/evaluations/monitoring', [FacultyEvaluationController::class, 'monitoring'])->name('evaluations.monitoring');
-        Route::post('/evaluations/toggle-status', [AdminEvaluationController::class, 'toggleStatus'])->name('evaluations.toggle');
-        Route::get('/evaluations/periods', [AdminEvaluationController::class, 'periods'])->name('evaluations.periods');
-        Route::get('/evaluations/results', [AdminEvaluationController::class, 'results'])->name('evaluations.results');
-
         Route::get('/announcements', [AdminAnnouncementController::class, 'index'])->name('announcements');
 
         Route::get('/reports', [AdminReportController::class, 'index'])->name('reports');
@@ -168,12 +168,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/reports', [AdminReportController::class, 'index'])->name('reports');
     });
 
-    /*
+  /*
     |--------------------------------------------------------------------------
     | Teacher / Faculty Routes
     |--------------------------------------------------------------------------
     */
     Route::middleware(['role:teacher'])->prefix('teacher')->name('teacher.')->group(function () {
+        
+        // --- MGA BAGONG ROUTES MULA SA CUMUQR ---
+        Route::get('/dashboard', [TeacherDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/school-years', [TeacherDashboardController::class, 'schoolYears'])->name('school-years');
+        Route::get('/students', [TeacherDashboardController::class, 'students'])->name('students');
+        Route::get('/messages', [TeacherDashboardController::class, 'messages'])->name('messages');
+        Route::get('/reports', [TeacherDashboardController::class, 'reports'])->name('reports');
+
+        // --- MGA ORINHAL NA ROUTES NG SIATRACK ---
         Route::get('/schedule', [TeacherDashboardController::class, 'schedule'])->name('schedules');
         Route::post('/schedule/update', [TeacherDashboardController::class, 'updateSchedule'])->name('schedule.update');
         Route::get('/schedule/{id}/students', [TeacherDashboardController::class, 'classList'])->name('schedule.students');
@@ -198,8 +207,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     */
     Route::middleware(['role:student'])->prefix('student')->name('student.')->group(function () {
         Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
-
-Route::get('/attendance', [StudentDashboardController::class, 'attendance'])->name('attendance');
+        Route::get('/attendance', [StudentDashboardController::class, 'attendance'])->name('attendance');
 
         // --- Student Evaluation Portal Routes ---
         Route::get('/evaluations', [StudentDashboardController::class, 'evaluationsIndex'])->name('evaluations.index');

@@ -161,18 +161,53 @@
                     </div>
                 </div>
 
-            {{-- ==================== TEACHER NAVIGATION ==================== --}}
+           {{-- ==================== TEACHER NAVIGATION ==================== --}}
             @elseif(auth()->user()->role_id === 2)
                 <div>
                     <p class="px-3 text-[10px] font-black uppercase tracking-wider text-red-200/60 mb-2" x-show="!collapsed">Faculty Portal</p>
                     <div class="space-y-1 text-sm font-bold">
-                        <!-- Attendance -->
+                        
+                        <!-- Dashboard (Bago) -->
+                        <a href="{{ route('teacher.dashboard') }}" 
+                           class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('teacher.dashboard*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
+                           title="Dashboard">
+                            <i class="fa-solid fa-gauge text-base {{ request()->routeIs('teacher.dashboard*') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
+                            <span class="text-[13px]" x-show="!collapsed">Dashboard</span>
+                        </a>
+
+                        <!-- School Year and Sections (Bago) -->
+                        <a href="{{ route('teacher.school-years') }}" 
+                           class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('teacher.school-years*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
+                           title="School Year and Sections">
+                            <i class="fa-solid fa-layer-group text-base {{ request()->routeIs('teacher.school-years*') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
+                            <span class="text-[13px]" x-show="!collapsed">School Year & Sections</span>
+                        </a>
+
+                        <!-- Student (Bago) -->
+                        <a href="{{ route('teacher.students') }}" 
+                           class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('teacher.students*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
+                           title="Student">
+                            <i class="fa-solid fa-user-graduate text-base {{ request()->routeIs('teacher.students*') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
+                            <span class="text-[13px]" x-show="!collapsed">Student</span>
+                        </a>
+
+                        <!-- Message (Bago) -->
+                        <a href="{{ route('teacher.messages') }}" 
+                           class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('teacher.messages*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
+                           title="Message">
+                            <i class="fa-solid fa-envelope text-base {{ request()->routeIs('teacher.messages*') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
+                            <span class="text-[13px]" x-show="!collapsed">Message</span>
+                        </a>
+
+                        <!-- Attendance (Dati na sa SIATRACK) -->
                         <a href="{{ route('teacher.attendance') }}" 
                            class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('teacher.attendance*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
                            title="Attendance">
                             <i class="fa-solid fa-clipboard-user text-base {{ request()->routeIs('teacher.attendance*') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
                             <span class="text-[13px]" x-show="!collapsed">Attendance</span>
-                        </a>                        <!-- Class Schedule -->
+                        </a>                        
+                        
+                        <!-- Class Schedule (Dati na sa SIATRACK) -->
                         <a href="{{ route('teacher.schedules') }}" 
                            class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('teacher.schedules*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
                            title="Class Schedule">
@@ -180,12 +215,28 @@
                             <span class="text-[13px]" x-show="!collapsed">Class Schedule</span>
                         </a>
 
-                        <!-- Faculty Evaluation (Peer & Self) -->
+                        <!-- Report (Bago) -->
+                        <a href="{{ route('teacher.reports') }}" 
+                           class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('teacher.reports*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
+                           title="Report">
+                            <i class="fa-solid fa-chart-pie text-base {{ request()->routeIs('teacher.reports*') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
+                            <span class="text-[13px]" x-show="!collapsed">Report</span>
+                        </a>
+
+                        <!-- Faculty Evaluation (Dati na sa SIATRACK) -->
                         <a href="{{ route('teacher.evaluations.index') }}" 
                            class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('teacher.evaluations*') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
                            title="Faculty Evaluation">
                             <i class="fa-solid fa-star-half-stroke text-base {{ request()->routeIs('teacher.evaluations*') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
                             <span class="text-[13px]" x-show="!collapsed">Faculty Evaluation</span>
+                        </a>
+
+                        <!-- Manage Account (Bago) -->
+                        <a href="{{ route('profile.edit') }}" 
+                           class="group flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition duration-150 {{ request()->routeIs('profile.edit') ? 'bg-amber-400 text-amber-950 shadow-md' : 'text-white hover:bg-red-900/50 hover:text-amber-200' }}"
+                           title="Manage Account">
+                            <i class="fa-solid fa-user-gear text-base {{ request()->routeIs('profile.edit') ? 'text-amber-950' : 'text-amber-300 group-hover:text-white' }}"></i>
+                            <span class="text-[13px]" x-show="!collapsed">Manage Account</span>
                         </a>
                     </div>
                 </div>

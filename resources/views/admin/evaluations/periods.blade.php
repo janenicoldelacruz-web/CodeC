@@ -93,28 +93,35 @@
             </div>
         </div>
 
-        <!-- Sleek Segmented Form Tabs -->
+        <!-- Sleek Segmented Form Tabs (Idinagdag ang Self Evaluation) -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
             <div class="inline-flex p-1.5 bg-slate-200/80 rounded-2xl gap-1.5 border border-slate-300/70 w-full sm:w-auto overflow-x-auto">
                 <a href="{{ url('admin/evaluations/periods?type=principal') }}" 
                    class="px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition whitespace-nowrap flex items-center gap-2 {{ $selectedType === 'principal' ? 'bg-white text-[#8b1818] shadow-sm font-black' : 'text-slate-600 hover:text-slate-900 hover:bg-white/40' }}">
                     <i class="fa-solid fa-user-tie text-xs"></i>
                     <span>Principal's Evaluation</span>
-                    <span class="px-2 py-0.5 rounded-md text-[10px] {{ $selectedType === 'principal' ? 'bg-red-50 text-[#8b1818]' : 'bg-slate-300 text-slate-700' }}">{{ $counts['principal'] }}</span>
+                    <span class="px-2 py-0.5 rounded-md text-[10px] {{ $selectedType === 'principal' ? 'bg-red-50 text-[#8b1818]' : 'bg-slate-300 text-slate-700' }}">{{ $counts['principal'] ?? 0 }}</span>
                 </a>
 
                 <a href="{{ url('admin/evaluations/periods?type=peer') }}" 
                    class="px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition whitespace-nowrap flex items-center gap-2 {{ $selectedType === 'peer' ? 'bg-white text-[#8b1818] shadow-sm font-black' : 'text-slate-600 hover:text-slate-900 hover:bg-white/40' }}">
                     <i class="fa-solid fa-users text-xs"></i>
                     <span>Peer Evaluation</span>
-                    <span class="px-2 py-0.5 rounded-md text-[10px] {{ $selectedType === 'peer' ? 'bg-red-50 text-[#8b1818]' : 'bg-slate-300 text-slate-700' }}">{{ $counts['peer'] }}</span>
+                    <span class="px-2 py-0.5 rounded-md text-[10px] {{ $selectedType === 'peer' ? 'bg-red-50 text-[#8b1818]' : 'bg-slate-300 text-slate-700' }}">{{ $counts['peer'] ?? 0 }}</span>
                 </a>
 
                 <a href="{{ url('admin/evaluations/periods?type=student') }}" 
                    class="px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition whitespace-nowrap flex items-center gap-2 {{ $selectedType === 'student' ? 'bg-white text-[#8b1818] shadow-sm font-black' : 'text-slate-600 hover:text-slate-900 hover:bg-white/40' }}">
                     <i class="fa-solid fa-graduation-cap text-xs"></i>
                     <span>Student Evaluation</span>
-                    <span class="px-2 py-0.5 rounded-md text-[10px] {{ $selectedType === 'student' ? 'bg-red-50 text-[#8b1818]' : 'bg-slate-300 text-slate-700' }}">{{ $counts['student'] }}</span>
+                    <span class="px-2 py-0.5 rounded-md text-[10px] {{ $selectedType === 'student' ? 'bg-red-50 text-[#8b1818]' : 'bg-slate-300 text-slate-700' }}">{{ $counts['student'] ?? 0 }}</span>
+                </a>
+
+                <a href="{{ url('admin/evaluations/periods?type=self') }}" 
+                   class="px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition whitespace-nowrap flex items-center gap-2 {{ $selectedType === 'self' ? 'bg-white text-[#8b1818] shadow-sm font-black' : 'text-slate-600 hover:text-slate-900 hover:bg-white/40' }}">
+                    <i class="fa-solid fa-user-pen text-xs"></i>
+                    <span>Self Evaluation</span>
+                    <span class="px-2 py-0.5 rounded-md text-[10px] {{ $selectedType === 'self' ? 'bg-red-50 text-[#8b1818]' : 'bg-slate-300 text-slate-700' }}">{{ $counts['self'] ?? 0 }}</span>
                 </a>
             </div>
 
@@ -131,7 +138,7 @@
 
         <!-- Categorized Indicators Accordion & Cards -->
         <div class="space-y-6">
-            @forelse($groupedQuestions as $category => $items)
+            @forelse($groupedQuestions ?? [] as $category => $items)
                 <div class="bg-white border-2 border-slate-200/90 rounded-3xl overflow-hidden shadow-xs">
                     <!-- Category Header Bar -->
                     <div class="bg-slate-50/90 border-b-2 border-slate-200/90 px-6 sm:px-8 py-4 flex items-center justify-between">
